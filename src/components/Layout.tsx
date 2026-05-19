@@ -24,6 +24,7 @@ export function Layout() {
             <div>
               <NavLink to="/admin">{t.admin}</NavLink>
               <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
+              <NavLink to="/admin/emergency">Emergency</NavLink>
               <NavLink to="/admin/groups">{t.groups}</NavLink>
               <NavLink to="/staff">Staff</NavLink>
               <NavLink to="/admin/requests">{t.requests}</NavLink>

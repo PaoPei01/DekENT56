@@ -5,6 +5,7 @@ import { StaffGuard } from './components/StaffGuard';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { ChangeLogPage } from './pages/ChangeLogPage';
+import { EmergencyDashboardPage } from './pages/EmergencyDashboardPage';
 import { GroupDashboardPage } from './pages/GroupDashboardPage';
 import { PendingRequestsPage } from './pages/PendingRequestsPage';
 import { PublicListPage } from './pages/PublicListPage';
@@ -23,6 +24,7 @@ export function App() {
         </Route>
         <Route element={<AdminGuard />}>
           <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="admin/emergency" element={<EmergencyDashboardPage />} />
           <Route path="admin/groups" element={<GroupDashboardPage />} />
           <Route path="admin/requests" element={<PendingRequestsPage />} />
           <Route path="admin/logs" element={<ChangeLogPage />} />

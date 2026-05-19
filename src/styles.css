@@ -1021,6 +1021,105 @@ th {
   margin: 0;
 }
 
+.emergency-page {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.emergency-notice,
+.emergency-card-head,
+.call-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.emergency-notice {
+  border-color: rgba(201, 52, 68, 0.24);
+  background: rgba(255, 243, 244, 0.82);
+  color: #6d1822;
+}
+
+.emergency-notice strong,
+.emergency-notice span {
+  display: block;
+}
+
+.emergency-toolbar {
+  position: sticky;
+  top: 76px;
+  z-index: 15;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.emergency-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.emergency-card {
+  display: grid;
+  gap: 0.9rem;
+  border-color: rgba(201, 52, 68, 0.16);
+}
+
+.emergency-card-head {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.emergency-card-head h2,
+.emergency-card-head p {
+  margin: 0;
+}
+
+.emergency-card-head p,
+.emergency-card-head span {
+  color: var(--text-soft);
+}
+
+.emergency-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.call-card {
+  border-radius: 20px;
+  padding: 0.9rem;
+  background: rgba(248, 251, 255, 0.86);
+  border: 1px solid rgba(132, 155, 190, 0.18);
+}
+
+.call-card span,
+.call-card strong {
+  display: block;
+}
+
+.call-card span {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.primary-call {
+  color: white;
+  background: linear-gradient(180deg, #e04456, #b91f35);
+  border: 0;
+}
+
+.primary-call span {
+  color: rgba(255, 255, 255, 0.82);
+}
+
 @keyframes revealPop {
   from {
     opacity: 0;
@@ -1187,6 +1286,7 @@ th {
   .two-col,
   .subgroup-grid,
   .staff-top-grid,
+  .emergency-contact-grid,
   .group-reveal {
     grid-template-columns: 1fr;
   }

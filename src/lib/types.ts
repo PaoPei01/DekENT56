@@ -146,6 +146,27 @@ export type GroupProfile = Profile & {
   group_assignment?: GroupAssignment | null;
 };
 
+export type EmergencyProfile = Profile & {
+  main_group: MainGroup | null;
+  subgroup: Subgroup | null;
+  emergency_note: string | null;
+  needs_special_care: boolean | null;
+  emergency_note_updated_at: string | null;
+};
+
+export type EmergencySummary = {
+  total: number;
+  disease: number;
+  drug_allergy: number;
+  food_allergy: number;
+  needs_special_care: number;
+};
+
+export type EmergencyDashboardData = {
+  summary: EmergencySummary;
+  participants: EmergencyProfile[];
+};
+
 export type GroupStats = {
   key: string;
   main_group: MainGroup;
@@ -203,6 +224,26 @@ export type Database = {
         Insert: Partial<GroupStaff> & { name: string; main_group: MainGroup; subgroup: Subgroup };
         Update: Partial<GroupStaff>;
       };
+      emergency_notes: {
+        Row: {
+          profile_id: string;
+          note: string | null;
+          needs_special_care: boolean | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          profile_id: string;
+          note?: string | null;
+          needs_special_care?: boolean | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          note?: string | null;
+          needs_special_care?: boolean | null;
+          updated_by?: string | null;
+        };
+      };
     };
     Views: {
       public_profiles: {
@@ -253,6 +294,14 @@ export type Database = {
       get_staff_group_context: {
         Args: Record<string, never>;
         Returns: Json;
+      };
+      get_emergency_dashboard: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      save_emergency_note: {
+        Args: { input_profile_id: string; input_note: string; input_needs_special_care: boolean };
+        Returns: undefined;
       };
       is_admin: {
         Args: { uid: string };
