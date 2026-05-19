@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { HeartPulse, Home, LogOut, Menu, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
+import { HeartPulse, Home, Menu, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
@@ -12,7 +12,6 @@ type SessionUser = {
 export function Layout() {
   const { language, setLanguage, t } = useLanguage();
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -27,13 +26,6 @@ export function Layout() {
       listener.subscription.unsubscribe();
     };
   }, []);
-
-  async function signOut() {
-    setSigningOut(true);
-    await supabase.auth.signOut();
-    setSigningOut(false);
-    setUser(null);
-  }
 
   return (
     <div>
@@ -72,21 +64,12 @@ export function Layout() {
             {language === 'th' ? 'EN' : 'TH'}
           </button>
           {user ? (
-            <div className="auth-status" title={user.email ?? user.id}>
-              <span>
-                <UserCheck size={15} />
-                {language === 'th' ? 'เข้าสู่ระบบแล้ว' : 'Signed in'}
-              </span>
-              <small>{user.email ?? user.id}</small>
-              <button type="button" onClick={signOut} disabled={signingOut}>
-                <LogOut size={15} />
-                {language === 'th' ? 'ออก' : 'Logout'}
-              </button>
-            </div>
+            <NavLink className="auth-icon-link auth-signed-in" to="/admin" title={language === 'th' ? `เข้าสู่ระบบแล้ว: ${user.email ?? user.id}` : `Signed in: ${user.email ?? user.id}`} aria-label={language === 'th' ? 'เข้าสู่ระบบแล้ว ดูรายละเอียดบัญชี' : 'Signed in, view account details'}>
+              <UserCheck size={17} />
+            </NavLink>
           ) : (
-            <NavLink className="auth-login-link" to="/admin">
+            <NavLink className="auth-icon-link" to="/admin" title={language === 'th' ? 'เข้าสู่ระบบ' : 'Login'} aria-label={language === 'th' ? 'เข้าสู่ระบบ' : 'Login'}>
               <Shield size={15} />
-              {language === 'th' ? 'เข้าสู่ระบบ' : 'Login'}
             </NavLink>
           )}
         </div>
