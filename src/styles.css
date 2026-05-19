@@ -746,9 +746,30 @@ th {
 }
 
 .warning-panel p {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   margin: 0.35rem 0;
   color: var(--warning);
   font-weight: 700;
+}
+
+.import-drop-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.import-drop-card > div {
+  display: grid;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 220px;
+}
+
+.import-drop-card span {
+  color: var(--text-soft);
 }
 
 .group-board {

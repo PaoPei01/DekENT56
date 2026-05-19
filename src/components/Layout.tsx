@@ -26,6 +26,8 @@ export function Layout() {
               <NavLink to="/admin">{t.admin}</NavLink>
               <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
               <NavLink to="/admin/groups">{t.groups}</NavLink>
+              <NavLink to="/admin/staff">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink>
+              <NavLink to="/admin/staff/import">{language === 'th' ? 'นำเข้าสตาฟ' : 'Import Staff'}</NavLink>
               <NavLink to="/admin/requests">{t.requests}</NavLink>
               <NavLink to="/admin/logs">{t.logs}</NavLink>
               <NavLink to="/admin/emergency">{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink>

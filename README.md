@@ -12,6 +12,7 @@
 - Pending edit-request approval/rejection flow with change logs
 - Thai/English UI toggle
 - Mobile-first operational UX with sticky bottom navigation, stacked mobile cards, sticky action bars, emergency dock, swipe attendance, and lazy-loaded admin/staff pages
+- Staff Management import system with separated staff profiles, staff medical info, staff group assignments, Excel preview, duplicate warnings, and admin-only commit
 - Smart group assignment for 7 color groups x A/B subgroups with balancing by size, major, and admission round
 - Admin drag-and-drop group adjustment, lock workflow, imbalance warnings, CSV and XLSX group exports
 - Verified participant group reveal with mentors, schedule, meeting point, and privacy-safe friend recommendations
@@ -139,6 +140,8 @@ The frontend also includes the same helper in `src/lib/contactParser.ts` for imp
 - `/admin` - admin login
 - `/admin/dashboard` - admin dashboard
 - `/admin/groups` - smart group assignment dashboard
+- `/admin/staff` - staff management
+- `/admin/staff/import` - staff Excel import preview and commit
 - `/admin/requests` - pending edit requests
 - `/admin/logs` - change log
 
@@ -190,6 +193,38 @@ Because group staff data contains phone numbers and medical details, keep the so
    ```
 
 The script imports into `group_staff` and updates `group_settings.mentors` for each color/subgroup.
+
+## Import Staff Profiles Excel
+
+Staff profile data is stored separately from participant `profiles`.
+
+1. Apply the staff management migration:
+
+   ```text
+   supabase/migrations/202605200002_staff_management_import.sql
+   ```
+
+2. Use the web UI:
+
+   ```text
+   /admin/staff/import
+   ```
+
+   Upload the Excel file, review duplicate warnings, contact parsing, missing data warnings, then commit as admin.
+
+3. Or use the CLI dry run:
+
+   ```bash
+   npm run import:staff -- "/Users/macintoshhd/Downloads/staff_import_ready_TFBP_base_fixed.xlsx"
+   ```
+
+4. Commit from CLI with a local-only service role key:
+
+   ```bash
+   npm run import:staff -- "/Users/macintoshhd/Downloads/staff_import_ready_TFBP_base_fixed.xlsx" --commit
+   ```
+
+Supported sheets include `ข้อมูลทีมงาน`, `ข้อมูลสตาฟ`, `staff_profiles_import`, `staff_medical_info_import`, and `staff_group_assignments`.
 
 ## Build
 

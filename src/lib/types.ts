@@ -121,7 +121,8 @@ export type GroupSetting = {
 
 export type StaffAssignment = {
   id: string;
-  user_id: string;
+  user_id: string | null;
+  staff_profile_id: string | null;
   main_group: MainGroup | null;
   subgroup: Subgroup | null;
   role: StaffRole | null;
@@ -129,6 +130,41 @@ export type StaffAssignment = {
 };
 
 export type StaffRole = 'staff' | 'mentor' | 'emergency_staff' | 'viewer';
+
+export type StaffProfile = {
+  id: string;
+  user_id: string | null;
+  student_id: string | null;
+  email: string | null;
+  name_th: string | null;
+  name_en: string | null;
+  nickname: string | null;
+  phone: string | null;
+  major: string | null;
+  instagram: string | null;
+  line_id: string | null;
+  facebook: string | null;
+  other_contact: string | null;
+  position: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type StaffMedicalInfo = {
+  id: string;
+  staff_profile_id: string;
+  disease: string | null;
+  drug_allergy: string | null;
+  food_allergy: string | null;
+  medical_note: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type StaffManagementRow = StaffProfile & {
+  medical_info?: StaffMedicalInfo | null;
+  assignment?: StaffAssignment | null;
+};
 
 export type StaffAccessContext = {
   is_admin: boolean;
@@ -257,8 +293,37 @@ export type Database = {
       };
       staff_assignments: {
         Row: StaffAssignment;
-        Insert: Partial<StaffAssignment> & { user_id: string; role?: StaffRole };
+        Insert: Partial<StaffAssignment> & { role?: StaffRole };
         Update: Partial<StaffAssignment>;
+      };
+      staff_profiles: {
+        Row: StaffProfile;
+        Insert: Partial<StaffProfile> & { id?: string };
+        Update: Partial<StaffProfile>;
+      };
+      staff_medical_info: {
+        Row: StaffMedicalInfo;
+        Insert: Partial<StaffMedicalInfo> & { staff_profile_id: string };
+        Update: Partial<StaffMedicalInfo>;
+      };
+      staff_audit_logs: {
+        Row: {
+          id: string;
+          staff_profile_id: string | null;
+          actor_id: string | null;
+          action: string;
+          old_data: Json | null;
+          new_data: Json | null;
+          created_at: string | null;
+        };
+        Insert: {
+          staff_profile_id?: string | null;
+          actor_id?: string | null;
+          action: string;
+          old_data?: Json | null;
+          new_data?: Json | null;
+        };
+        Update: Record<string, never>;
       };
       staff_attendance: {
         Row: StaffAttendance;
@@ -355,6 +420,18 @@ export type Database = {
       };
       mark_staff_attendance: {
         Args: { input_profile_id: string; input_status: StaffAttendance['status']; input_note?: string; input_event_date?: string };
+        Returns: undefined;
+      };
+      get_admin_staff_profiles: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      get_staff_public_directory: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      update_staff_profile_admin: {
+        Args: { input_staff_profile_id: string; input_profile: Json; input_medical?: Json; input_assignment?: Json };
         Returns: undefined;
       };
       get_emergency_dashboard: {
