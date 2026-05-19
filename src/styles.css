@@ -192,7 +192,7 @@ a {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px) auto;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.8rem;
   align-items: end;
 }
@@ -301,6 +301,16 @@ a {
   min-height: 150px;
 }
 
+.participant-card-clickable {
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.participant-card-clickable:hover {
+  transform: translateY(-2px);
+  border-color: rgba(40, 104, 232, 0.34);
+}
+
 .participant-card h2,
 .request-card h2,
 .major-summary h2 {
@@ -311,6 +321,11 @@ a {
 .participant-card p {
   margin: 0;
   color: var(--text-soft);
+}
+
+.participant-card small {
+  color: var(--text-soft);
+  font-weight: 800;
 }
 
 .participant-card span,
@@ -506,6 +521,93 @@ th {
 .contact-links-compact span {
   font-size: 0.72rem;
   padding: 0.22rem 0.45rem;
+}
+
+.health-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.health-flags span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border-radius: 999px;
+  padding: 0.28rem 0.5rem;
+  background: rgba(255, 196, 77, 0.2);
+  color: #8a5600;
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.health-flags-detail {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+}
+
+.health-flags-detail span {
+  width: fit-content;
+}
+
+.health-flags em {
+  font-style: normal;
+  color: #4c3a1a;
+}
+
+.participant-admin-cell {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.participant-admin-cell > span {
+  color: var(--text-soft);
+}
+
+.public-profile-modal {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-hero h2,
+.profile-hero p {
+  margin: 0;
+}
+
+.profile-hero p {
+  color: var(--text-soft);
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.profile-facts div {
+  display: grid;
+  gap: 0.25rem;
+  border-radius: 18px;
+  padding: 0.85rem;
+  background: rgba(248, 251, 255, 0.82);
+}
+
+.profile-facts span {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.blurred-fact strong {
+  filter: blur(3px);
+  user-select: none;
 }
 
 .group-action-panel {

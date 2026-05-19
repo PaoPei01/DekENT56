@@ -1,7 +1,7 @@
 import { editableFields } from '../lib/constants';
 import { getMajorCode, majorCodeOptions } from '../lib/major';
 import { supabase } from '../lib/supabase';
-import type { AdminSummary, ChangeLog, EditableProfileFields, EditRequest, Profile, PublicProfile } from '../lib/types';
+import type { AdminSummary, ChangeLog, EditableProfileFields, EditRequest, GroupAssignment, GroupProfile, Profile, PublicProfile } from '../lib/types';
 
 type SearchOptions = {
   search?: string;
@@ -53,7 +53,7 @@ export async function createEditRequest(profile: Profile, newData: EditableProfi
   if (error) throw error;
 }
 
-export async function fetchAdminProfiles(options: SearchOptions): Promise<Profile[]> {
+export async function fetchAdminProfiles(options: SearchOptions): Promise<GroupProfile[]> {
   let query = supabase.from('profiles').select('*').order('name_th');
   if (options.search?.trim()) {
     const term = `%${options.search.trim()}%`;
@@ -68,7 +68,11 @@ export async function fetchAdminProfiles(options: SearchOptions): Promise<Profil
 
   const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []) as Profile[];
+  const profiles = (data ?? []) as GroupProfile[];
+  const { data: assignments, error: assignmentError } = await supabase.from('group_assignments').select('*');
+  if (assignmentError) throw assignmentError;
+  const byProfile = new Map(((assignments ?? []) as GroupAssignment[]).map((assignment) => [assignment.profile_id, assignment]));
+  return profiles.map((profile) => ({ ...profile, group_assignment: byProfile.get(profile.id) ?? null }));
 }
 
 export async function fetchAdminMajors(): Promise<string[]> {

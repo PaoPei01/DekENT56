@@ -1,6 +1,7 @@
 import { Download, HeartPulse, Pencil, Trash2, UsersRound } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ContactLinks } from '../components/ContactLinks';
+import { HealthFlags, hasHealthFlag } from '../components/HealthFlags';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -11,23 +12,50 @@ import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useAsync } from '../hooks/useAsync';
+import { useLanguage } from '../context/LanguageContext';
 import { fieldLabels } from '../lib/constants';
+import { groupLabel } from '../lib/grouping';
+import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorLabel } from '../lib/major';
-import type { Profile } from '../lib/types';
+import type { GroupProfile, Profile } from '../lib/types';
 import { deleteProfile, fetchAdminMajors, fetchAdminProfiles, fetchAdminSummary, updateProfile } from '../services/profiles';
 import { exportProfilesCsv } from '../utils/csv';
 import { errorMessage } from '../utils/error';
 
 export function AdminDashboardPage() {
+  const { language, t } = useLanguage();
   const [search, setSearch] = useState('');
   const [major, setMajor] = useState('');
-  const [editing, setEditing] = useState<Profile | null>(null);
-  const [deleting, setDeleting] = useState<Profile | null>(null);
+  const [group, setGroup] = useState('');
+  const [subgroup, setSubgroup] = useState('');
+  const [healthFilter, setHealthFilter] = useState('');
+  const [editing, setEditing] = useState<GroupProfile | null>(null);
+  const [deleting, setDeleting] = useState<GroupProfile | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const profilesState = useAsync(() => fetchAdminProfiles({ search, major }), [search, major]);
   const summaryState = useAsync(fetchAdminSummary, []);
   const majorsState = useAsync(fetchAdminMajors, []);
-  const profiles = profilesState.data ?? [];
+  const profiles = useMemo(() => {
+    const rows = profilesState.data ?? [];
+    return rows.filter((profile) => {
+      if (major && !majorLabel(profile.major).startsWith(major)) return false;
+      if (group && profile.group_assignment?.main_group !== group) return false;
+      if (subgroup && profile.group_assignment?.subgroup !== subgroup) return false;
+      if (healthFilter === 'any' && !hasHealthFlag(profile)) return false;
+      if ((healthFilter === 'disease' || healthFilter === 'drug_allergy' || healthFilter === 'food_allergy') && !hasHealthFlag(profile, healthFilter)) return false;
+      return true;
+    });
+  }, [group, healthFilter, major, profilesState.data, subgroup]);
+
+  const majorOptions = (majorsState.data ?? []).map((code) => ({ value: code, label: majorLabel(`(${code})`, language) }));
+  const groupOptions = mainGroups.map((item) => ({ value: item, label: `${groupMeta[item].th} / ${groupMeta[item].en}` }));
+  const subgroupOptions = subgroups.map((item) => ({ value: item, label: `Group ${item}` }));
+  const healthOptions = [
+    { value: 'any', label: language === 'th' ? 'มีข้อมูลสุขภาพใด ๆ' : 'Any health flag' },
+    { value: 'disease', label: language === 'th' ? 'โรคประจำตัว' : 'Disease' },
+    { value: 'drug_allergy', label: language === 'th' ? 'แพ้ยา' : 'Drug allergy' },
+    { value: 'food_allergy', label: language === 'th' ? 'แพ้อาหาร' : 'Food allergy' },
+  ];
 
   async function saveProfile() {
     if (!editing) return;
@@ -58,17 +86,17 @@ export function AdminDashboardPage() {
       <Toast toast={toast} />
       <div className="section-heading">
         <p className="eyebrow">Dashboard</p>
-        <h1>แดชบอร์ดผู้ดูแล</h1>
-        <p>ข้อมูลละเอียดในหน้านี้เป็นข้อมูลสำหรับผู้ดูแลระบบเท่านั้น</p>
+        <h1>{t.dashboard}</h1>
+        <p>{t.adminOnly}</p>
       </div>
 
       {summaryState.loading ? <LoadingSkeleton count={2} /> : null}
       {summaryState.data ? (
         <div className="stats-grid">
-          <DashboardStatCard label="ผู้เข้าร่วมทั้งหมด" value={summaryState.data.total} icon={<UsersRound size={20} />} />
-          <DashboardStatCard label="คำขอรออนุมัติ" value={summaryState.data.pending} helper="ตรวจสอบในหน้าคำขอแก้ไข" />
+          <DashboardStatCard label={t.totalParticipants} value={summaryState.data.total} icon={<UsersRound size={20} />} />
+          <DashboardStatCard label={t.pendingRequests} value={summaryState.data.pending} helper={language === 'th' ? 'ตรวจสอบในหน้าคำขอแก้ไข' : 'Review in requests page'} />
           <DashboardStatCard
-            label="ข้อมูลสุขภาพ"
+            label={t.healthData}
             value={summaryState.data.health.food_allergy + summaryState.data.health.disease + summaryState.data.health.drug_allergy}
             helper="แพ้อาหาร โรคประจำตัว แพ้ยา"
             icon={<HeartPulse size={20} />}
@@ -78,11 +106,11 @@ export function AdminDashboardPage() {
 
       {summaryState.data ? (
         <Card className="major-summary">
-          <h2>สรุปตามสาขา</h2>
+          <h2>{language === 'th' ? 'สรุปตามสาขา' : 'Major summary'}</h2>
           <div>
             {Object.entries(summaryState.data.byMajor).map(([name, count]) => (
               <span key={name}>
-                {name} <strong>{count}</strong>
+                {majorLabel(`(${name})`, language)} <strong>{count}</strong>
               </span>
             ))}
           </div>
@@ -90,8 +118,11 @@ export function AdminDashboardPage() {
       ) : null}
 
       <div className="toolbar">
-        <Input label="ค้นหาข้อมูลผู้เข้าร่วม" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ อีเมล เบอร์ Line IG Facebook" />
-        <Select label="กรองสาขา" value={major} onChange={(event) => setMajor(event.target.value)} options={majorsState.data ?? []} />
+        <Input label={t.searchParticipants} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ อีเมล เบอร์ Line IG Facebook" />
+        <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={majorOptions} />
+        <Select label={t.filterGroup} value={group} onChange={(event) => setGroup(event.target.value)} options={groupOptions} />
+        <Select label={t.filterSubgroup} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroupOptions} />
+        <Select label={t.filterHealth} value={healthFilter} onChange={(event) => setHealthFilter(event.target.value)} options={healthOptions} />
         <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportProfilesCsv(profiles)}>
           Export CSV
         </Button>
@@ -103,23 +134,34 @@ export function AdminDashboardPage() {
       <ResponsiveDataTable
         rows={profiles}
         getKey={(row) => row.id}
-        emptyText="ไม่พบข้อมูลผู้เข้าร่วม"
+        emptyText={t.participantNotFound}
         columns={[
-          { key: 'name', header: 'ชื่อ', render: (row) => <strong>{row.name_th}</strong> },
-          { key: 'major', header: 'สาขา', render: (row) => majorLabel(row.major) },
-          { key: 'email', header: 'อีเมล', render: (row) => row.email },
-          { key: 'phone', header: 'เบอร์', render: (row) => row.phone },
-          { key: 'social', header: 'ช่องทาง', render: (row) => <ContactLinks lineId={row.line_id} instagram={row.instagram} facebook={row.facebook} other={row.other_contact} /> },
+          {
+            key: 'name',
+            header: t.name,
+            render: (row) => (
+              <div className="participant-admin-cell">
+                <strong>{row.name_th}</strong>
+                <span>{row.nickname}</span>
+                <HealthFlags profile={row} detail />
+              </div>
+            ),
+          },
+          { key: 'major', header: t.major, render: (row) => majorLabel(row.major, language) },
+          { key: 'group', header: t.groups, render: (row) => groupLabel(row.group_assignment?.main_group, row.group_assignment?.subgroup, language) },
+          { key: 'email', header: t.email, render: (row) => row.email },
+          { key: 'phone', header: t.phone, render: (row) => row.phone },
+          { key: 'social', header: t.contact, render: (row) => <ContactLinks lineId={row.line_id} instagram={row.instagram} facebook={row.facebook} other={row.other_contact} /> },
           {
             key: 'actions',
-            header: 'จัดการ',
+            header: t.actions,
             render: (row) => (
               <div className="row-actions">
                 <Button variant="secondary" icon={<Pencil size={16} />} onClick={() => setEditing(row)}>
-                  แก้ไข
+                  {t.editAction}
                 </Button>
                 <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => setDeleting(row)}>
-                  ลบ
+                  {t.deleteAction}
                 </Button>
               </div>
             ),

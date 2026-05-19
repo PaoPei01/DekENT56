@@ -1,18 +1,25 @@
-import { Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { Modal } from '../components/ui/Modal';
 import { Select } from '../components/ui/Select';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { groupLabel } from '../lib/grouping';
+import { groupMeta } from '../lib/groups';
 import { majorLabel } from '../lib/major';
+import type { PublicProfile } from '../lib/types';
 import { fetchPublicMajors, fetchPublicProfiles } from '../services/profiles';
 
 export function PublicListPage() {
   const { language, t } = useLanguage();
   const [search, setSearch] = useState('');
   const [major, setMajor] = useState('');
+  const [selected, setSelected] = useState<PublicProfile | null>(null);
   const { data: majors } = useAsync(fetchPublicMajors, []);
   const { data, loading, error } = useAsync(() => fetchPublicProfiles({ search, major }), [search, major]);
   const participants = data ?? [];
@@ -39,7 +46,7 @@ export function PublicListPage() {
           <Search size={18} aria-hidden="true" />
           <Input label={t.search} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น หรือสาขา' : 'Name, nickname, or major'} />
         </div>
-        <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={majors ?? []} placeholder={t.all} />
+        <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={(majors ?? []).map((code) => ({ value: code, label: majorLabel(`(${code})`, language) }))} placeholder={t.all} />
       </div>
 
       {loading ? <LoadingSkeleton /> : null}
@@ -48,13 +55,47 @@ export function PublicListPage() {
 
       <div className="participant-grid">
         {participants.map((profile) => (
-          <Card className="participant-card" key={profile.id}>
+          <Card className="participant-card participant-card-clickable" key={profile.id} onClick={() => setSelected(profile)} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && setSelected(profile)}>
             <h2>{profile.name_th || 'ไม่ระบุชื่อ'}</h2>
             <p>{profile.nickname ? `${t.nickname} ${profile.nickname}` : language === 'th' ? 'ยังไม่มีชื่อเล่น' : 'No nickname yet'}</p>
             <span>{majorLabel(profile.major, language)}</span>
+            <small>{groupLabel(profile.main_group, profile.subgroup, language)}</small>
           </Card>
         ))}
       </div>
+
+      <Modal open={Boolean(selected)} title={language === 'th' ? 'โปรไฟล์ผู้เข้าร่วม' : 'Participant profile'} onClose={() => setSelected(null)}>
+        {selected ? (
+          <div className="modal-body public-profile-modal">
+            <div className="profile-hero">
+              {selected.main_group ? (
+                <span className="group-dot" style={{ '--group-color': groupMeta[selected.main_group].color } as CSSProperties} />
+              ) : null}
+              <div>
+                <h2>{selected.name_th}</h2>
+                <p>{selected.name_en || 'English name hidden'}</p>
+                <strong>{selected.nickname}</strong>
+              </div>
+            </div>
+            <div className="profile-facts">
+              <div><span>{t.major}</span><strong>{majorLabel(selected.major, language)}</strong></div>
+              <div><span>{t.groups}</span><strong>{groupLabel(selected.main_group, selected.subgroup, language)}</strong></div>
+              <div className="blurred-fact"><span>{t.email}</span><strong>••••••••@•••••.com</strong></div>
+              <div className="blurred-fact"><span>{t.phone}</span><strong>•••-•••-••••</strong></div>
+              <div className="blurred-fact"><span>{language === 'th' ? 'ข้อมูลสุขภาพ' : 'Health details'}</span><strong>{language === 'th' ? 'ถูกซ่อนไว้' : 'Hidden'}</strong></div>
+            </div>
+            <Card className="privacy-notice">
+              <strong>{language === 'th' ? 'ต้องยืนยันตัวตนก่อนดูข้อมูลเต็ม' : 'Verify identity to view full details'}</strong>
+              <span>{language === 'th' ? 'ข้อมูลติดต่อ ข้อมูลสุขภาพ และระบบแนะนำเพื่อนจะแสดงหลังยืนยันอีเมลและเบอร์โทรของตัวเองเท่านั้น' : 'Contact details, health details, and friend recommendations are available only after verifying your own email and phone.'}</span>
+            </Card>
+            <div className="form-actions">
+              <Button icon={<Eye size={18} />} onClick={() => (window.location.href = `${import.meta.env.BASE_URL}edit`)}>
+                {language === 'th' ? 'ดูข้อมูลเต็ม / แก้ไขข้อมูล' : 'View full details / edit'}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
     </section>
   );
 }

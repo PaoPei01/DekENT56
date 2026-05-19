@@ -30,7 +30,10 @@ export type Profile = {
   updated_at: string | null;
 };
 
-export type PublicProfile = Pick<Profile, 'id' | 'name_th' | 'nickname' | 'major'>;
+export type PublicProfile = Pick<Profile, 'id' | 'name_th' | 'name_en' | 'nickname' | 'major'> & {
+  main_group: MainGroup | null;
+  subgroup: Subgroup | null;
+};
 
 export type EditableProfileFields = Pick<
   Profile,
