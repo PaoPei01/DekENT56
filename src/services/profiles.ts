@@ -1,4 +1,5 @@
 import { editableFields } from '../lib/constants';
+import { getMajorCode, majorCodeOptions } from '../lib/major';
 import { supabase } from '../lib/supabase';
 import type { AdminSummary, ChangeLog, EditableProfileFields, EditRequest, Profile, PublicProfile } from '../lib/types';
 
@@ -10,16 +11,17 @@ type SearchOptions = {
 export async function fetchPublicProfiles(options: SearchOptions): Promise<PublicProfile[]> {
   const { data, error } = await supabase.rpc('search_public_profiles', {
     search_text: options.search?.trim() ?? '',
-    major_filter: options.major ?? '',
+    major_filter: '',
   });
   if (error) throw error;
-  return (data ?? []) as PublicProfile[];
+  const rows = (data ?? []) as PublicProfile[];
+  return options.major ? rows.filter((row) => getMajorCode(row.major) === options.major) : rows;
 }
 
 export async function fetchPublicMajors(): Promise<string[]> {
   const { data, error } = await supabase.from('public_profiles').select('major').not('major', 'is', null).order('major');
   if (error) throw error;
-  return [...new Set(((data ?? []) as Pick<Profile, 'major'>[]).map((row) => row.major).filter(Boolean) as string[])];
+  return majorCodeOptions(((data ?? []) as Pick<Profile, 'major'>[]).map((row) => row.major));
 }
 
 export async function verifyProfileIdentity(email: string, phone: string): Promise<Profile | null> {
@@ -33,10 +35,11 @@ export async function verifyProfileIdentity(email: string, phone: string): Promi
 }
 
 export function pickEditableFields(profile: Partial<Profile>): EditableProfileFields {
-  return editableFields.reduce((acc, field) => {
-    acc[field] = profile[field] ?? null;
-    return acc;
-  }, {} as EditableProfileFields);
+  const result: Record<string, string | boolean | null> = {};
+  editableFields.forEach((field) => {
+    result[field] = profile[field] ?? null;
+  });
+  return result as EditableProfileFields;
 }
 
 export async function createEditRequest(profile: Profile, newData: EditableProfileFields) {
@@ -60,7 +63,7 @@ export async function fetchAdminProfiles(options: SearchOptions): Promise<Profil
   }
 
   if (options.major) {
-    query = query.eq('major', options.major);
+    query = query.ilike('major', `%(${options.major})%`);
   }
 
   const { data, error } = await query;
@@ -71,7 +74,7 @@ export async function fetchAdminProfiles(options: SearchOptions): Promise<Profil
 export async function fetchAdminMajors(): Promise<string[]> {
   const { data, error } = await supabase.from('profiles').select('major').not('major', 'is', null).order('major');
   if (error) throw error;
-  return [...new Set(((data ?? []) as Pick<Profile, 'major'>[]).map((row) => row.major).filter(Boolean) as string[])];
+  return majorCodeOptions(((data ?? []) as Pick<Profile, 'major'>[]).map((row) => row.major));
 }
 
 export async function fetchAdminSummary(): Promise<AdminSummary> {
@@ -88,7 +91,7 @@ export async function fetchAdminSummary(): Promise<AdminSummary> {
     total: rows.length,
     pending: pending ?? 0,
     byMajor: rows.reduce<Record<string, number>>((acc, row) => {
-      const major = row.major || 'ไม่ระบุ';
+      const major = getMajorCode(row.major) || 'ไม่ระบุ';
       acc[major] = (acc[major] ?? 0) + 1;
       return acc;
     }, {}),

@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { ChangeLogPage } from './pages/ChangeLogPage';
+import { GroupDashboardPage } from './pages/GroupDashboardPage';
 import { PendingRequestsPage } from './pages/PendingRequestsPage';
 import { PublicListPage } from './pages/PublicListPage';
 import { VerifyEditPage } from './pages/VerifyEditPage';
@@ -17,6 +18,7 @@ export function App() {
         <Route path="admin" element={<AdminLoginPage />} />
         <Route element={<AdminGuard />}>
           <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="admin/groups" element={<GroupDashboardPage />} />
           <Route path="admin/requests" element={<PendingRequestsPage />} />
           <Route path="admin/logs" element={<ChangeLogPage />} />
         </Route>
