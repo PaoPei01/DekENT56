@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { GroupAssignment, GroupProfile, GroupSetting, GroupStaff, MainGroup, Subgroup, StaffAssignment } from '../lib/types';
+import type { GroupAssignment, GroupProfile, GroupSetting, GroupStaff, MainGroup, StaffGroupContext, Subgroup } from '../lib/types';
 
 export async function fetchGroupProfiles(): Promise<GroupProfile[]> {
   const { data: profiles, error: profileError } = await supabase.from('profiles').select('*').order('name_th');
@@ -49,10 +49,10 @@ export async function saveGroupSetting(setting: Pick<GroupSetting, 'main_group' 
   if (error) throw error;
 }
 
-export async function fetchStaffContext(): Promise<{ assignment: StaffAssignment | null; settings: GroupSetting[]; staff_roster: GroupStaff[]; participants: GroupProfile[] } | null> {
+export async function fetchStaffContext(): Promise<StaffGroupContext | null> {
   const { data, error } = await supabase.rpc('get_staff_group_context');
   if (error) throw error;
-  return data as { assignment: StaffAssignment | null; settings: GroupSetting[]; staff_roster: GroupStaff[]; participants: GroupProfile[] } | null;
+  return data as StaffGroupContext | null;
 }
 
 export async function isStaffOrAdmin() {

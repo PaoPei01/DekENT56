@@ -1,6 +1,7 @@
-import { MapPin, Search, UsersRound } from 'lucide-react';
+import { ClipboardCheck, Home, MapPin, Search, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
 import { HealthFlags } from '../components/HealthFlags';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -10,11 +11,12 @@ import { useAsync } from '../hooks/useAsync';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta } from '../lib/groups';
 import { majorLabel } from '../lib/major';
-import { fetchStaffContext, settingKey } from '../services/groups';
+import { settingKey } from '../services/groups';
+import { fetchStaffGroupContext } from '../services/staff';
 
 export function StaffMobilePage() {
   const [search, setSearch] = useState('');
-  const state = useAsync(fetchStaffContext, []);
+  const state = useAsync(fetchStaffGroupContext, []);
   const context = state.data;
   const settingsByKey = useMemo(() => new Map((context?.settings ?? []).map((setting) => [settingKey(setting.main_group, setting.subgroup), setting])), [context?.settings]);
   const participants = useMemo(() => {
@@ -36,6 +38,11 @@ export function StaffMobilePage() {
         <p className="eyebrow">Staff Mobile View</p>
         <h1>{context.assignment ? groupLabel(context.assignment.main_group, context.assignment.subgroup) : 'All groups'}</h1>
         <p>ดูข้อมูลเฉพาะกลุ่มที่รับผิดชอบสำหรับหน้างาน</p>
+      </div>
+
+      <div className="staff-sticky-actions">
+        <Link className="btn btn-secondary" to="/staff"><Home size={18} />หน้าหลัก</Link>
+        {context.access.can_mark_attendance ? <Link className="btn btn-primary" to="/staff/attendance"><ClipboardCheck size={18} />เช็กชื่อ</Link> : null}
       </div>
 
       <div className="staff-top-grid">

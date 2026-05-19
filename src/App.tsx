@@ -9,6 +9,8 @@ import { EmergencyDashboardPage } from './pages/EmergencyDashboardPage';
 import { GroupDashboardPage } from './pages/GroupDashboardPage';
 import { PendingRequestsPage } from './pages/PendingRequestsPage';
 import { PublicListPage } from './pages/PublicListPage';
+import { StaffAttendancePage } from './pages/StaffAttendancePage';
+import { StaffDashboardPage } from './pages/StaffDashboardPage';
 import { StaffMobilePage } from './pages/StaffMobilePage';
 import { VerifyEditPage } from './pages/VerifyEditPage';
 
@@ -19,8 +21,15 @@ export function App() {
         <Route index element={<PublicListPage />} />
         <Route path="edit" element={<VerifyEditPage />} />
         <Route path="admin" element={<AdminLoginPage />} />
-        <Route element={<StaffGuard />}>
-          <Route path="staff" element={<StaffMobilePage />} />
+        <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer']} />}>
+          <Route path="staff" element={<StaffDashboardPage />} />
+          <Route path="staff/my-group" element={<StaffMobilePage />} />
+        </Route>
+        <Route element={<StaffGuard requireAttendance />}>
+          <Route path="staff/attendance" element={<StaffAttendancePage />} />
+        </Route>
+        <Route element={<StaffGuard requireEmergency />}>
+          <Route path="staff/emergency" element={<EmergencyDashboardPage />} />
         </Route>
         <Route element={<AdminGuard />}>
           <Route path="admin/dashboard" element={<AdminDashboardPage />} />

@@ -122,8 +122,32 @@ export type StaffAssignment = {
   user_id: string;
   main_group: MainGroup;
   subgroup: Subgroup | null;
-  role: string | null;
+  role: StaffRole | null;
   created_at: string | null;
+};
+
+export type StaffRole = 'staff' | 'mentor' | 'emergency_staff' | 'viewer';
+
+export type StaffAccessContext = {
+  is_admin: boolean;
+  assignments: StaffAssignment[];
+  roles: StaffRole[];
+  can_view_staff: boolean;
+  can_mark_attendance: boolean;
+  can_view_emergency: boolean;
+  read_only: boolean;
+};
+
+export type StaffAttendance = {
+  id: string;
+  profile_id: string;
+  event_date: string;
+  status: 'present' | 'late' | 'absent' | 'excused';
+  note: string | null;
+  main_group: MainGroup;
+  subgroup: Subgroup;
+  marked_by: string | null;
+  marked_at: string | null;
 };
 
 export type GroupStaff = {
@@ -144,6 +168,21 @@ export type GroupStaff = {
 
 export type GroupProfile = Profile & {
   group_assignment?: GroupAssignment | null;
+  attendance?: StaffAttendance | null;
+};
+
+export type StaffGroupContext = {
+  access: StaffAccessContext;
+  assignment: StaffAssignment | null;
+  settings: GroupSetting[];
+  staff_roster: GroupStaff[];
+  participants: GroupProfile[];
+};
+
+export type StaffAttendanceContext = {
+  access: StaffAccessContext;
+  event_date: string;
+  participants: GroupProfile[];
 };
 
 export type EmergencyProfile = Profile & {
@@ -216,8 +255,13 @@ export type Database = {
       };
       staff_assignments: {
         Row: StaffAssignment;
-        Insert: Partial<StaffAssignment> & { user_id: string; main_group: MainGroup };
+        Insert: Partial<StaffAssignment> & { user_id: string; role?: StaffRole; main_group: MainGroup };
         Update: Partial<StaffAssignment>;
+      };
+      staff_attendance: {
+        Row: StaffAttendance;
+        Insert: Partial<StaffAttendance> & { profile_id: string; status: StaffAttendance['status']; main_group: MainGroup; subgroup: Subgroup };
+        Update: Partial<StaffAttendance>;
       };
       group_staff: {
         Row: GroupStaff;
@@ -294,6 +338,18 @@ export type Database = {
       get_staff_group_context: {
         Args: Record<string, never>;
         Returns: Json;
+      };
+      get_staff_access_context: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      get_staff_attendance_context: {
+        Args: { input_event_date?: string };
+        Returns: Json;
+      };
+      mark_staff_attendance: {
+        Args: { input_profile_id: string; input_status: StaffAttendance['status']; input_note?: string; input_event_date?: string };
+        Returns: undefined;
       };
       get_emergency_dashboard: {
         Args: Record<string, never>;

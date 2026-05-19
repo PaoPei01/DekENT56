@@ -15,12 +15,14 @@ import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorLabel } from '../lib/major';
 import type { EmergencyProfile } from '../lib/types';
 import { fetchEmergencyDashboard, saveEmergencyNote } from '../services/emergency';
+import { fetchStaffAccessContext } from '../services/staff';
 import { errorMessage } from '../utils/error';
 
 type MedicalFilter = '' | 'any' | 'disease' | 'drug_allergy' | 'food_allergy' | 'special';
 
 export function EmergencyDashboardPage() {
   const state = useAsync(fetchEmergencyDashboard, []);
+  const accessState = useAsync(fetchStaffAccessContext, []);
   const [search, setSearch] = useState('');
   const [group, setGroup] = useState('');
   const [subgroup, setSubgroup] = useState('');
@@ -54,6 +56,10 @@ export function EmergencyDashboardPage() {
   }, [allergyType, group, medical, rows, search, subgroup]);
 
   async function save(profile: EmergencyProfile) {
+    if (!accessState.data?.is_admin) {
+      setToast({ type: 'error', message: 'บัญชีนี้ดูข้อมูลฉุกเฉินได้ แต่แก้ note ได้เฉพาะ admin' });
+      return;
+    }
     const current = notes[profile.id] ?? { note: profile.emergency_note ?? '', needs: Boolean(profile.needs_special_care) };
     try {
       await saveEmergencyNote(profile.id, current.note, current.needs);
@@ -75,7 +81,7 @@ export function EmergencyDashboardPage() {
         <p>ข้อมูลสุขภาพเป็นความลับ ใช้เฉพาะงานดูแลความปลอดภัยในกิจกรรม ทุกครั้งที่เปิดหรือแก้ไขจะถูกบันทึก audit log</p>
       </div>
 
-      {state.loading ? <LoadingSkeleton /> : null}
+      {state.loading || accessState.loading ? <LoadingSkeleton /> : null}
       {state.error ? <div className="error-state">{state.error}</div> : null}
 
       {summary ? (
@@ -159,7 +165,7 @@ export function EmergencyDashboardPage() {
                   placeholder="เช่น ให้พี่กลุ่มช่วยติดตาม / แจ้งพยาบาลแล้ว"
                 />
                 <div className="form-actions">
-                  <Button icon={<Save size={18} />} onClick={() => save(profile)}>บันทึก note</Button>
+                  <Button icon={<Save size={18} />} onClick={() => save(profile)} disabled={!accessState.data?.is_admin}>บันทึก note</Button>
                 </div>
               </div>
             </Card>
