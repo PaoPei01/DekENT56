@@ -618,6 +618,27 @@ th {
   flex-wrap: wrap;
 }
 
+.group-settings-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.group-settings-panel h2,
+.group-settings-panel p {
+  margin: 0;
+}
+
+.group-settings-panel p,
+.subgroup-note {
+  color: var(--text-soft);
+}
+
+.subgroup-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .warning-panel {
   border-color: rgba(255, 174, 0, 0.35);
   background: rgba(255, 249, 232, 0.78);
@@ -843,6 +864,45 @@ th {
 .friend-card span,
 .friend-card small {
   color: var(--text-soft);
+}
+
+.staff-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.staff-summary-card,
+.staff-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.staff-summary-card strong,
+.staff-summary-card span {
+  display: block;
+}
+
+.staff-summary-card span,
+.staff-card-head p {
+  color: var(--text-soft);
+}
+
+.staff-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.staff-participant-card {
+  display: grid;
+  gap: 0.85rem;
+  border-color: color-mix(in srgb, var(--group-color, #2868e8), transparent 70%);
+  background: linear-gradient(180deg, var(--group-soft, rgba(40, 104, 232, 0.08)), rgba(255, 255, 255, 0.84));
+}
+
+.staff-card-head h2,
+.staff-card-head p {
+  margin: 0;
 }
 
 @keyframes revealPop {

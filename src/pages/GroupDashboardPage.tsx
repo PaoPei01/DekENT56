@@ -7,13 +7,15 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { DashboardStatCard } from '../components/ui/DashboardStatCard';
+import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useAsync } from '../hooks/useAsync';
 import { autoAssignGroups, calculateGroupStats, groupLabel, rebalanceGroups } from '../lib/grouping';
 import { groupKey, groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { getMajorCode, majorLabel } from '../lib/major';
-import type { GroupAssignment, GroupProfile, MainGroup, Subgroup } from '../lib/types';
-import { fetchGroupProfiles, lockGroups, saveGroupAssignments } from '../services/groups';
+import type { GroupAssignment, GroupProfile, GroupSetting, MainGroup, Subgroup } from '../lib/types';
+import { fetchGroupProfiles, fetchGroupSettings, lockGroups, saveGroupAssignments, saveGroupSetting, settingKey } from '../services/groups';
 import { errorMessage } from '../utils/error';
 import { exportGroupsCsv, exportGroupsXlsx } from '../utils/groupExport';
 
@@ -29,9 +31,20 @@ function assignmentFromProfile(profile: GroupProfile): Pick<GroupAssignment, 'pr
 
 export function GroupDashboardPage() {
   const state = useAsync(fetchGroupProfiles, []);
+  const settingsState = useAsync(fetchGroupSettings, []);
   const [drafts, setDrafts] = useState<Record<string, Pick<GroupAssignment, 'profile_id' | 'main_group' | 'subgroup' | 'notes'>>>({});
+  const [auditReady, setAuditReady] = useState(false);
+  const [editingSetting, setEditingSetting] = useState<Pick<GroupSetting, 'main_group' | 'subgroup' | 'motto' | 'meeting_point' | 'schedule' | 'mentors'>>({
+    main_group: 'Red',
+    subgroup: 'A',
+    motto: '',
+    meeting_point: '',
+    schedule: '',
+    mentors: '',
+  });
   const [toast, setToast] = useState<ToastState>(null);
   const profiles = useMemo(() => state.data ?? [], [state.data]);
+  const settingsByKey = useMemo(() => new Map((settingsState.data ?? []).map((setting) => [settingKey(setting.main_group, setting.subgroup), setting])), [settingsState.data]);
 
   const effectiveAssignments = useMemo(
     () =>
@@ -53,7 +66,8 @@ export function GroupDashboardPage() {
     }
     const existing = profiles.map(assignmentFromProfile).filter(Boolean) as Pick<GroupAssignment, 'profile_id' | 'main_group' | 'subgroup' | 'locked'>[];
     const next = autoAssignGroups(profiles, existing);
-    setDrafts(Object.fromEntries(next.map((assignment) => [assignment.profile_id, assignment])));
+      setDrafts(Object.fromEntries(next.map((assignment) => [assignment.profile_id, assignment])));
+      setAuditReady(false);
     setToast({ type: 'success', message: 'สร้างกลุ่มแบบสมดุลแล้ว กดบันทึกเพื่ออัปเดต Supabase' });
   }
 
@@ -61,6 +75,7 @@ export function GroupDashboardPage() {
     const current = effectiveAssignments.map((assignment) => ({ ...assignment, locked: false }));
     const next = rebalanceGroups(profiles, current);
     setDrafts(Object.fromEntries(next.map((assignment) => [assignment.profile_id, assignment])));
+    setAuditReady(false);
     setToast({ type: 'success', message: 'ปรับสมดุลใหม่แล้ว' });
   }
 
@@ -69,6 +84,7 @@ export function GroupDashboardPage() {
       await saveGroupAssignments(Object.values(drafts));
       setToast({ type: 'success', message: 'บันทึกการจัดกลุ่มแล้ว' });
       setDrafts({});
+      setAuditReady(false);
       await state.reload();
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, 'บันทึกไม่สำเร็จ') });
@@ -76,12 +92,32 @@ export function GroupDashboardPage() {
   }
 
   async function lock() {
+    if (!auditReady) {
+      setToast({ type: 'error', message: 'กรุณา Export/Audit ก่อนล็อกกลุ่ม' });
+      return;
+    }
     try {
       await lockGroups();
       setToast({ type: 'success', message: 'ล็อกกลุ่มแล้ว' });
       await state.reload();
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, 'ล็อกไม่สำเร็จ') });
+    }
+  }
+
+  async function exportAudit() {
+    await exportGroupsXlsx(profiles, stats);
+    setAuditReady(true);
+    setToast({ type: 'success', message: 'Export/Audit แล้ว สามารถ Lock Groups ได้' });
+  }
+
+  async function saveSetting() {
+    try {
+      await saveGroupSetting(editingSetting);
+      setToast({ type: 'success', message: 'บันทึกประกาศกลุ่มแล้ว' });
+      await settingsState.reload();
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, 'บันทึกประกาศไม่สำเร็จ') });
     }
   }
 
@@ -129,11 +165,47 @@ export function GroupDashboardPage() {
           <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportGroupsCsv(profiles)}>
             CSV
           </Button>
-          <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportGroupsXlsx(profiles, stats)}>
-            Excel
+          <Button variant="secondary" icon={<Download size={18} />} onClick={exportAudit}>
+            Audit + Excel
           </Button>
         </div>
-        {locked ? <Badge status="approved">ล็อกแล้ว</Badge> : <Badge status="pending">ยังแก้ไขได้</Badge>}
+        {locked ? <Badge status="approved">ล็อกแล้ว</Badge> : auditReady ? <Badge status="approved">Audit พร้อมล็อก</Badge> : <Badge status="pending">ต้อง Audit ก่อนล็อก</Badge>}
+      </Card>
+
+      <Card className="group-settings-panel">
+        <div>
+          <h2>ประกาศกลุ่ม / Group announcement</h2>
+          <p>แก้ motto, ตารางเวลา, จุดนัดพบ และพี่สตาฟ โดยข้อมูลนี้จะแสดงในหน้า participant และ staff</p>
+        </div>
+        <div className="form-grid two-col">
+          <Select
+            label="สี"
+            value={editingSetting.main_group}
+            options={mainGroups.map((group) => ({ value: group, label: `${groupMeta[group].th} / ${group}` }))}
+            onChange={(event) => {
+              const main_group = event.target.value as MainGroup;
+              const existing = settingsByKey.get(settingKey(main_group, editingSetting.subgroup));
+              setEditingSetting({ main_group, subgroup: editingSetting.subgroup, motto: existing?.motto ?? '', meeting_point: existing?.meeting_point ?? '', schedule: existing?.schedule ?? '', mentors: existing?.mentors ?? '' });
+            }}
+          />
+          <Select
+            label="กลุ่มย่อย"
+            value={editingSetting.subgroup}
+            options={subgroups.map((subgroup) => ({ value: subgroup, label: `Group ${subgroup}` }))}
+            onChange={(event) => {
+              const subgroup = event.target.value as Subgroup;
+              const existing = settingsByKey.get(settingKey(editingSetting.main_group, subgroup));
+              setEditingSetting({ main_group: editingSetting.main_group, subgroup, motto: existing?.motto ?? '', meeting_point: existing?.meeting_point ?? '', schedule: existing?.schedule ?? '', mentors: existing?.mentors ?? '' });
+            }}
+          />
+          <Input label="Motto" value={editingSetting.motto ?? ''} onChange={(event) => setEditingSetting({ ...editingSetting, motto: event.target.value })} />
+          <Input label="จุดนัดพบ" value={editingSetting.meeting_point ?? ''} onChange={(event) => setEditingSetting({ ...editingSetting, meeting_point: event.target.value })} />
+          <Input label="ตารางเวลา" value={editingSetting.schedule ?? ''} onChange={(event) => setEditingSetting({ ...editingSetting, schedule: event.target.value })} />
+          <Input label="พี่สตาฟ/เมนเทอร์" value={editingSetting.mentors ?? ''} onChange={(event) => setEditingSetting({ ...editingSetting, mentors: event.target.value })} />
+          <div className="form-actions full-span">
+            <Button onClick={saveSetting}>บันทึกประกาศกลุ่ม</Button>
+          </div>
+        </div>
       </Card>
 
       {warnings.length ? (
@@ -164,12 +236,14 @@ export function GroupDashboardPage() {
                   return assignment?.main_group === mainGroup && assignment?.subgroup === subgroup;
                 });
                 const subgroupStats = stats.find((item) => item.key === key);
+                const setting = settingsByKey.get(key);
                 return (
                   <div className="subgroup-drop" key={key} onDragOver={(event) => event.preventDefault()} onDrop={(event) => onDrop(event, mainGroup, subgroup)}>
                     <div className="subgroup-head">
                       <strong>Group {subgroup}</strong>
                       <span>{subgroupProfiles.length}/75</span>
                     </div>
+                    <p className="subgroup-note">{setting?.meeting_point || groupMeta[mainGroup].meetingPoint}</p>
                     <div className="progress-track">
                       <span style={{ width: `${Math.min(100, (subgroupProfiles.length / 75) * 100)}%` }} />
                     </div>

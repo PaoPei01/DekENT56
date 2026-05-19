@@ -18,6 +18,7 @@ export function Layout() {
           <NavLink to="/admin">{t.admin}</NavLink>
           <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
           <NavLink to="/admin/groups">{t.groups}</NavLink>
+          <NavLink to="/staff">Staff</NavLink>
           <NavLink to="/admin/requests">{t.requests}</NavLink>
           <NavLink to="/admin/logs">{t.logs}</NavLink>
           <button className="language-toggle" type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>

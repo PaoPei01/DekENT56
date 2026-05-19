@@ -92,12 +92,12 @@ export function VerifyEditPage() {
               <div>
                 <p className="eyebrow">Your Group</p>
                 <h2>{groupLabel(groupContext.assignment.main_group, groupContext.assignment.subgroup)}</h2>
-                <p>{groupMeta[groupContext.assignment.main_group].motto}</p>
+                <p>{groupContext.setting?.motto || groupMeta[groupContext.assignment.main_group].motto}</p>
               </div>
               <div className="group-details-grid">
-                <div><strong>พี่สตาฟ</strong><span>{groupMeta[groupContext.assignment.main_group].mentors.join(', ')}</span></div>
-                <div><strong>เวลา</strong><span>{groupMeta[groupContext.assignment.main_group].schedule}</span></div>
-                <div><strong>จุดนัดพบ</strong><span>{groupMeta[groupContext.assignment.main_group].meetingPoint}</span></div>
+                <div><strong>พี่สตาฟ</strong><span>{groupContext.setting?.mentors || groupMeta[groupContext.assignment.main_group].mentors.join(', ')}</span></div>
+                <div><strong>เวลา</strong><span>{groupContext.setting?.schedule || groupMeta[groupContext.assignment.main_group].schedule}</span></div>
+                <div><strong>จุดนัดพบ</strong><span>{groupContext.setting?.meeting_point || groupMeta[groupContext.assignment.main_group].meetingPoint}</span></div>
               </div>
             </Card>
           ) : (
@@ -123,6 +123,10 @@ export function VerifyEditPage() {
           <Card className="sensitive-panel">
             <h2>{profile.name_th}</h2>
             <p>แก้ไขได้เฉพาะข้อมูลติดต่อและข้อมูลสุขภาพด้านล่าง</p>
+            <Card className="privacy-notice">
+              <strong>Consent การแสดงข้อมูลกับเพื่อนในกลุ่ม</strong>
+              <span>เปิดโปรไฟล์สาธารณะ = ยอมให้ระบบแนะนำชื่อเล่น ชื่อจริง และสาขาของคุณกับเพื่อนในกลุ่มเดียวกัน ส่วน Instagram/Line จะแสดงเฉพาะเมื่อเลือกยินยอมแยกด้านล่างเท่านั้น เบอร์โทรและข้อมูลสุขภาพจะไม่แสดงให้เพื่อนเห็น</span>
+            </Card>
             <form className="form-grid two-col" onSubmit={handleSubmit}>
               {editableFields.map((field) =>
                 field === 'public_profile' || field === 'show_instagram' || field === 'show_line_id' ? (

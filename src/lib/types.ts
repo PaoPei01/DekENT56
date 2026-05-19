@@ -105,6 +105,27 @@ export type GroupAssignment = {
   profiles?: Profile | null;
 };
 
+export type GroupSetting = {
+  id: string;
+  main_group: MainGroup;
+  subgroup: Subgroup;
+  motto: string | null;
+  meeting_point: string | null;
+  schedule: string | null;
+  mentors: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+};
+
+export type StaffAssignment = {
+  id: string;
+  user_id: string;
+  main_group: MainGroup;
+  subgroup: Subgroup | null;
+  role: string | null;
+  created_at: string | null;
+};
+
 export type GroupProfile = Profile & {
   group_assignment?: GroupAssignment | null;
 };
@@ -151,6 +172,16 @@ export type Database = {
         Insert: Partial<Omit<GroupAssignment, 'id' | 'profiles'>> & { profile_id: string; main_group: MainGroup; subgroup: Subgroup };
         Update: Partial<Omit<GroupAssignment, 'profiles'>>;
       };
+      group_settings: {
+        Row: GroupSetting;
+        Insert: Partial<GroupSetting> & { main_group: MainGroup; subgroup: Subgroup };
+        Update: Partial<GroupSetting>;
+      };
+      staff_assignments: {
+        Row: StaffAssignment;
+        Insert: Partial<StaffAssignment> & { user_id: string; main_group: MainGroup };
+        Update: Partial<StaffAssignment>;
+      };
     };
     Views: {
       public_profiles: {
@@ -193,6 +224,14 @@ export type Database = {
       lock_group_assignments: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      is_staff: {
+        Args: { uid: string };
+        Returns: boolean;
+      };
+      get_staff_group_context: {
+        Args: Record<string, never>;
+        Returns: Json;
       };
       is_admin: {
         Args: { uid: string };
