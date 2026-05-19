@@ -1,0 +1,15 @@
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  icon?: ReactNode;
+};
+
+export function Button({ variant = 'primary', icon, className = '', children, ...props }: ButtonProps) {
+  return (
+    <button className={`btn btn-${variant} ${className}`} {...props}>
+      {icon}
+      {children}
+    </button>
+  );
+}
