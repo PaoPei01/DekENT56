@@ -1167,6 +1167,155 @@ th {
   display: block;
 }
 
+.emergency-escalation-panel,
+.emergency-contact-section,
+.incident-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.emergency-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.emergency-panel-head h2,
+.emergency-panel-head p {
+  margin: 0;
+}
+
+.emergency-panel-head p,
+.emergency-panel-head span {
+  color: var(--text-soft);
+}
+
+.escalation-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 18px;
+  padding: 0.75rem;
+  border: 1px solid rgba(132, 155, 190, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 900;
+}
+
+.flow-step strong {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: white;
+  background: #c93444;
+}
+
+.guideline-panel {
+  display: grid;
+  gap: 0.35rem;
+  border-radius: 20px;
+  padding: 0.9rem;
+  color: #5d2100;
+  background: rgba(255, 245, 227, 0.88);
+  border: 1px solid rgba(224, 132, 32, 0.2);
+}
+
+.guideline-panel span {
+  color: #71420d;
+  line-height: 1.65;
+}
+
+.emergency-section-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.emergency-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
+}
+
+.emergency-quick-card {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: 22px;
+  padding: 1rem;
+  border: 1px solid rgba(132, 155, 190, 0.18);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.emergency-quick-card h3,
+.emergency-quick-card p {
+  margin: 0.35rem 0 0;
+}
+
+.emergency-quick-card p {
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.emergency-quick-card > strong {
+  font-size: 1.35rem;
+}
+
+.emergency-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.45rem;
+}
+
+.priority-badge {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.32rem 0.58rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.priority-critical {
+  border-color: rgba(201, 52, 68, 0.3);
+  background: rgba(255, 235, 237, 0.92);
+  color: #8d1324;
+}
+
+.priority-high {
+  border-color: rgba(224, 126, 29, 0.3);
+  background: rgba(255, 239, 221, 0.92);
+  color: #854100;
+}
+
+.priority-medium {
+  border-color: rgba(210, 168, 36, 0.32);
+  background: rgba(255, 248, 210, 0.92);
+  color: #735c00;
+}
+
+.incident-row {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  border-radius: 16px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(248, 251, 255, 0.84);
+}
+
+.incident-row span,
+.incident-row small,
+.empty-inline {
+  color: var(--text-soft);
+}
+
 .emergency-toolbar {
   position: sticky;
   top: 76px;
@@ -1240,6 +1389,40 @@ th {
 
 .primary-call span {
   color: rgba(255, 255, 255, 0.82);
+}
+
+.emergency-dock {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 16;
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.55rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.emergency-dock a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0.6rem 0.8rem;
+  color: var(--accent-strong);
+  background: rgba(40, 104, 232, 0.1);
+  font-weight: 900;
+}
+
+.emergency-dock .dock-critical {
+  color: white;
+  background: #c93444;
 }
 
 @keyframes revealPop {
@@ -1410,6 +1593,7 @@ th {
   .staff-top-grid,
   .attendance-toolbar,
   .emergency-contact-grid,
+  .emergency-quick-actions,
   .group-reveal {
     grid-template-columns: 1fr;
   }
@@ -1420,6 +1604,23 @@ th {
   }
 
   .attendance-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .emergency-dock {
+    left: 0.5rem;
+    right: 0.5rem;
+    justify-content: stretch;
+    border-radius: 24px;
+  }
+
+  .emergency-dock a {
+    flex: 1;
+    padding-inline: 0.55rem;
+    font-size: 0.82rem;
+  }
+
+  .incident-row {
     grid-template-columns: 1fr;
   }
 

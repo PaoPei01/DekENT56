@@ -1,5 +1,5 @@
-import { AlertTriangle, Phone, Save, Search, ShieldAlert } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { AlertTriangle, Clipboard, Flame, Phone, Save, Search, ShieldAlert, Siren } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { HealthFlags, hasHealthFlag } from '../components/HealthFlags';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Badge } from '../components/ui/Badge';
@@ -10,6 +10,7 @@ import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useAsync } from '../hooks/useAsync';
+import { emergencyContacts, emergencySections, priorityLabel, priorityRank, type EmergencyContact } from '../lib/emergencyContacts';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorLabel } from '../lib/major';
@@ -19,6 +20,16 @@ import { fetchStaffAccessContext } from '../services/staff';
 import { errorMessage } from '../utils/error';
 
 type MedicalFilter = '' | 'any' | 'disease' | 'drug_allergy' | 'food_allergy' | 'special';
+type Incident = { id: string; contact: string; phone: string; createdAt: string };
+const incidentKey = 'tfbp_emergency_incidents';
+
+function loadIncidents(): Incident[] {
+  try {
+    return JSON.parse(localStorage.getItem(incidentKey) || '[]') as Incident[];
+  } catch {
+    return [];
+  }
+}
 
 export function EmergencyDashboardPage() {
   const state = useAsync(fetchEmergencyDashboard, []);
@@ -30,7 +41,9 @@ export function EmergencyDashboardPage() {
   const [allergyType, setAllergyType] = useState('');
   const [notes, setNotes] = useState<Record<string, { note: string; needs: boolean }>>({});
   const [toast, setToast] = useState<ToastState>(null);
+  const [incidents, setIncidents] = useState<Incident[]>(loadIncidents);
   const canEditHealthTools = Boolean(accessState.data?.is_admin || accessState.data?.roles.includes('emergency_staff'));
+  const sortedContacts = useMemo(() => [...emergencyContacts].sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority]), []);
 
   const rows = useMemo(() => state.data?.participants ?? [], [state.data?.participants]);
   const filtered = useMemo(() => {
@@ -71,6 +84,33 @@ export function EmergencyDashboardPage() {
     }
   }
 
+  async function copyPhone(contact: EmergencyContact) {
+    if (!contact.phone) {
+      setToast({ type: 'error', message: 'ยังไม่ได้ตั้งค่าเบอร์นี้' });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(contact.phone);
+      setToast({ type: 'success', message: `คัดลอกเบอร์ ${contact.name} แล้ว` });
+    } catch {
+      setToast({ type: 'error', message: 'คัดลอกไม่สำเร็จ' });
+    }
+  }
+
+  function logIncident(contact: EmergencyContact) {
+    const next = [
+      { id: crypto.randomUUID(), contact: contact.name, phone: contact.phone, createdAt: new Date().toISOString() },
+      ...incidents,
+    ].slice(0, 8);
+    setIncidents(next);
+    localStorage.setItem(incidentKey, JSON.stringify(next));
+    setToast({ type: 'success', message: `บันทึก escalation: ${contact.name}` });
+  }
+
+  useEffect(() => {
+    localStorage.setItem('tfbp_emergency_contacts_cache', JSON.stringify(emergencyContacts));
+  }, []);
+
   const summary = state.data?.summary;
 
   return (
@@ -100,6 +140,79 @@ export function EmergencyDashboardPage() {
           <strong>Confidential medical information</strong>
           <span>ห้ามแชร์ภาพหน้าจอหรือเผยแพร่ข้อมูลสุขภาพต่อสาธารณะ ใช้เพื่อประสานงานฉุกเฉินเท่านั้น</span>
         </div>
+      </Card>
+
+      <Card className="emergency-escalation-panel">
+        <div className="emergency-panel-head">
+          <div>
+            <p className="eyebrow">Escalation Flow</p>
+            <h2>โทรตามลำดับความเร่งด่วน</h2>
+          </div>
+          <span>Offline cache ready</span>
+        </div>
+        <div className="escalation-flow">
+          {sortedContacts.map((contact, index) => (
+            <div className={`flow-step priority-${contact.priority}`} key={contact.name}>
+              <strong>{index + 1}</strong>
+              <span>{contact.name}</span>
+            </div>
+          ))}
+        </div>
+        <div className="guideline-panel">
+          <strong>Emergency response guideline</strong>
+          <span>1. ประเมินความปลอดภัยของพื้นที่ 2. โทร Head Medic/1669 เมื่อมีอาการรุนแรง 3. ให้คนหนึ่งอยู่กับผู้ป่วย อีกคนประสานงาน 4. บันทึก note และเวลาที่ escalate ทุกครั้ง</span>
+        </div>
+      </Card>
+
+      <div className="emergency-section-grid">
+        {emergencySections.map((section) => {
+          const contacts = sortedContacts.filter((contact) => section.categories.includes(contact.category) && section.priorities.includes(contact.priority));
+          return (
+            <Card className="emergency-contact-section" key={section.title}>
+              <div className="emergency-panel-head">
+                <div>
+                  <h2>{section.title}</h2>
+                  <p>{section.description}</p>
+                </div>
+              </div>
+              <div className="emergency-quick-grid">
+                {contacts.map((contact) => (
+                  <div className={`emergency-quick-card priority-${contact.priority}`} key={`${section.title}-${contact.name}`}>
+                    <div>
+                      <span className={`priority-badge priority-${contact.priority}`}>{priorityLabel[contact.priority]}</span>
+                      <h3>{contact.name}</h3>
+                      <p>{contact.description || (contact.available_24h ? 'Available 24h' : 'Check availability')}</p>
+                    </div>
+                    <strong>{contact.phone || 'TBD'}</strong>
+                    <div className="emergency-quick-actions">
+                      <a className="btn btn-primary" href={contact.phone ? `tel:${contact.phone}` : undefined}>
+                        <Phone size={18} /> โทร
+                      </a>
+                      <Button variant="secondary" icon={<Clipboard size={18} />} onClick={() => copyPhone(contact)}>คัดลอก</Button>
+                      <Button variant="ghost" icon={<Siren size={18} />} onClick={() => logIncident(contact)}>Log</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card className="incident-panel">
+        <div className="emergency-panel-head">
+          <div>
+            <h2>Incident escalation tracking</h2>
+            <p>เก็บในเครื่องนี้เพื่อช่วยจำช่วงหน้างาน ไม่ใช่บันทึกถาวรในฐานข้อมูล</p>
+          </div>
+        </div>
+        {incidents.length ? incidents.map((incident) => (
+          <div className="incident-row" key={incident.id}>
+            <span>{new Date(incident.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span>
+            <strong>{incident.contact}</strong>
+            <small>{incident.phone}</small>
+          </div>
+        )) : <span className="empty-inline">ยังไม่มี escalation log</span>}
       </Card>
 
       <div className="emergency-toolbar">
@@ -172,6 +285,12 @@ export function EmergencyDashboardPage() {
             </Card>
           );
         })}
+      </div>
+
+      <div className="emergency-dock" aria-label="Emergency quick actions">
+        <a className="dock-critical" href="tel:1669"><Flame size={18} /> EMS 1669</a>
+        <a href="tel:0636510902"><Phone size={18} /> Head Medic</a>
+        <a href="tel:191">Police 191</a>
       </div>
     </section>
   );
