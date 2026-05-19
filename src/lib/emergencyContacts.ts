@@ -5,6 +5,7 @@ export type EmergencyContact = {
   nameTh: string;
   category: 'medical' | 'university' | 'police' | 'fire' | 'mental_health' | 'rescue';
   phone: string;
+  alternatePhones?: string[];
   priority: EmergencyPriority;
   available_24h: boolean;
   description?: string;
@@ -88,10 +89,11 @@ export const emergencyContacts: EmergencyContact[] = [
     nameTh: 'สถานีหน่วยกู้ภัยพิเศษเทศบาลนครเชียงใหม่',
     category: 'rescue',
     phone: '053232974',
+    alternatePhones: ['053259353', '053259354', '053259355'],
     priority: 'medium',
     available_24h: true,
-    description: 'Local rescue service for Chiang Mai city area. Alternate numbers: 053-259-353-5.',
-    descriptionTh: 'ให้บริการในเขตตัวเมือง เบอร์สำรอง: 053-259-353-5',
+    description: 'Local rescue service for Chiang Mai city area.',
+    descriptionTh: 'ให้บริการในเขตตัวเมือง',
   },
 ];
 

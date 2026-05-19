@@ -186,6 +186,14 @@ export function EmergencyDashboardPage() {
                       <p>{(language === 'th' ? contact.descriptionTh : contact.description) || (contact.available_24h ? (language === 'th' ? 'พร้อมตลอด 24 ชั่วโมง' : 'Available 24h') : (language === 'th' ? 'ตรวจสอบเวลาพร้อมให้บริการ' : 'Check availability'))}</p>
                     </div>
                     <strong>{contact.phone || 'TBD'}</strong>
+                    {contact.alternatePhones?.length ? (
+                      <div className="alternate-phone-list">
+                        <span>{language === 'th' ? 'เบอร์สำรอง' : 'Alternate'}</span>
+                        {contact.alternatePhones.map((phone) => (
+                          <a key={phone} href={`tel:${phone}`}>{phone}</a>
+                        ))}
+                      </div>
+                    ) : null}
                     <div className="emergency-quick-actions">
                       <a className="btn btn-primary" href={contact.phone ? `tel:${contact.phone}` : undefined}>
                         <Phone size={18} /> {language === 'th' ? 'โทร' : 'Call'}
