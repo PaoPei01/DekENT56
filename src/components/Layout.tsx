@@ -22,16 +22,18 @@ export function Layout() {
               {language === 'th' ? 'เครื่องมือ' : 'Tools'}
             </summary>
             <div>
+              <span className="nav-menu-label">{language === 'th' ? 'แอดมิน' : 'Admin'}</span>
               <NavLink to="/admin">{t.admin}</NavLink>
               <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
-              <NavLink to="/admin/emergency">Emergency</NavLink>
               <NavLink to="/admin/groups">{t.groups}</NavLink>
-              <NavLink to="/staff">Staff</NavLink>
+              <NavLink to="/admin/requests">{t.requests}</NavLink>
+              <NavLink to="/admin/logs">{t.logs}</NavLink>
+              <NavLink to="/admin/emergency">Emergency</NavLink>
+              <span className="nav-menu-label">{language === 'th' ? 'สตาฟ' : 'Staff'}</span>
+              <NavLink to="/staff">Staff Home</NavLink>
               <NavLink to="/staff/my-group">My Group</NavLink>
               <NavLink to="/staff/attendance">Attendance</NavLink>
               <NavLink to="/staff/emergency">Staff Emergency</NavLink>
-              <NavLink to="/admin/requests">{t.requests}</NavLink>
-              <NavLink to="/admin/logs">{t.logs}</NavLink>
             </div>
           </details>
           <button className="language-toggle" type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
