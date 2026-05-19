@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Toast, ToastState } from '../components/ui/Toast';
+import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import { groupLabel } from '../lib/grouping';
 import { majorLabel } from '../lib/major';
@@ -21,11 +22,11 @@ type QueueItem = {
 };
 
 const queueKey = 'tfbp_staff_attendance_queue';
-const statuses: Array<{ value: StaffAttendance['status']; label: string; icon: ReactNode }> = [
-  { value: 'present', label: 'มาแล้ว', icon: <CheckCircle2 size={17} /> },
-  { value: 'late', label: 'สาย', icon: <Clock size={17} /> },
-  { value: 'absent', label: 'ไม่มา', icon: <XCircle size={17} /> },
-  { value: 'excused', label: 'ลา/ยกเว้น', icon: <RotateCw size={17} /> },
+const statuses: Array<{ value: StaffAttendance['status']; labelTh: string; labelEn: string; icon: ReactNode }> = [
+  { value: 'present', labelTh: 'มาแล้ว', labelEn: 'Present', icon: <CheckCircle2 size={17} /> },
+  { value: 'late', labelTh: 'สาย', labelEn: 'Late', icon: <Clock size={17} /> },
+  { value: 'absent', labelTh: 'ไม่มา', labelEn: 'Absent', icon: <XCircle size={17} /> },
+  { value: 'excused', labelTh: 'ลา/ยกเว้น', labelEn: 'Excused', icon: <RotateCw size={17} /> },
 ];
 
 function today() {
@@ -45,6 +46,7 @@ function saveQueue(items: QueueItem[]) {
 }
 
 export function StaffAttendancePage() {
+  const { language } = useLanguage();
   const [eventDate, setEventDate] = useState(today());
   const [search, setSearch] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>(loadQueue);
@@ -71,13 +73,13 @@ export function StaffAttendancePage() {
     try {
       if (!navigator.onLine) throw new Error('offline');
       await markStaffAttendance(profileId, status, '', eventDate);
-      setToast({ type: 'success', message: 'บันทึก attendance แล้ว' });
+      setToast({ type: 'success', message: language === 'th' ? 'บันทึก attendance แล้ว' : 'Attendance saved' });
       await state.reload();
     } catch {
       const next = [...queue.filter((queued) => !(queued.profileId === profileId && queued.eventDate === eventDate)), item];
       setQueue(next);
       saveQueue(next);
-      setToast({ type: 'success', message: 'เก็บไว้ในคิว offline แล้ว กด Sync เมื่อออนไลน์' });
+      setToast({ type: 'success', message: language === 'th' ? 'เก็บไว้ในคิว offline แล้ว กด Sync เมื่อออนไลน์' : 'Saved to offline queue. Sync when online.' });
     }
   }
 
@@ -92,7 +94,7 @@ export function StaffAttendancePage() {
     }
     setQueue(remaining);
     saveQueue(remaining);
-    setToast(remaining.length ? { type: 'error', message: `ยัง sync ไม่ครบ ${remaining.length} รายการ` } : { type: 'success', message: 'Sync attendance queue สำเร็จ' });
+    setToast(remaining.length ? { type: 'error', message: language === 'th' ? `ยัง sync ไม่ครบ ${remaining.length} รายการ` : `${remaining.length} items still not synced` } : { type: 'success', message: language === 'th' ? 'Sync attendance queue สำเร็จ' : 'Attendance queue synced' });
     await state.reload();
   }
 
@@ -108,33 +110,33 @@ export function StaffAttendancePage() {
 
   if (state.loading) return <LoadingSkeleton />;
   if (state.error) return <div className="error-state">{state.error}</div>;
-  if (!state.data?.access.can_mark_attendance) return <div className="empty-state">บัญชีนี้ไม่มีสิทธิ์เช็กชื่อ</div>;
+  if (!state.data?.access.can_mark_attendance) return <div className="empty-state">{language === 'th' ? 'บัญชีนี้ไม่มีสิทธิ์เช็กชื่อ' : 'This account cannot mark attendance.'}</div>;
 
   return (
     <section className="page-stack staff-page">
       <Toast toast={toast} />
       <div className="section-heading">
-        <p className="eyebrow">Staff Attendance</p>
-        <h1>เช็กชื่อ</h1>
-        <p>เช็กชื่อเฉพาะกลุ่มที่ได้รับมอบหมาย ถ้าเน็ตหลุด ระบบจะเก็บไว้ในคิวบนเครื่องนี้ก่อน</p>
+        <p className="eyebrow">{language === 'th' ? 'เช็กชื่อสตาฟ' : 'Staff Attendance'}</p>
+        <h1>{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</h1>
+        <p>{language === 'th' ? 'เช็กชื่อเฉพาะกลุ่มที่ได้รับมอบหมาย ถ้าเน็ตหลุด ระบบจะเก็บไว้ในคิวบนเครื่องนี้ก่อน' : 'Mark attendance only for your assigned group. If the connection drops, the app stores marks in this device queue first.'}</p>
       </div>
 
       <div className="staff-sticky-actions">
-        <Link className="btn btn-secondary" to="/staff"><Home size={18} />หน้าหลัก</Link>
+        <Link className="btn btn-secondary" to="/staff"><Home size={18} />{language === 'th' ? 'หน้าหลัก' : 'Home'}</Link>
         <Button variant="secondary" icon={<UploadCloud size={18} />} onClick={syncQueue} disabled={!queue.length}>Sync {queue.length}</Button>
       </div>
 
       <div className="attendance-toolbar">
-        <Input label="วันที่กิจกรรม" type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} />
+        <Input label={language === 'th' ? 'วันที่กิจกรรม' : 'Event date'} type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} />
         <div className="search-shell">
           <Search size={18} aria-hidden="true" />
-          <Input label="ค้นหา" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ ชื่อเล่น เบอร์ หรือสาขา" />
+          <Input label={language === 'th' ? 'ค้นหา' : 'Search'} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น เบอร์ หรือสาขา' : 'Name, nickname, phone, or major'} />
         </div>
       </div>
 
       <div className="staff-section-head">
-        <h2>รายชื่อ</h2>
-        <span>{participants.length} คน · คิว {queueForDate.length}</span>
+        <h2>{language === 'th' ? 'รายชื่อ' : 'Participant list'}</h2>
+        <span>{participants.length} {language === 'th' ? 'คน' : 'people'} · {language === 'th' ? 'คิว' : 'queue'} {queueForDate.length}</span>
       </div>
 
       <div className="staff-list">
@@ -145,17 +147,17 @@ export function StaffAttendancePage() {
             <Card className="attendance-card" key={profile.id}>
               <div>
                 <h2>{profile.nickname || profile.name_th}</h2>
-                <p>{profile.name_th} · {majorLabel(profile.major)}</p>
-                <span>{groupLabel(profile.group_assignment?.main_group, profile.group_assignment?.subgroup)}</span>
+                <p>{profile.name_th} · {majorLabel(profile.major, language)}</p>
+                <span>{groupLabel(profile.group_assignment?.main_group, profile.group_assignment?.subgroup, language)}</span>
               </div>
               <div className="attendance-status-line">
-                <strong>{status ? statuses.find((item) => item.value === status)?.label : 'ยังไม่เช็ก'}</strong>
-                {queued ? <span>รอ sync</span> : profile.attendance?.marked_at ? <span>{new Date(profile.attendance.marked_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span> : null}
+                <strong>{status ? (language === 'th' ? statuses.find((item) => item.value === status)?.labelTh : statuses.find((item) => item.value === status)?.labelEn) : language === 'th' ? 'ยังไม่เช็ก' : 'Not marked'}</strong>
+                {queued ? <span>{language === 'th' ? 'รอ sync' : 'Waiting to sync'}</span> : profile.attendance?.marked_at ? <span>{new Date(profile.attendance.marked_at).toLocaleTimeString(language === 'th' ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span> : null}
               </div>
               <div className="attendance-actions">
                 {statuses.map((item) => (
                   <Button key={item.value} variant={status === item.value ? 'primary' : 'secondary'} icon={item.icon} onClick={() => mark(profile.id, item.value)}>
-                    {item.label}
+                    {language === 'th' ? item.labelTh : item.labelEn}
                   </Button>
                 ))}
               </div>

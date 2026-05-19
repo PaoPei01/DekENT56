@@ -1,4 +1,5 @@
 import { Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 type Props = {
   instagram?: string | null;
@@ -13,6 +14,7 @@ function cleanHandle(value?: string | null) {
 }
 
 export function ContactLinks({ instagram, facebook, lineId, other, compact = false }: Props) {
+  const { language } = useLanguage();
   const ig = cleanHandle(instagram);
   const fb = cleanHandle(facebook);
   const line = cleanHandle(lineId);
@@ -36,7 +38,7 @@ export function ContactLinks({ instagram, facebook, lineId, other, compact = fal
           <MessageCircle size={16} /> Line <strong>{line}</strong>
         </span>
       ) : null}
-      {other ? <span>อื่น ๆ <strong>{other}</strong></span> : null}
+      {other ? <span>{language === 'th' ? 'อื่น ๆ' : 'Other'} <strong>{other}</strong></span> : null}
     </div>
   );
 }

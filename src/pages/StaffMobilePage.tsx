@@ -7,6 +7,7 @@ import { HealthFlags } from '../components/HealthFlags';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta } from '../lib/groups';
@@ -15,6 +16,7 @@ import { settingKey } from '../services/groups';
 import { fetchStaffGroupContext } from '../services/staff';
 
 export function StaffMobilePage() {
+  const { language } = useLanguage();
   const [search, setSearch] = useState('');
   const state = useAsync(fetchStaffGroupContext, []);
   const context = state.data;
@@ -30,34 +32,34 @@ export function StaffMobilePage() {
 
   if (state.loading) return <LoadingSkeleton />;
   if (state.error) return <div className="error-state">{state.error}</div>;
-  if (!context) return <div className="empty-state">บัญชีนี้ยังไม่ได้ถูก assign เป็น staff กลุ่มใด</div>;
+  if (!context) return <div className="empty-state">{language === 'th' ? 'บัญชีนี้ยังไม่ได้ถูก assign เป็น staff กลุ่มใด' : 'This account has not been assigned to a staff group.'}</div>;
 
   return (
     <section className="page-stack staff-page">
       <div className="section-heading">
-        <p className="eyebrow">Staff Mobile View</p>
-        <h1>{context.assignment?.main_group ? groupLabel(context.assignment.main_group, context.assignment.subgroup) : 'All groups'}</h1>
-        <p>ดูข้อมูลเฉพาะกลุ่มที่รับผิดชอบสำหรับหน้างาน</p>
+        <p className="eyebrow">{language === 'th' ? 'มุมมองสตาฟมือถือ' : 'Staff Mobile View'}</p>
+        <h1>{context.assignment?.main_group ? groupLabel(context.assignment.main_group, context.assignment.subgroup, language) : language === 'th' ? 'ทุกกลุ่ม' : 'All groups'}</h1>
+        <p>{language === 'th' ? 'ดูข้อมูลเฉพาะกลุ่มที่รับผิดชอบสำหรับหน้างาน' : 'View only the assigned group data needed for event operations.'}</p>
       </div>
 
       <div className="staff-sticky-actions">
-        <Link className="btn btn-secondary" to="/staff"><Home size={18} />หน้าหลัก</Link>
-        {context.access.can_mark_attendance ? <Link className="btn btn-primary" to="/staff/attendance"><ClipboardCheck size={18} />เช็กชื่อ</Link> : null}
+        <Link className="btn btn-secondary" to="/staff"><Home size={18} />{language === 'th' ? 'หน้าหลัก' : 'Home'}</Link>
+        {context.access.can_mark_attendance ? <Link className="btn btn-primary" to="/staff/attendance"><ClipboardCheck size={18} />{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</Link> : null}
       </div>
 
       <div className="staff-top-grid">
         <Card className="staff-summary-card">
           <UsersRound size={22} />
           <div>
-            <strong>{participants.length} คน</strong>
-            <span>ผู้เข้าร่วมในความรับผิดชอบ</span>
+            <strong>{participants.length} {language === 'th' ? 'คน' : 'people'}</strong>
+            <span>{language === 'th' ? 'ผู้เข้าร่วมในความรับผิดชอบ' : 'Assigned participants'}</span>
           </div>
         </Card>
         <Card className="staff-summary-card">
           <MapPin size={22} />
           <div>
-            <strong>{primarySetting?.meeting_point || 'ยังไม่ระบุ'}</strong>
-            <span>{primarySetting?.schedule || 'ยังไม่ระบุตาราง'}</span>
+            <strong>{primarySetting?.meeting_point || (language === 'th' ? 'ยังไม่ระบุ' : 'Not set')}</strong>
+            <span>{primarySetting?.schedule || (language === 'th' ? 'ยังไม่ระบุตาราง' : 'Schedule not set')}</span>
           </div>
         </Card>
       </div>
@@ -65,8 +67,8 @@ export function StaffMobilePage() {
       {context.staff_roster?.length ? (
         <Card className="staff-roster-panel">
           <div className="staff-section-head">
-            <h2>พี่กลุ่ม</h2>
-            <span>{context.staff_roster.length} คน</span>
+            <h2>{language === 'th' ? 'พี่กลุ่ม' : 'Group staff'}</h2>
+            <span>{context.staff_roster.length} {language === 'th' ? 'คน' : 'people'}</span>
           </div>
           <div className="staff-roster-grid">
             {context.staff_roster.map((staff) => (
@@ -83,13 +85,13 @@ export function StaffMobilePage() {
 
       <div className="search-shell">
         <Search size={18} aria-hidden="true" />
-        <Input label="ค้นหาในกลุ่ม" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ ชื่อเล่น เบอร์ หรือสาขา" />
+        <Input label={language === 'th' ? 'ค้นหาในกลุ่ม' : 'Search group'} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น เบอร์ หรือสาขา' : 'Name, nickname, phone, or major'} />
       </div>
 
       <div className="staff-list">
         <div className="staff-section-head">
-          <h2>น้องในกลุ่ม</h2>
-          <span>{participants.length} คน</span>
+          <h2>{language === 'th' ? 'น้องในกลุ่ม' : 'Group participants'}</h2>
+          <span>{participants.length} {language === 'th' ? 'คน' : 'people'}</span>
         </div>
         {participants.map((profile) => {
           const assignment = profile.group_assignment;
@@ -115,10 +117,10 @@ export function StaffMobilePage() {
                 </div>
               </div>
               <div className="profile-facts">
-                <div><span>สาขา</span><strong>{majorLabel(profile.major)}</strong></div>
-                <div><span>กลุ่ม</span><strong>{groupLabel(assignment?.main_group, assignment?.subgroup)}</strong></div>
-                <div><span>เบอร์</span><strong>{profile.phone || '-'}</strong></div>
-                <div><span>ฉุกเฉิน</span><strong>{profile.emergency_phone || '-'}</strong></div>
+                <div><span>{language === 'th' ? 'สาขา' : 'Major'}</span><strong>{majorLabel(profile.major, language)}</strong></div>
+                <div><span>{language === 'th' ? 'กลุ่ม' : 'Group'}</span><strong>{groupLabel(assignment?.main_group, assignment?.subgroup, language)}</strong></div>
+                <div><span>{language === 'th' ? 'เบอร์' : 'Phone'}</span><strong>{profile.phone || '-'}</strong></div>
+                <div><span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span><strong>{profile.emergency_phone || '-'}</strong></div>
               </div>
               <div className="staff-operation-note">
                 <strong>{setting?.meeting_point || '-'}</strong>

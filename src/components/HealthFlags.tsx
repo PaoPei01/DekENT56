@@ -1,4 +1,5 @@
 import { AlertTriangle, HeartPulse, Pill } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import type { Profile } from '../lib/types';
 
 type Props = {
@@ -16,10 +17,11 @@ export function hasHealthFlag(profile: Props['profile'], type?: 'disease' | 'dru
 }
 
 export function HealthFlags({ profile, detail = false }: Props) {
+  const { language } = useLanguage();
   const flags = [
-    { key: 'disease', label: 'โรคประจำตัว', icon: <HeartPulse size={14} />, value: profile.disease },
-    { key: 'drug_allergy', label: 'แพ้ยา', icon: <Pill size={14} />, value: profile.drug_allergy },
-    { key: 'food_allergy', label: 'แพ้อาหาร', icon: <AlertTriangle size={14} />, value: profile.food_allergy },
+    { key: 'disease', label: language === 'th' ? 'โรคประจำตัว' : 'Medical condition', icon: <HeartPulse size={14} />, value: profile.disease },
+    { key: 'drug_allergy', label: language === 'th' ? 'แพ้ยา' : 'Drug allergy', icon: <Pill size={14} />, value: profile.drug_allergy },
+    { key: 'food_allergy', label: language === 'th' ? 'แพ้อาหาร' : 'Food allergy', icon: <AlertTriangle size={14} />, value: profile.food_allergy },
   ].filter((item) => hasValue(item.value));
 
   if (!flags.length) return null;

@@ -9,6 +9,7 @@ import { DashboardStatCard } from '../components/ui/DashboardStatCard';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
+import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import { emergencyContacts, emergencySections, priorityLabel, priorityRank, type EmergencyContact } from '../lib/emergencyContacts';
 import { groupLabel } from '../lib/grouping';
@@ -32,6 +33,7 @@ function loadIncidents(): Incident[] {
 }
 
 export function EmergencyDashboardPage() {
+  const { language } = useLanguage();
   const state = useAsync(fetchEmergencyDashboard, []);
   const accessState = useAsync(fetchStaffAccessContext, []);
   const [search, setSearch] = useState('');
@@ -71,29 +73,29 @@ export function EmergencyDashboardPage() {
 
   async function save(profile: EmergencyProfile) {
     if (!canEditHealthTools) {
-      setToast({ type: 'error', message: 'บัญชีนี้ดูข้อมูลฉุกเฉินได้ แต่แก้ note ได้เฉพาะ admin หรือ emergency_staff' });
+      setToast({ type: 'error', message: language === 'th' ? 'บัญชีนี้ดูข้อมูลฉุกเฉินได้ แต่แก้ note ได้เฉพาะ admin หรือ emergency_staff' : 'This account can view emergency data, but only admin or emergency_staff can edit notes.' });
       return;
     }
     const current = notes[profile.id] ?? { note: profile.emergency_note ?? '', needs: Boolean(profile.needs_special_care) };
     try {
       await saveEmergencyNote(profile.id, current.note, current.needs);
-      setToast({ type: 'success', message: 'บันทึก emergency note แล้ว' });
+      setToast({ type: 'success', message: language === 'th' ? 'บันทึก emergency note แล้ว' : 'Emergency note saved' });
       await state.reload();
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, 'บันทึกไม่สำเร็จ') });
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'บันทึกไม่สำเร็จ' : 'Save failed') });
     }
   }
 
   async function copyPhone(contact: EmergencyContact) {
     if (!contact.phone) {
-      setToast({ type: 'error', message: 'ยังไม่ได้ตั้งค่าเบอร์นี้' });
+      setToast({ type: 'error', message: language === 'th' ? 'ยังไม่ได้ตั้งค่าเบอร์นี้' : 'This phone number is not set yet' });
       return;
     }
     try {
       await navigator.clipboard.writeText(contact.phone);
-      setToast({ type: 'success', message: `คัดลอกเบอร์ ${contact.name} แล้ว` });
+      setToast({ type: 'success', message: language === 'th' ? `คัดลอกเบอร์ ${contact.nameTh} แล้ว` : `Copied ${contact.name} phone number` });
     } catch {
-      setToast({ type: 'error', message: 'คัดลอกไม่สำเร็จ' });
+      setToast({ type: 'error', message: language === 'th' ? 'คัดลอกไม่สำเร็จ' : 'Copy failed' });
     }
   }
 
@@ -104,7 +106,7 @@ export function EmergencyDashboardPage() {
     ].slice(0, 8);
     setIncidents(next);
     localStorage.setItem(incidentKey, JSON.stringify(next));
-    setToast({ type: 'success', message: `บันทึก escalation: ${contact.name}` });
+    setToast({ type: 'success', message: language === 'th' ? `บันทึก escalation: ${contact.nameTh}` : `Logged escalation: ${contact.name}` });
   }
 
   useEffect(() => {
@@ -117,9 +119,9 @@ export function EmergencyDashboardPage() {
     <section className="page-stack emergency-page">
       <Toast toast={toast} />
       <div className="section-heading">
-        <p className="eyebrow">Emergency Operations</p>
-        <h1>Emergency Dashboard</h1>
-        <p>ข้อมูลสุขภาพเป็นความลับ ใช้เฉพาะงานดูแลความปลอดภัยในกิจกรรม ทุกครั้งที่เปิดหรือแก้ไขจะถูกบันทึก audit log</p>
+        <p className="eyebrow">{language === 'th' ? 'ปฏิบัติการฉุกเฉิน' : 'Emergency Operations'}</p>
+        <h1>{language === 'th' ? 'แดชบอร์ดฉุกเฉิน' : 'Emergency Dashboard'}</h1>
+        <p>{language === 'th' ? 'ข้อมูลสุขภาพเป็นความลับ ใช้เฉพาะงานดูแลความปลอดภัยในกิจกรรม ทุกครั้งที่เปิดหรือแก้ไขจะถูกบันทึก audit log' : 'Health information is confidential and only for event safety operations. Every view or edit is recorded in the audit log.'}</p>
       </div>
 
       {state.loading || accessState.loading ? <LoadingSkeleton /> : null}
@@ -127,40 +129,40 @@ export function EmergencyDashboardPage() {
 
       {summary ? (
         <div className="stats-grid">
-          <DashboardStatCard label="Special care" value={summary.needs_special_care} icon={<ShieldAlert size={20} />} />
-          <DashboardStatCard label="โรคประจำตัว" value={summary.disease} />
-          <DashboardStatCard label="แพ้ยา" value={summary.drug_allergy} />
-          <DashboardStatCard label="แพ้อาหาร" value={summary.food_allergy} />
+          <DashboardStatCard label={language === 'th' ? 'ต้องดูแลพิเศษ' : 'Special care'} value={summary.needs_special_care} icon={<ShieldAlert size={20} />} />
+          <DashboardStatCard label={language === 'th' ? 'โรคประจำตัว' : 'Medical conditions'} value={summary.disease} />
+          <DashboardStatCard label={language === 'th' ? 'แพ้ยา' : 'Drug allergies'} value={summary.drug_allergy} />
+          <DashboardStatCard label={language === 'th' ? 'แพ้อาหาร' : 'Food allergies'} value={summary.food_allergy} />
         </div>
       ) : null}
 
       <Card className="emergency-notice">
         <AlertTriangle size={20} />
         <div>
-          <strong>Confidential medical information</strong>
-          <span>ห้ามแชร์ภาพหน้าจอหรือเผยแพร่ข้อมูลสุขภาพต่อสาธารณะ ใช้เพื่อประสานงานฉุกเฉินเท่านั้น</span>
+          <strong>{language === 'th' ? 'ข้อมูลสุขภาพเป็นความลับ' : 'Confidential medical information'}</strong>
+          <span>{language === 'th' ? 'ห้ามแชร์ภาพหน้าจอหรือเผยแพร่ข้อมูลสุขภาพต่อสาธารณะ ใช้เพื่อประสานงานฉุกเฉินเท่านั้น' : 'Do not share screenshots or disclose health data publicly. Use this only for emergency coordination.'}</span>
         </div>
       </Card>
 
       <Card className="emergency-escalation-panel">
         <div className="emergency-panel-head">
           <div>
-            <p className="eyebrow">Escalation Flow</p>
-            <h2>โทรตามลำดับความเร่งด่วน</h2>
+            <p className="eyebrow">{language === 'th' ? 'ลำดับการประสานงาน' : 'Escalation Flow'}</p>
+            <h2>{language === 'th' ? 'โทรตามลำดับความเร่งด่วน' : 'Call in priority order'}</h2>
           </div>
-          <span>Offline cache ready</span>
+          <span>{language === 'th' ? 'พร้อมใช้ออฟไลน์' : 'Offline cache ready'}</span>
         </div>
         <div className="escalation-flow">
           {sortedContacts.map((contact, index) => (
             <div className={`flow-step priority-${contact.priority}`} key={contact.name}>
               <strong>{index + 1}</strong>
-              <span>{contact.name}</span>
+              <span>{language === 'th' ? contact.nameTh : contact.name}</span>
             </div>
           ))}
         </div>
         <div className="guideline-panel">
-          <strong>Emergency response guideline</strong>
-          <span>1. ประเมินความปลอดภัยของพื้นที่ 2. โทร Head Medic/1669 เมื่อมีอาการรุนแรง 3. ให้คนหนึ่งอยู่กับผู้ป่วย อีกคนประสานงาน 4. บันทึก note และเวลาที่ escalate ทุกครั้ง</span>
+          <strong>{language === 'th' ? 'แนวทางตอบสนองเหตุฉุกเฉิน' : 'Emergency response guideline'}</strong>
+          <span>{language === 'th' ? '1. ประเมินความปลอดภัยของพื้นที่ 2. โทรหัวหน้าทีมพยาบาล/1669 เมื่อมีอาการรุนแรง 3. ให้คนหนึ่งอยู่กับผู้ป่วย อีกคนประสานงาน 4. บันทึก note และเวลาที่ escalate ทุกครั้ง' : '1. Check scene safety. 2. Call Head Medic/1669 for severe symptoms. 3. Keep one person with the patient and one person coordinating. 4. Record notes and escalation time.'}</span>
         </div>
       </Card>
 
@@ -171,8 +173,8 @@ export function EmergencyDashboardPage() {
             <Card className="emergency-contact-section" key={section.title}>
               <div className="emergency-panel-head">
                 <div>
-                  <h2>{section.title}</h2>
-                  <p>{section.description}</p>
+                  <h2>{language === 'th' ? section.titleTh : section.title}</h2>
+                  <p>{language === 'th' ? section.descriptionTh : section.description}</p>
                 </div>
               </div>
               <div className="emergency-quick-grid">
@@ -180,15 +182,15 @@ export function EmergencyDashboardPage() {
                   <div className={`emergency-quick-card priority-${contact.priority}`} key={`${section.title}-${contact.name}`}>
                     <div>
                       <span className={`priority-badge priority-${contact.priority}`}>{priorityLabel[contact.priority]}</span>
-                      <h3>{contact.name}</h3>
-                      <p>{contact.description || (contact.available_24h ? 'Available 24h' : 'Check availability')}</p>
+                      <h3>{language === 'th' ? contact.nameTh : contact.name}</h3>
+                      <p>{(language === 'th' ? contact.descriptionTh : contact.description) || (contact.available_24h ? (language === 'th' ? 'พร้อมตลอด 24 ชั่วโมง' : 'Available 24h') : (language === 'th' ? 'ตรวจสอบเวลาพร้อมให้บริการ' : 'Check availability'))}</p>
                     </div>
                     <strong>{contact.phone || 'TBD'}</strong>
                     <div className="emergency-quick-actions">
                       <a className="btn btn-primary" href={contact.phone ? `tel:${contact.phone}` : undefined}>
-                        <Phone size={18} /> โทร
+                        <Phone size={18} /> {language === 'th' ? 'โทร' : 'Call'}
                       </a>
-                      <Button variant="secondary" icon={<Clipboard size={18} />} onClick={() => copyPhone(contact)}>คัดลอก</Button>
+                      <Button variant="secondary" icon={<Clipboard size={18} />} onClick={() => copyPhone(contact)}>{language === 'th' ? 'คัดลอก' : 'Copy'}</Button>
                       <Button variant="ghost" icon={<Siren size={18} />} onClick={() => logIncident(contact)}>Log</Button>
                     </div>
                   </div>
@@ -202,8 +204,8 @@ export function EmergencyDashboardPage() {
       <Card className="incident-panel">
         <div className="emergency-panel-head">
           <div>
-            <h2>Incident escalation tracking</h2>
-            <p>เก็บในเครื่องนี้เพื่อช่วยจำช่วงหน้างาน ไม่ใช่บันทึกถาวรในฐานข้อมูล</p>
+            <h2>{language === 'th' ? 'บันทึกการ escalation' : 'Incident escalation tracking'}</h2>
+            <p>{language === 'th' ? 'เก็บในเครื่องนี้เพื่อช่วยจำช่วงหน้างาน ไม่ใช่บันทึกถาวรในฐานข้อมูล' : 'Stored locally on this device for event operations. This is not a permanent database record.'}</p>
           </div>
         </div>
         {incidents.length ? incidents.map((incident) => (
@@ -212,29 +214,29 @@ export function EmergencyDashboardPage() {
             <strong>{incident.contact}</strong>
             <small>{incident.phone}</small>
           </div>
-        )) : <span className="empty-inline">ยังไม่มี escalation log</span>}
+        )) : <span className="empty-inline">{language === 'th' ? 'ยังไม่มี escalation log' : 'No escalation log yet'}</span>}
       </Card>
 
       <div className="emergency-toolbar">
         <div className="search-shell">
           <Search size={18} aria-hidden="true" />
-          <Input label="ค้นหา" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ ชื่อเล่น เบอร์ กลุ่ม สาขา" />
+          <Input label={language === 'th' ? 'ค้นหา' : 'Search'} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น เบอร์ กลุ่ม สาขา' : 'Name, nickname, phone, group, major'} />
         </div>
-        <Select label="สี" value={group} onChange={(event) => setGroup(event.target.value)} options={mainGroups.map((item) => ({ value: item, label: `${groupMeta[item].th} / ${item}` }))} />
-        <Select label="กลุ่มย่อย" value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} />
+        <Select label={language === 'th' ? 'สี' : 'Color'} value={group} onChange={(event) => setGroup(event.target.value)} options={mainGroups.map((item) => ({ value: item, label: language === 'th' ? groupMeta[item].th : item }))} />
+        <Select label={language === 'th' ? 'กลุ่มย่อย' : 'Subgroup'} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} />
         <Select
-          label="สถานะสุขภาพ"
+          label={language === 'th' ? 'สถานะสุขภาพ' : 'Medical status'}
           value={medical}
           onChange={(event) => setMedical(event.target.value as MedicalFilter)}
           options={[
-            { value: 'any', label: 'มีข้อมูลฉุกเฉินใด ๆ' },
-            { value: 'special', label: 'Needs special care' },
-            { value: 'disease', label: 'โรคประจำตัว' },
-            { value: 'drug_allergy', label: 'แพ้ยา' },
-            { value: 'food_allergy', label: 'แพ้อาหาร' },
+            { value: 'any', label: language === 'th' ? 'มีข้อมูลฉุกเฉินใด ๆ' : 'Any emergency data' },
+            { value: 'special', label: language === 'th' ? 'ต้องดูแลพิเศษ' : 'Needs special care' },
+            { value: 'disease', label: language === 'th' ? 'โรคประจำตัว' : 'Medical condition' },
+            { value: 'drug_allergy', label: language === 'th' ? 'แพ้ยา' : 'Drug allergy' },
+            { value: 'food_allergy', label: language === 'th' ? 'แพ้อาหาร' : 'Food allergy' },
           ]}
         />
-        <Input label="ค้นหาชนิดที่แพ้" value={allergyType} onChange={(event) => setAllergyType(event.target.value)} placeholder="เช่น penicillin, กุ้ง" />
+        <Input label={language === 'th' ? 'ค้นหาชนิดที่แพ้' : 'Search allergy type'} value={allergyType} onChange={(event) => setAllergyType(event.target.value)} placeholder={language === 'th' ? 'เช่น penicillin, กุ้ง' : 'e.g. penicillin, shrimp'} />
       </div>
 
       <div className="emergency-list">
@@ -254,12 +256,12 @@ export function EmergencyDashboardPage() {
               <div className="emergency-contact-grid">
                 <a className="call-card primary-call" href={profile.phone ? `tel:${profile.phone}` : undefined}>
                   <Phone size={18} />
-                  <span>โทรผู้เข้าร่วม</span>
+                  <span>{language === 'th' ? 'โทรผู้เข้าร่วม' : 'Call participant'}</span>
                   <strong>{profile.phone || '-'}</strong>
                 </a>
                 <a className="call-card" href={profile.emergency_phone ? `tel:${profile.emergency_phone}` : undefined}>
                   <Phone size={18} />
-                  <span>โทรฉุกเฉิน</span>
+                  <span>{language === 'th' ? 'โทรฉุกเฉิน' : 'Emergency contact'}</span>
                   <strong>{profile.emergency_phone || '-'}</strong>
                 </a>
               </div>
@@ -270,16 +272,16 @@ export function EmergencyDashboardPage() {
                     checked={draft.needs}
                     onChange={(event) => setNotes({ ...notes, [profile.id]: { ...draft, needs: event.target.checked } })}
                   />
-                  <span>ต้องดูแลเป็นพิเศษ</span>
+                  <span>{language === 'th' ? 'ต้องดูแลเป็นพิเศษ' : 'Needs special care'}</span>
                 </label>
                 <Input
-                  label="Emergency note"
+                  label={language === 'th' ? 'หมายเหตุฉุกเฉิน' : 'Emergency note'}
                   value={draft.note}
                   onChange={(event) => setNotes({ ...notes, [profile.id]: { ...draft, note: event.target.value } })}
-                  placeholder="เช่น ให้พี่กลุ่มช่วยติดตาม / แจ้งพยาบาลแล้ว"
+                  placeholder={language === 'th' ? 'เช่น ให้พี่กลุ่มช่วยติดตาม / แจ้งพยาบาลแล้ว' : 'e.g. ask group staff to monitor / medic notified'}
                 />
                 <div className="form-actions">
-                  <Button icon={<Save size={18} />} onClick={() => save(profile)} disabled={!canEditHealthTools}>บันทึก note</Button>
+                  <Button icon={<Save size={18} />} onClick={() => save(profile)} disabled={!canEditHealthTools}>{language === 'th' ? 'บันทึก note' : 'Save note'}</Button>
                 </div>
               </div>
             </Card>
@@ -287,7 +289,7 @@ export function EmergencyDashboardPage() {
         })}
       </div>
 
-      <div className="emergency-dock" aria-label="Emergency quick actions">
+      <div className="emergency-dock" aria-label={language === 'th' ? 'ปุ่มลัดฉุกเฉิน' : 'Emergency quick actions'}>
         <a className="dock-critical" href="tel:1669"><Flame size={18} /> EMS 1669</a>
         <a href="tel:0636510902"><Phone size={18} /> Head Medic</a>
         <a href="tel:191">Police 191</a>

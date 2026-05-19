@@ -39,6 +39,35 @@ export const fieldLabels: Record<string, string> = {
   show_line_id: 'แสดง Line ID',
 };
 
+export const fieldLabelsEn: Record<string, string> = {
+  email: 'Email',
+  student_id: 'Student ID',
+  name_th: 'Thai name',
+  name_en: 'English name',
+  nickname: 'Nickname',
+  major: 'Major',
+  phone: 'Phone',
+  emergency_phone: 'Emergency phone',
+  line_id: 'Line ID',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  other_contact: 'Other contact',
+  food_allergy: 'Food allergy',
+  disease: 'Medical condition',
+  drug_allergy: 'Drug allergy',
+  admission_round: 'Admission round',
+  gender: 'Gender',
+  hometown: 'Hometown / province',
+  interests: 'Interests',
+  public_profile: 'Public profile',
+  show_instagram: 'Show Instagram',
+  show_line_id: 'Show Line ID',
+};
+
+export function fieldLabel(field: string, language: 'th' | 'en' = 'th') {
+  return (language === 'th' ? fieldLabels : fieldLabelsEn)[field] ?? field;
+}
+
 export const sensitiveFields = [
   'email',
   'phone',

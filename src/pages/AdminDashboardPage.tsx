@@ -13,7 +13,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useAsync } from '../hooks/useAsync';
 import { useLanguage } from '../context/LanguageContext';
-import { fieldLabels } from '../lib/constants';
+import { fieldLabel, fieldLabels } from '../lib/constants';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorLabel } from '../lib/major';
@@ -61,11 +61,11 @@ export function AdminDashboardPage() {
     if (!editing) return;
     try {
       await updateProfile(editing.id, editing);
-      setToast({ type: 'success', message: 'บันทึกข้อมูลแล้ว' });
+      setToast({ type: 'success', message: language === 'th' ? 'บันทึกข้อมูลแล้ว' : 'Profile saved' });
       setEditing(null);
       await profilesState.reload();
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, 'บันทึกไม่สำเร็จ') });
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'บันทึกไม่สำเร็จ' : 'Save failed') });
     }
   }
 
@@ -73,11 +73,11 @@ export function AdminDashboardPage() {
     if (!deleting) return;
     try {
       await deleteProfile(deleting.id);
-      setToast({ type: 'success', message: 'ลบข้อมูลแล้ว' });
+      setToast({ type: 'success', message: language === 'th' ? 'ลบข้อมูลแล้ว' : 'Profile deleted' });
       setDeleting(null);
       await profilesState.reload();
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, 'ลบไม่สำเร็จ') });
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ลบไม่สำเร็จ' : 'Delete failed') });
     }
   }
 
@@ -98,7 +98,7 @@ export function AdminDashboardPage() {
           <DashboardStatCard
             label={t.healthData}
             value={summaryState.data.health.food_allergy + summaryState.data.health.disease + summaryState.data.health.drug_allergy}
-            helper="แพ้อาหาร โรคประจำตัว แพ้ยา"
+            helper={language === 'th' ? 'แพ้อาหาร โรคประจำตัว แพ้ยา' : 'Food allergies, medical conditions, drug allergies'}
             icon={<HeartPulse size={20} />}
           />
         </div>
@@ -118,7 +118,7 @@ export function AdminDashboardPage() {
       ) : null}
 
       <div className="toolbar">
-        <Input label={t.searchParticipants} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ อีเมล เบอร์ Line IG Facebook" />
+        <Input label={t.searchParticipants} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ อีเมล เบอร์ Line IG Facebook' : 'Name, email, phone, Line, IG, Facebook'} />
         <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={majorOptions} />
         <Select label={t.filterGroup} value={group} onChange={(event) => setGroup(event.target.value)} options={groupOptions} />
         <Select label={t.filterSubgroup} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroupOptions} />
@@ -169,10 +169,10 @@ export function AdminDashboardPage() {
         ]}
       />
 
-      <Modal open={Boolean(editing)} title="แก้ไขข้อมูลผู้เข้าร่วม" onClose={() => setEditing(null)}>
+      <Modal open={Boolean(editing)} title={language === 'th' ? 'แก้ไขข้อมูลผู้เข้าร่วม' : 'Edit participant'} onClose={() => setEditing(null)}>
         {editing ? (
           <div className="form-grid two-col modal-body">
-            {Object.entries(fieldLabels).map(([field, label]) =>
+            {Object.keys(fieldLabels).map((field) =>
               field === 'public_profile' || field === 'show_instagram' || field === 'show_line_id' ? (
                 <label className="check-field" key={field}>
                   <input
@@ -180,36 +180,36 @@ export function AdminDashboardPage() {
                     checked={Boolean(editing[field as keyof Profile])}
                     onChange={(event) => setEditing({ ...editing, [field]: event.target.checked })}
                   />
-                  <span>{label}</span>
+                  <span>{fieldLabel(field, language)}</span>
                 </label>
               ) : (
                 <Input
                   key={field}
-                  label={label}
+                  label={fieldLabel(field, language)}
                   value={String(editing[field as keyof Profile] ?? '')}
                   onChange={(event) => setEditing({ ...editing, [field]: event.target.value })}
                 />
               ),
             )}
             <div className="form-actions full-span">
-              <Button onClick={saveProfile}>บันทึก</Button>
+              <Button onClick={saveProfile}>{language === 'th' ? 'บันทึก' : 'Save'}</Button>
               <Button variant="secondary" onClick={() => setEditing(null)}>
-                ยกเลิก
+                {language === 'th' ? 'ยกเลิก' : 'Cancel'}
               </Button>
             </div>
           </div>
         ) : null}
       </Modal>
 
-      <Modal open={Boolean(deleting)} title="ยืนยันการลบข้อมูล" onClose={() => setDeleting(null)}>
+      <Modal open={Boolean(deleting)} title={language === 'th' ? 'ยืนยันการลบข้อมูล' : 'Confirm deletion'} onClose={() => setDeleting(null)}>
         <div className="modal-body">
-          <p>ต้องการลบข้อมูลของ {deleting?.name_th} หรือไม่ การกระทำนี้ควรทำเมื่อแน่ใจแล้วเท่านั้น</p>
+          <p>{language === 'th' ? `ต้องการลบข้อมูลของ ${deleting?.name_th} หรือไม่ การกระทำนี้ควรทำเมื่อแน่ใจแล้วเท่านั้น` : `Delete ${deleting?.name_th}? Only do this when you are sure.`}</p>
           <div className="form-actions">
             <Button variant="danger" onClick={confirmDelete}>
-              ลบข้อมูล
+              {language === 'th' ? 'ลบข้อมูล' : 'Delete'}
             </Button>
             <Button variant="secondary" onClick={() => setDeleting(null)}>
-              ยกเลิก
+              {language === 'th' ? 'ยกเลิก' : 'Cancel'}
             </Button>
           </div>
         </div>

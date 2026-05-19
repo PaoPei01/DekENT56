@@ -25,7 +25,7 @@ export function PublicListPage() {
   const { data: majors } = useAsync(fetchPublicMajors, []);
   const { data, loading, error } = useAsync(() => fetchPublicProfiles({ search, major }), [search, major]);
   const participants = data ?? [];
-  const resultText = useMemo(() => `${participants.length.toLocaleString('th-TH')} คน`, [participants.length]);
+  const resultText = useMemo(() => `${participants.length.toLocaleString(language === 'th' ? 'th-TH' : 'en-US')} ${language === 'th' ? 'คน' : 'people'}`, [language, participants.length]);
 
   return (
     <section className="page-stack">
@@ -53,12 +53,12 @@ export function PublicListPage() {
 
       {loading ? <LoadingSkeleton /> : null}
       {error ? <div className="error-state">{error}</div> : null}
-      {!loading && !error && participants.length === 0 ? <div className="empty-state">ไม่พบรายชื่อที่ตรงกับการค้นหา</div> : null}
+      {!loading && !error && participants.length === 0 ? <div className="empty-state">{language === 'th' ? 'ไม่พบรายชื่อที่ตรงกับการค้นหา' : 'No participants match your search'}</div> : null}
 
       <div className="participant-grid">
         {participants.map((profile) => (
           <Card className="participant-card participant-card-clickable" key={profile.id} onClick={() => setSelected(profile)} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && setSelected(profile)}>
-            <h2>{profile.name_th || 'ไม่ระบุชื่อ'}</h2>
+            <h2>{profile.name_th || (language === 'th' ? 'ไม่ระบุชื่อ' : 'Name not specified')}</h2>
             <p>{profile.nickname ? `${t.nickname} ${profile.nickname}` : language === 'th' ? 'ยังไม่มีชื่อเล่น' : 'No nickname yet'}</p>
             <span>{majorLabel(profile.major, language)}</span>
             <small>{groupLabel(profile.main_group, profile.subgroup, language)}</small>
@@ -75,7 +75,7 @@ export function PublicListPage() {
               ) : null}
               <div>
                 <h2>{selected.name_th}</h2>
-                <p>{selected.name_en || 'English name hidden'}</p>
+                <p>{selected.name_en || (language === 'th' ? 'ซ่อนชื่อภาษาอังกฤษ' : 'English name hidden')}</p>
                 <strong>{selected.nickname}</strong>
               </div>
             </div>
