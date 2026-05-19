@@ -1,0 +1,36 @@
+export type Language = 'th' | 'en';
+
+export const copy = {
+  th: {
+    participants: 'รายชื่อผู้เข้าร่วม',
+    searchTitle: 'ค้นหารายชื่อกิจกรรม',
+    privacy: 'ข้อมูลติดต่อและข้อมูลสุขภาพจะแสดงเฉพาะผู้ดูแลระบบ',
+    search: 'ค้นหา',
+    filterMajor: 'กรองสาขา',
+    all: 'ทั้งหมด',
+    nickname: 'ชื่อเล่น',
+    major: 'สาขา',
+    admin: 'แอดมิน',
+    edit: 'ขอแก้ไขข้อมูล',
+    dashboard: 'แดชบอร์ด',
+    requests: 'คำขอ',
+    logs: 'ประวัติ',
+    groups: 'จัดกลุ่ม',
+  },
+  en: {
+    participants: 'Participants',
+    searchTitle: 'Activity participant list',
+    privacy: 'Contact and health data are visible only to admins',
+    search: 'Search',
+    filterMajor: 'Filter by major',
+    all: 'All',
+    nickname: 'Nickname',
+    major: 'Major',
+    admin: 'Admin',
+    edit: 'Edit request',
+    dashboard: 'Dashboard',
+    requests: 'Requests',
+    logs: 'Logs',
+    groups: 'Groups',
+  },
+} satisfies Record<Language, Record<string, string>>;

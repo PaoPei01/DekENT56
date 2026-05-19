@@ -4,10 +4,13 @@ import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
+import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { majorLabel } from '../lib/major';
 import { fetchPublicMajors, fetchPublicProfiles } from '../services/profiles';
 
 export function PublicListPage() {
+  const { language, t } = useLanguage();
   const [search, setSearch] = useState('');
   const [major, setMajor] = useState('');
   const { data: majors } = useAsync(fetchPublicMajors, []);
@@ -19,24 +22,24 @@ export function PublicListPage() {
     <section className="page-stack">
       <div className="hero-strip">
         <div>
-          <p className="eyebrow">รายชื่อผู้เข้าร่วม</p>
-          <h1>ค้นหารายชื่อกิจกรรม</h1>
-          <p>หน้านี้แสดงเฉพาะชื่อเล่น ชื่อภาษาไทย และสาขาเท่านั้น ข้อมูลติดต่อและข้อมูลสุขภาพถูกซ่อนไว้เพื่อความเป็นส่วนตัว</p>
+          <p className="eyebrow">{t.participants}</p>
+          <h1>{t.searchTitle}</h1>
+          <p>{language === 'th' ? 'หน้านี้แสดงเฉพาะชื่อภาษาไทย ชื่อเล่น และสาขาเท่านั้น ข้อมูลติดต่อและข้อมูลสุขภาพถูกซ่อนไว้เพื่อความเป็นส่วนตัว' : 'This page only shows Thai name, nickname, and major. Contact and health details remain private.'}</p>
         </div>
         <strong>{resultText}</strong>
       </div>
 
       <Card className="privacy-notice">
-        <strong>ประกาศความเป็นส่วนตัว</strong>
-        <span>ข้อมูลอีเมล เบอร์โทร ช่องทางติดต่อ อาการแพ้ โรคประจำตัว และข้อมูลละเอียดอื่น ๆ จะแสดงเฉพาะผู้ดูแลระบบที่เข้าสู่ระบบแล้ว</span>
+        <strong>{language === 'th' ? 'ประกาศความเป็นส่วนตัว' : 'Privacy notice'}</strong>
+        <span>{t.privacy}</span>
       </Card>
 
       <div className="toolbar">
         <div className="search-shell">
           <Search size={18} aria-hidden="true" />
-          <Input label="ค้นหา" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ชื่อ ชื่อเล่น หรือสาขา" />
+          <Input label={t.search} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น หรือสาขา' : 'Name, nickname, or major'} />
         </div>
-        <Select label="กรองสาขา" value={major} onChange={(event) => setMajor(event.target.value)} options={majors ?? []} />
+        <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={majors ?? []} placeholder={t.all} />
       </div>
 
       {loading ? <LoadingSkeleton /> : null}
@@ -47,8 +50,8 @@ export function PublicListPage() {
         {participants.map((profile) => (
           <Card className="participant-card" key={profile.id}>
             <h2>{profile.name_th || 'ไม่ระบุชื่อ'}</h2>
-            <p>{profile.nickname ? `ชื่อเล่น ${profile.nickname}` : 'ยังไม่มีชื่อเล่น'}</p>
-            <span>{profile.major || 'ไม่ระบุสาขา'}</span>
+            <p>{profile.nickname ? `${t.nickname} ${profile.nickname}` : language === 'th' ? 'ยังไม่มีชื่อเล่น' : 'No nickname yet'}</p>
+            <span>{majorLabel(profile.major, language)}</span>
           </Card>
         ))}
       </div>

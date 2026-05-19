@@ -9,6 +9,9 @@ export const editableFields = [
   'food_allergy',
   'disease',
   'drug_allergy',
+  'public_profile',
+  'show_instagram',
+  'show_line_id',
 ] as const;
 
 export const fieldLabels: Record<string, string> = {
@@ -27,6 +30,13 @@ export const fieldLabels: Record<string, string> = {
   food_allergy: 'แพ้อาหาร',
   disease: 'โรคประจำตัว',
   drug_allergy: 'แพ้ยา',
+  admission_round: 'รอบการรับเข้า',
+  gender: 'เพศ',
+  hometown: 'จังหวัด/ภูมิลำเนา',
+  interests: 'ความสนใจ',
+  public_profile: 'เปิดโปรไฟล์สาธารณะ',
+  show_instagram: 'แสดง Instagram',
+  show_line_id: 'แสดง Line ID',
 };
 
 export const sensitiveFields = [

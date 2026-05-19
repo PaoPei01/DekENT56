@@ -1,5 +1,6 @@
 import { Download, HeartPulse, Pencil, Trash2, UsersRound } from 'lucide-react';
 import { useState } from 'react';
+import { ContactLinks } from '../components/ContactLinks';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -11,6 +12,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useAsync } from '../hooks/useAsync';
 import { fieldLabels } from '../lib/constants';
+import { majorLabel } from '../lib/major';
 import type { Profile } from '../lib/types';
 import { deleteProfile, fetchAdminMajors, fetchAdminProfiles, fetchAdminSummary, updateProfile } from '../services/profiles';
 import { exportProfilesCsv } from '../utils/csv';
@@ -103,10 +105,10 @@ export function AdminDashboardPage() {
         emptyText="ไม่พบข้อมูลผู้เข้าร่วม"
         columns={[
           { key: 'name', header: 'ชื่อ', render: (row) => <strong>{row.name_th}</strong> },
-          { key: 'major', header: 'สาขา', render: (row) => row.major },
+          { key: 'major', header: 'สาขา', render: (row) => majorLabel(row.major) },
           { key: 'email', header: 'อีเมล', render: (row) => row.email },
           { key: 'phone', header: 'เบอร์', render: (row) => row.phone },
-          { key: 'social', header: 'ช่องทาง', render: (row) => [row.line_id, row.instagram, row.facebook].filter(Boolean).join(' / ') },
+          { key: 'social', header: 'ช่องทาง', render: (row) => <ContactLinks lineId={row.line_id} instagram={row.instagram} facebook={row.facebook} other={row.other_contact} /> },
           {
             key: 'actions',
             header: 'จัดการ',

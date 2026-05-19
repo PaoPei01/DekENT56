@@ -18,6 +18,9 @@ loadDotEnv(path.resolve(process.cwd(), '.env'));
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const emptyValues = new Set(['', '-', 'ไม่มี', 'none', 'no', 'n/a', 'null', 'ไม่่มี']);
+const majorAliases = [
+  ['IEL', ['Industrial Engineering and Logistics Management', 'โลจิสติกส์ (IEL)', 'Logistics Management (IEL)']],
+];
 
 function loadDotEnv(envPath) {
   if (!fs.existsSync(envPath)) return;
@@ -92,6 +95,27 @@ function parseContact(contact) {
   };
 }
 
+function normalizeMajor(value) {
+  const major = clean(value);
+  if (!major) return null;
+  for (const [code, aliases] of majorAliases) {
+    if (aliases.some((alias) => major.toLowerCase().includes(alias.toLowerCase()))) {
+      if (code === 'IEL') return 'ภาควิชาวิศวกรรมอุตสาหการและการจัดการ โลจิสติกส์ (IEL)';
+    }
+  }
+  return major;
+}
+
+function normalizeAdmissionRound(value) {
+  const raw = clean(value);
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  if (lower.includes('portfolio')) return 'Portfolio';
+  if (lower.includes('quota') || lower.includes('โควตา')) return 'Quota';
+  if (lower.includes('admission')) return 'Admission';
+  return null;
+}
+
 function rowToProfile(row) {
   const contact = first(row, ['ช่องทางการติดต่อ', 'Contact Channels']);
   const parsed = parseContact(contact);
@@ -102,7 +126,7 @@ function rowToProfile(row) {
     name_th: first(row, ['ชื่อ-สกุล ']),
     name_en: first(row, ['ชื่อ-สกุล  ', 'Forename - Surname', 'Forename - Surname 2']),
     nickname: first(row, ['ชื่อเล่น ', 'Nickname']),
-    major: first(row, ['สาขา ', 'Major']),
+    major: normalizeMajor(first(row, ['สาขา ', 'Major'])),
     phone: first(row, ['เบอร์ติดต่อ ', 'Phone Number']) ?? parsed.phone,
     emergency_phone: first(row, ['เบอร์ติดต่อฉุกเฉิน (ผู้ปกครอง)', 'Emergency Contact Number (Parents)']),
     line_id: parsed.line_id,
@@ -112,6 +136,13 @@ function rowToProfile(row) {
     food_allergy: first(row, ['อาหารที่แพ้', 'Food Allergies']),
     disease: first(row, ['โรคประจำตัว ', 'Congenital disease']),
     drug_allergy: first(row, ['ยาที่แพ้', 'Drug Allergies']),
+    admission_round: normalizeAdmissionRound(first(row, ['รอบการรับเข้า', 'Admission Round', 'รอบที่ติด', 'Round'])),
+    gender: first(row, ['เพศ', 'Gender']),
+    hometown: first(row, ['จังหวัด', 'ภูมิลำเนา', 'Hometown', 'Province']),
+    interests: first(row, ['ความสนใจ', 'Interests']),
+    public_profile: false,
+    show_instagram: false,
+    show_line_id: false,
   };
 }
 

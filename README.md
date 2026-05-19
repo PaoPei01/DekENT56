@@ -10,6 +10,10 @@
 - Admin login with Supabase Auth
 - Admin dashboard with full participant data, search, major filter, summary cards, CSV export, direct edit, and delete
 - Pending edit-request approval/rejection flow with change logs
+- Thai/English UI toggle
+- Smart group assignment for 7 color groups x A/B subgroups with balancing by size, major, and admission round
+- Admin drag-and-drop group adjustment, lock workflow, imbalance warnings, CSV and XLSX group exports
+- Verified participant group reveal with mentors, schedule, meeting point, and privacy-safe friend recommendations
 - Supabase PostgreSQL schema, RPC functions, and Row Level Security
 - Contact parser for imported single-field contact data
 - Thai UI with Apple-inspired iOS/Liquid Glass visual style
@@ -51,16 +55,24 @@
 
    You can paste it into the Supabase SQL editor, or run it with the Supabase CLI after linking your project.
 
-6. Create an admin account in Supabase Auth.
+6. Apply the second migration:
 
-7. Add that account to `admins`:
+   ```text
+   supabase/migrations/202605190002_group_system_and_bilingual_fields.sql
+   ```
+
+   This adds group assignments, bilingual/group profile fields, group RPCs, and privacy-safe friend recommendation RPCs.
+
+7. Create an admin account in Supabase Auth.
+
+8. Add that account to `admins`:
 
    ```sql
    insert into public.admins (user_id, role)
    values ('AUTH_USER_UUID_HERE', 'admin');
    ```
 
-8. Run locally:
+9. Run locally:
 
    ```bash
    npm run dev
@@ -69,6 +81,7 @@
 ## Import Registration Excel
 
 The importer reads the Google Forms Excel export and upserts rows into `profiles` by `email`.
+It also normalizes major aliases, so `Industrial Engineering and Logistics Management (IEL)` and `ภาควิชาวิศวกรรมอุตสาหการและการจัดการ โลจิสติกส์ (IEL)` are treated as the same major.
 
 Dry run first:
 
@@ -124,8 +137,27 @@ The frontend also includes the same helper in `src/lib/contactParser.ts` for imp
 - `/edit` - verify identity and submit edit request
 - `/admin` - admin login
 - `/admin/dashboard` - admin dashboard
+- `/admin/groups` - smart group assignment dashboard
 - `/admin/requests` - pending edit requests
 - `/admin/logs` - change log
+
+## Group Workflow
+
+1. Login as admin.
+2. Go to `/admin/groups`.
+3. Click **Auto Generate Groups** to balance participants across 14 subgroups.
+4. Drag participants between subgroup cards for manual adjustment.
+5. Review imbalance warnings, group size bars, major distribution, and admission round distribution.
+6. Click **บันทึกการจัดกลุ่ม** to save assignments.
+7. Export CSV or Excel for:
+   - Full participant list
+   - Group summary
+   - Major distribution
+   - Admission round distribution
+   - Attendance sheet
+8. Click **Lock Groups** when assignments are final. Locked groups cannot be regenerated accidentally.
+
+Participants who verify identity on `/edit` will see their color group, subgroup, mentors, activity schedule, meeting point, and privacy-safe friend recommendations.
 
 ## Build
 

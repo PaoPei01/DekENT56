@@ -17,6 +17,13 @@ export type Profile = {
   food_allergy: string | null;
   disease: string | null;
   drug_allergy: string | null;
+  admission_round: 'Portfolio' | 'Quota' | 'Admission' | null;
+  gender: string | null;
+  hometown: string | null;
+  interests: string | null;
+  public_profile: boolean | null;
+  show_instagram: boolean | null;
+  show_line_id: boolean | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -35,6 +42,9 @@ export type EditableProfileFields = Pick<
   | 'food_allergy'
   | 'disease'
   | 'drug_allergy'
+  | 'public_profile'
+  | 'show_instagram'
+  | 'show_line_id'
 >;
 
 export type EditRequest = {
@@ -73,6 +83,39 @@ export type AdminSummary = {
   };
 };
 
+export type MainGroup = 'Red' | 'Blue' | 'Yellow' | 'Green' | 'Pink' | 'Purple' | 'Orange';
+export type Subgroup = 'A' | 'B';
+
+export type GroupAssignment = {
+  id: string;
+  profile_id: string;
+  main_group: MainGroup;
+  subgroup: Subgroup;
+  assigned_by: string | null;
+  assigned_at: string | null;
+  locked: boolean | null;
+  locked_at: string | null;
+  locked_by: string | null;
+  notes: string | null;
+  profiles?: Profile | null;
+};
+
+export type GroupProfile = Profile & {
+  group_assignment?: GroupAssignment | null;
+};
+
+export type GroupStats = {
+  key: string;
+  main_group: MainGroup;
+  subgroup: Subgroup;
+  count: number;
+  capacity: number;
+  majorCounts: Record<string, number>;
+  admissionCounts: Record<string, number>;
+  genderCounts: Record<string, number>;
+  warnings: string[];
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -95,6 +138,11 @@ export type Database = {
         Row: { user_id: string; role: string | null };
         Insert: { user_id: string; role?: string | null };
         Update: { role?: string | null };
+      };
+      group_assignments: {
+        Row: Omit<GroupAssignment, 'profiles'>;
+        Insert: Partial<Omit<GroupAssignment, 'id' | 'profiles'>> & { profile_id: string; main_group: MainGroup; subgroup: Subgroup };
+        Update: Partial<Omit<GroupAssignment, 'profiles'>>;
       };
     };
     Views: {
@@ -129,6 +177,14 @@ export type Database = {
       };
       delete_profile_admin: {
         Args: { input_profile_id: string };
+        Returns: undefined;
+      };
+      save_group_assignments: {
+        Args: { input_assignments: Json };
+        Returns: undefined;
+      };
+      lock_group_assignments: {
+        Args: Record<string, never>;
         Returns: undefined;
       };
       is_admin: {
