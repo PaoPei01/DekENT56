@@ -74,6 +74,13 @@ a {
   font-weight: 760;
 }
 
+.brand small {
+  display: block;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .nav-links {
   gap: 0.35rem;
   flex-wrap: wrap;
@@ -84,6 +91,51 @@ a {
   padding: 0.55rem 0.85rem;
   color: var(--text-soft);
   transition: 160ms ease;
+}
+
+.nav-menu {
+  position: relative;
+}
+
+.nav-menu summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  list-style: none;
+}
+
+.nav-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-menu[open] summary,
+.nav-menu summary:hover {
+  background: rgba(40, 104, 232, 0.09);
+  color: var(--accent-strong);
+}
+
+.nav-menu > div {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 30;
+  display: grid;
+  min-width: 210px;
+  gap: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 0.45rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.nav-menu > div a {
+  justify-content: flex-start;
 }
 
 .nav-links a.active,
@@ -893,6 +945,28 @@ th {
   gap: 0.85rem;
 }
 
+.staff-top-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.staff-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.staff-section-head h2 {
+  margin: 0;
+}
+
+.staff-section-head span {
+  color: var(--text-soft);
+  font-weight: 800;
+}
+
 .staff-roster-panel {
   display: grid;
   gap: 0.85rem;
@@ -927,6 +1001,19 @@ th {
   gap: 0.85rem;
   border-color: color-mix(in srgb, var(--group-color, #2868e8), transparent 70%);
   background: linear-gradient(180deg, var(--group-soft, rgba(40, 104, 232, 0.08)), rgba(255, 255, 255, 0.84));
+}
+
+.staff-operation-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 16px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.staff-operation-note span {
+  color: var(--text-soft);
 }
 
 .staff-card-head h2,
@@ -1077,6 +1164,19 @@ th {
     flex-direction: column;
   }
 
+  .nav-links {
+    width: 100%;
+  }
+
+  .nav-menu {
+    margin-left: auto;
+  }
+
+  .nav-menu > div {
+    right: auto;
+    left: 0;
+  }
+
   .page-shell {
     width: min(100% - 1rem, 1180px);
     padding-top: 1rem;
@@ -1086,6 +1186,7 @@ th {
   .toolbar,
   .two-col,
   .subgroup-grid,
+  .staff-top-grid,
   .group-reveal {
     grid-template-columns: 1fr;
   }

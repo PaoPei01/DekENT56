@@ -1,4 +1,4 @@
-import { Search, UsersRound } from 'lucide-react';
+import { MapPin, Search, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { ContactLinks } from '../components/ContactLinks';
@@ -24,6 +24,7 @@ export function StaffMobilePage() {
       return [profile.name_th, profile.name_en, profile.nickname, profile.major, profile.phone].some((value) => value?.toLowerCase().includes(term));
     });
   }, [context?.participants, search]);
+  const primarySetting = context?.settings?.[0];
 
   if (state.loading) return <LoadingSkeleton />;
   if (state.error) return <div className="error-state">{state.error}</div>;
@@ -37,17 +38,29 @@ export function StaffMobilePage() {
         <p>ดูข้อมูลเฉพาะกลุ่มที่รับผิดชอบสำหรับหน้างาน</p>
       </div>
 
-      <Card className="staff-summary-card">
-        <UsersRound size={22} />
-        <div>
-          <strong>{participants.length} คน</strong>
-          <span>ค้นหาเร็วด้วยชื่อ ชื่อเล่น สาขา หรือเบอร์โทร</span>
-        </div>
-      </Card>
+      <div className="staff-top-grid">
+        <Card className="staff-summary-card">
+          <UsersRound size={22} />
+          <div>
+            <strong>{participants.length} คน</strong>
+            <span>ผู้เข้าร่วมในความรับผิดชอบ</span>
+          </div>
+        </Card>
+        <Card className="staff-summary-card">
+          <MapPin size={22} />
+          <div>
+            <strong>{primarySetting?.meeting_point || 'ยังไม่ระบุ'}</strong>
+            <span>{primarySetting?.schedule || 'ยังไม่ระบุตาราง'}</span>
+          </div>
+        </Card>
+      </div>
 
       {context.staff_roster?.length ? (
         <Card className="staff-roster-panel">
-          <h2>พี่กลุ่ม</h2>
+          <div className="staff-section-head">
+            <h2>พี่กลุ่ม</h2>
+            <span>{context.staff_roster.length} คน</span>
+          </div>
           <div className="staff-roster-grid">
             {context.staff_roster.map((staff) => (
               <div key={`${staff.main_group}-${staff.subgroup}-${staff.student_id || staff.name}`} className="staff-roster-person">
@@ -67,6 +80,10 @@ export function StaffMobilePage() {
       </div>
 
       <div className="staff-list">
+        <div className="staff-section-head">
+          <h2>น้องในกลุ่ม</h2>
+          <span>{participants.length} คน</span>
+        </div>
         {participants.map((profile) => {
           const assignment = profile.group_assignment;
           const setting = settingsByKey.get(settingKey(assignment?.main_group, assignment?.subgroup));
@@ -93,10 +110,12 @@ export function StaffMobilePage() {
               <div className="profile-facts">
                 <div><span>สาขา</span><strong>{majorLabel(profile.major)}</strong></div>
                 <div><span>กลุ่ม</span><strong>{groupLabel(assignment?.main_group, assignment?.subgroup)}</strong></div>
-                <div><span>จุดนัดพบ</span><strong>{setting?.meeting_point || '-'}</strong></div>
-                <div><span>เวลา</span><strong>{setting?.schedule || '-'}</strong></div>
                 <div><span>เบอร์</span><strong>{profile.phone || '-'}</strong></div>
                 <div><span>ฉุกเฉิน</span><strong>{profile.emergency_phone || '-'}</strong></div>
+              </div>
+              <div className="staff-operation-note">
+                <strong>{setting?.meeting_point || '-'}</strong>
+                <span>{setting?.schedule || '-'}</span>
               </div>
               <HealthFlags profile={profile} detail />
               <ContactLinks instagram={profile.instagram} facebook={profile.facebook} lineId={profile.line_id} other={profile.other_contact} />

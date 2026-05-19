@@ -1,6 +1,7 @@
 import { Eye, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -17,6 +18,7 @@ import { fetchPublicMajors, fetchPublicProfiles } from '../services/profiles';
 
 export function PublicListPage() {
   const { language, t } = useLanguage();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [major, setMajor] = useState('');
   const [selected, setSelected] = useState<PublicProfile | null>(null);
@@ -89,7 +91,7 @@ export function PublicListPage() {
               <span>{language === 'th' ? 'ข้อมูลติดต่อ ข้อมูลสุขภาพ และระบบแนะนำเพื่อนจะแสดงหลังยืนยันอีเมลและเบอร์โทรของตัวเองเท่านั้น' : 'Contact details, health details, and friend recommendations are available only after verifying your own email and phone.'}</span>
             </Card>
             <div className="form-actions">
-              <Button icon={<Eye size={18} />} onClick={() => (window.location.href = `${import.meta.env.BASE_URL}edit`)}>
+              <Button icon={<Eye size={18} />} onClick={() => navigate('/edit')}>
                 {language === 'th' ? 'ดูข้อมูลเต็ม / แก้ไขข้อมูล' : 'View full details / edit'}
               </Button>
             </div>
