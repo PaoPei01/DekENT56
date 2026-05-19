@@ -66,6 +66,11 @@ export async function updateStaffProfile(id: string, payload: StaffUpdatePayload
   if (error) throw error;
 }
 
+export async function deleteStaffProfile(id: string) {
+  const { error } = await supabase.rpc('delete_staff_profile_admin', { input_staff_profile_id: id });
+  if (error) throw error;
+}
+
 export async function importStaffRecords(rows: StaffImportRow[]) {
   const payload = rows.map((row) => ({
     profile: row.profile,

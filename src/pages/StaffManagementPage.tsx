@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Pencil, Search } from 'lucide-react';
+import { Download, FileSpreadsheet, Pencil, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
@@ -18,7 +18,7 @@ import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorCatalog, majorCodeOptions, majorLabel, normalizeMajor } from '../lib/major';
 import type { MainGroup, StaffAssignment, StaffManagementRow, StaffMedicalInfo, StaffRole, Subgroup } from '../lib/types';
-import { fetchAdminStaffProfiles, updateStaffProfile } from '../services/staffManagement';
+import { deleteStaffProfile, fetchAdminStaffProfiles, updateStaffProfile } from '../services/staffManagement';
 import { errorMessage } from '../utils/error';
 import { exportStaffCsv, exportStaffXlsx } from '../utils/staffExport';
 
@@ -40,6 +40,7 @@ export function StaffManagementPage() {
   const [subgroup, setSubgroup] = useState('');
   const [major, setMajor] = useState('');
   const [editing, setEditing] = useState<StaffManagementRow | null>(null);
+  const [deleting, setDeleting] = useState<StaffManagementRow | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const state = useAsync(() => fetchAdminStaffProfiles({ search, position, mainGroup, subgroup, major }), [search, position, mainGroup, subgroup, major]);
   const rows = useMemo(() => state.data ?? [], [state.data]);
@@ -90,6 +91,18 @@ export function StaffManagementPage() {
     setEditing({ ...editing, ...values });
   }
 
+  async function confirmDelete() {
+    if (!deleting) return;
+    try {
+      await deleteStaffProfile(deleting.id);
+      setToast({ type: 'success', message: language === 'th' ? 'ลบรายชื่อทีมงานแล้ว' : 'Staff profile deleted' });
+      setDeleting(null);
+      await state.reload();
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ลบไม่สำเร็จ' : 'Delete failed') });
+    }
+  }
+
   return (
     <section className="page-stack">
       <Toast toast={toast} />
@@ -137,7 +150,12 @@ export function StaffManagementPage() {
         mobileTitle={(row) => row.nickname || row.name_th || '-'}
         mobileSubtitle={(row) => `${row.name_th || '-'} · ${majorLabel(row.major, language)}`}
         mobileMeta={(row) => groupLabel(row.assignment?.main_group, row.assignment?.subgroup, language)}
-        mobileActions={(row) => <Button variant="secondary" icon={<Pencil size={16} />} onClick={() => setEditing(row)}>{language === 'th' ? 'แก้ไข' : 'Edit'}</Button>}
+        mobileActions={(row) => (
+          <div className="row-actions">
+            <Button variant="secondary" icon={<Pencil size={16} />} onClick={() => setEditing(row)}>{language === 'th' ? 'แก้ไข' : 'Edit'}</Button>
+            <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => setDeleting(row)}>{language === 'th' ? 'ลบ' : 'Delete'}</Button>
+          </div>
+        )}
         columns={[
           { key: 'name', header: language === 'th' ? 'ชื่อ' : 'Name', render: (row) => <div className="participant-admin-cell"><strong>{row.name_th}</strong><span>{row.nickname} · {row.student_id}</span></div> },
           { key: 'major', header: language === 'th' ? 'สาขา' : 'Major', render: (row) => majorLabel(row.major, language) },
@@ -147,7 +165,16 @@ export function StaffManagementPage() {
           { key: 'phone', header: language === 'th' ? 'เบอร์' : 'Phone', render: (row) => row.phone || '-' },
           { key: 'contact', header: language === 'th' ? 'ช่องทางติดต่อ' : 'Contact', render: (row) => <ContactLinks instagram={row.instagram} lineId={row.line_id} facebook={row.facebook} other={row.other_contact} /> },
           { key: 'medical', header: language === 'th' ? 'สุขภาพ' : 'Medical', render: (row) => <HealthFlags profile={{ disease: row.medical_info?.disease ?? null, drug_allergy: row.medical_info?.drug_allergy ?? null, food_allergy: row.medical_info?.food_allergy ?? null }} detail /> },
-          { key: 'actions', header: language === 'th' ? 'จัดการ' : 'Actions', render: (row) => <Button variant="secondary" icon={<Pencil size={16} />} onClick={() => setEditing(row)}>{language === 'th' ? 'แก้ไข' : 'Edit'}</Button> },
+          {
+            key: 'actions',
+            header: language === 'th' ? 'จัดการ' : 'Actions',
+            render: (row) => (
+              <div className="row-actions">
+                <Button variant="secondary" icon={<Pencil size={16} />} onClick={() => setEditing(row)}>{language === 'th' ? 'แก้ไข' : 'Edit'}</Button>
+                <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => setDeleting(row)}>{language === 'th' ? 'ลบ' : 'Delete'}</Button>
+              </div>
+            ),
+          },
         ]}
       />
 
@@ -180,6 +207,20 @@ export function StaffManagementPage() {
             </div>
           </div>
         ) : null}
+      </Modal>
+
+      <Modal open={Boolean(deleting)} title={language === 'th' ? 'ยืนยันการลบรายชื่อทีมงาน' : 'Confirm staff deletion'} onClose={() => setDeleting(null)}>
+        <div className="modal-body">
+          <p>{language === 'th' ? `ต้องการลบข้อมูลทีมงานของ ${deleting?.name_th ?? deleting?.nickname ?? deleting?.student_id} หรือไม่ ข้อมูลสุขภาพและ assignment ที่ผูกกับรายชื่อนี้จะถูกลบด้วย` : `Delete staff record for ${deleting?.name_th ?? deleting?.nickname ?? deleting?.student_id}? Linked medical info and assignment will also be deleted.`}</p>
+          <div className="form-actions">
+            <Button variant="danger" icon={<Trash2 size={18} />} onClick={confirmDelete}>
+              {language === 'th' ? 'ลบรายชื่อทีมงาน' : 'Delete staff'}
+            </Button>
+            <Button variant="secondary" onClick={() => setDeleting(null)}>
+              {language === 'th' ? 'ยกเลิก' : 'Cancel'}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </section>
   );

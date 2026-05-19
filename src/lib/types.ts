@@ -434,6 +434,10 @@ export type Database = {
         Args: { input_staff_profile_id: string; input_profile: Json; input_medical?: Json; input_assignment?: Json };
         Returns: undefined;
       };
+      delete_staff_profile_admin: {
+        Args: { input_staff_profile_id: string };
+        Returns: undefined;
+      };
       get_emergency_dashboard: {
         Args: Record<string, never>;
         Returns: Json;
