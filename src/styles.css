@@ -1454,13 +1454,28 @@ th {
 
 .document-row-grid {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr auto;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 0.65rem;
   align-items: end;
   padding: 0.8rem;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.58);
+}
+
+.document-row-grid .btn {
+  align-self: end;
+}
+
+.checkbox-field {
+  min-height: 54px;
+  justify-content: center;
+}
+
+.checkbox-field input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
 }
 
 .document-readiness {
@@ -1488,6 +1503,25 @@ th {
   gap: 1rem;
   padding: 0.65rem 0;
   border-bottom: 1px solid var(--border);
+}
+
+.document-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.document-preview td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.document-preview h2 {
+  margin: 0.8rem 0 0;
+  font-size: 1.05rem;
 }
 
 .document-preview span {

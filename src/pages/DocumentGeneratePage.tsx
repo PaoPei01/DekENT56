@@ -1,81 +1,101 @@
-import { Download, Eye, Wand2 } from 'lucide-react';
+import { Download, Eye } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
-import { buildDocumentData, findMissingFields, generateDocx, renderPreviewHtml } from '../lib/documentGeneration';
+import { buildDocumentData, documentTypeLabel, downloadBlob, findMissingFields, renderDocxBlob, renderPreviewHtml } from '../lib/documentGeneration';
+import type { DocumentType } from '../lib/documentTypes';
 import { useAsync } from '../hooks/useAsync';
-import { fetchDocumentCenterData, recordGeneratedDocument } from '../services/documents';
+import { downloadTemplateBuffer, fetchDocumentCenterData, nextDocumentVersion, recordGeneratedDocument, uploadGeneratedDocx } from '../services/documents';
 import { errorMessage } from '../utils/error';
 
 export function DocumentGeneratePage() {
   const state = useAsync(fetchDocumentCenterData, []);
   const [templateId, setTemplateId] = useState('');
+  const [documentType, setDocumentType] = useState<DocumentType>('project_approval');
+  const [title, setTitle] = useState('');
   const [previewHtml, setPreviewHtml] = useState('');
   const [toast, setToast] = useState<ToastState>(null);
   const data = state.data;
-  const template = data?.templates.find((item) => item.id === templateId) ?? null;
+  const templates = (data?.templates ?? []).filter((item) => item.is_active !== false && item.document_type === documentType);
+  const template = templates.find((item) => item.id === templateId) ?? null;
   const payload = useMemo(() => data ? buildDocumentData(data) : {}, [data]);
-  const missing = useMemo(() => template ? findMissingFields(template.placeholders, payload) : [], [payload, template]);
+  const missing = useMemo(() => template ? findMissingFields(documentType, template.placeholders, payload) : findMissingFields(documentType, [], payload), [documentType, payload, template]);
 
   function preview() {
-    if (!template) return;
-    setPreviewHtml(renderPreviewHtml(template, payload, missing));
+    setPreviewHtml(renderPreviewHtml(documentType, title || template?.name || documentTypeLabel(documentType), payload, missing));
   }
 
   async function download() {
     if (!template || !data) return;
     try {
-      const fileName = generateDocx(template, payload);
-      const html = previewHtml || renderPreviewHtml(template, payload, missing);
+      const version = await nextDocumentVersion(template.id, documentType);
+      const fileTitle = title || template.name || documentTypeLabel(documentType);
+      const fileName = `${fileTitle.replace(/[^\wก-๙.-]+/g, '-')}_v${version}.docx`;
+      const buffer = await downloadTemplateBuffer(template);
+      const blob = renderDocxBlob(buffer, payload);
+      const outputPath = await uploadGeneratedDocx(fileName, blob);
+      downloadBlob(blob, fileName);
+      const html = previewHtml || renderPreviewHtml(documentType, fileTitle, payload, missing);
       await recordGeneratedDocument({
         project_profile_id: data.profile?.id ?? null,
         template_id: template.id,
         file_name: fileName,
+        title: fileTitle,
+        document_type: documentType,
+        version,
+        status: missing.length ? 'incomplete' : 'generated',
+        output_docx_path: outputPath,
         placeholders: payload,
-        missing_fields: missing,
+        snapshot_data: payload,
+        missing_fields: missing.map((item) => item.field),
         preview_html: html,
       });
-      setToast({ type: 'success', message: 'สร้างและบันทึกประวัติเอกสารแล้ว' });
+      setToast({ type: 'success', message: `สร้าง DOCX v${version} และบันทึกลง Storage แล้ว` });
       await state.reload();
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, 'สร้าง DOCX ไม่สำเร็จ ตรวจ placeholder ใน template อีกครั้ง') });
+      setToast({ type: 'error', message: errorMessage(err, 'สร้าง DOCX ไม่สำเร็จ ตรวจ template และ Storage permission อีกครั้ง') });
     }
   }
 
   return (
     <section className="page-stack">
       <Toast toast={toast} />
-      <PageHeader eyebrow="Document Center" title="Generate DOCX" description="เลือก template ตรวจข้อมูลที่ขาด ดูตัวอย่าง และดาวน์โหลดไฟล์" />
+      <PageHeader eyebrow="Document Center" title="Generate DOCX" description="เลือกประเภทเอกสาร ตรวจข้อมูลที่ขาด ดูตัวอย่าง และดาวน์โหลดไฟล์" />
       {state.loading ? <LoadingSkeleton /> : null}
       {data ? (
         <>
           <Card className="form-grid two-col">
-            <Select label="Template" value={templateId} onChange={(event) => { setTemplateId(event.target.value); setPreviewHtml(''); }} options={data.templates.map((item) => ({ value: item.id, label: item.name }))} placeholder="เลือก template" />
+            <Select label="ประเภทเอกสาร" value={documentType} onChange={(event) => { setDocumentType(event.target.value as DocumentType); setTemplateId(''); setPreviewHtml(''); }} options={[
+              { value: 'project_approval', label: 'เอกสารขออนุมัติโครงการ' },
+              { value: 'venue_request', label: 'หนังสือขอใช้สถานที่' },
+              { value: 'equipment_borrow', label: 'เอกสารยืมอุปกรณ์' },
+              { value: 'support_request', label: 'หนังสือขอความอนุเคราะห์' },
+              { value: 'invitation_letter', label: 'หนังสือเชิญ' },
+              { value: 'closing_report', label: 'รายงานสรุปโครงการ' },
+              { value: 'custom', label: 'กำหนดเอง' },
+            ]} />
+            <Select label="Template" value={templateId} onChange={(event) => { setTemplateId(event.target.value); setPreviewHtml(''); }} options={templates.map((item) => ({ value: item.id, label: item.name }))} placeholder="เลือก template" />
+            <Input label="ชื่อเอกสาร" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={template?.name ?? documentTypeLabel(documentType)} />
             <div className="document-readiness">
               <Badge status={missing.length ? 'pending' : 'approved'}>{missing.length ? `ขาด ${missing.length} ช่อง` : 'ข้อมูลพร้อม'}</Badge>
               <span>{template ? `${template.placeholders.length} placeholders` : 'ยังไม่ได้เลือก template'}</span>
             </div>
             <div className="form-actions full-span">
-              <Button variant="secondary" icon={<Eye size={18} />} onClick={preview} disabled={!template}>HTML Preview</Button>
+              <Button variant="secondary" icon={<Eye size={18} />} onClick={preview}>HTML Preview</Button>
               <Button icon={<Download size={18} />} onClick={download} disabled={!template}>ดาวน์โหลด DOCX</Button>
             </div>
           </Card>
-          {template ? (
-            <Card className="document-missing-card">
-              <h2>Missing info checker</h2>
-              {missing.length ? <div className="filter-chip-row">{missing.map((field) => <span className="filter-chip" key={field}>{field}</span>)}</div> : <p>ไม่มีข้อมูลที่ขาดสำหรับ template นี้</p>}
-            </Card>
-          ) : null}
-          {previewHtml ? (
-            <Card className="document-preview-card">
-              <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
-            </Card>
-          ) : null}
+          <Card className="document-missing-card">
+            <h2>Missing info checker</h2>
+            {missing.length ? <div className="filter-chip-row">{missing.map((item) => <span className="filter-chip" key={item.field}>{item.label}</span>)}</div> : <p>ไม่มีข้อมูลที่ขาดสำหรับเอกสารประเภทนี้</p>}
+          </Card>
+          {previewHtml ? <Card className="document-preview-card"><div dangerouslySetInnerHTML={{ __html: previewHtml }} /></Card> : null}
         </>
       ) : null}
     </section>

@@ -142,8 +142,82 @@ The frontend also includes the same helper in `src/lib/contactParser.ts` for imp
 - `/admin/groups` - smart group assignment dashboard
 - `/admin/staff` - staff management
 - `/admin/staff/import` - staff Excel import preview and commit
+- `/admin/documents` - admin Document Center dashboard
+- `/admin/documents/settings` - project profile, budget, schedule, venue, and equipment data
+- `/admin/documents/templates` - private DOCX template upload/list
+- `/admin/documents/generate` - missing-info check, Thai preview, DOCX generation, and download
+- `/admin/documents/history` - generated document history and old DOCX downloads
 - `/admin/requests` - pending edit requests
 - `/admin/logs` - change log
+
+## Document Center
+
+The Document Center is admin-only and uses Supabase RLS plus private Supabase Storage. It does not expose participant medical/contact data or the Supabase `service_role` key in the browser.
+
+Apply these migrations before using it:
+
+```text
+supabase/migrations/202605200011_document_center.sql
+supabase/migrations/202605200012_document_center_production_ready.sql
+```
+
+The second migration creates private Storage buckets:
+
+```text
+document-templates
+document-outputs
+```
+
+Keep both buckets private. Admin users upload `.docx` templates to `document-templates`; generated DOCX files are stored in `document-outputs` and can be downloaded again from `/admin/documents/history`.
+
+### Template Variables
+
+Use docxtemplater syntax with lowercase placeholders only. Do not mix it with `{{PROJECT_NAME}}` or uppercase variables.
+
+Common placeholders:
+
+```text
+{project_name}
+{event_date_th}
+{event_time_range}
+{location}
+{total_participants}
+{freshmen_count}
+{staff_count}
+{budget_total}
+{advisor_name}
+{project_chair_name}
+{coordinator_name}
+{coordinator_phone}
+```
+
+Schedule loop:
+
+```text
+{#schedule_items}
+{time_range} {title} {duration_minutes}
+{/schedule_items}
+```
+
+Budget loop:
+
+```text
+{#budget_items}
+{item_name} {quantity} {unit} {unit_price} {amount}
+{/budget_items}
+```
+
+Upload `.docx` files only. The upload page detects placeholders, stores the template file in private Storage, and saves only metadata such as `storage_path`, `file_name`, `document_type`, `placeholders`, and active status in PostgreSQL.
+
+Document types supported by the missing-info checker:
+
+- `project_approval` - เอกสารขออนุมัติโครงการ
+- `venue_request` - หนังสือขอใช้สถานที่
+- `equipment_borrow` - เอกสารยืมอุปกรณ์
+- `support_request` - หนังสือขอความอนุเคราะห์
+- `invitation_letter` - หนังสือเชิญ
+- `closing_report` - รายงานสรุปโครงการ
+- `custom` - กำหนดเอง
 
 ## Group Workflow
 
