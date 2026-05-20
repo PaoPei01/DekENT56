@@ -68,7 +68,7 @@ export function Layout() {
         <div className="nav-links">
           <NavLink to="/">{t.participants}</NavLink>
           <NavLink to="/edit">{t.edit}</NavLink>
-          <details className="nav-menu">
+          <details className={`nav-menu ${isAdmin ? 'nav-menu-wide' : ''}`}>
             <summary>
               <Menu size={16} />
               {language === 'th' ? 'เครื่องมือ' : 'Tools'}
@@ -76,20 +76,21 @@ export function Layout() {
             <div>
               {isAdmin ? (
                 <>
-                  <span className="nav-menu-label">{language === 'th' ? 'แอดมิน' : 'Admin'}</span>
-                  <NavLink to="/admin">{t.admin}</NavLink>
+                  <span className="nav-menu-label">{language === 'th' ? 'งานหลัก' : 'Core'}</span>
                   <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
                   <NavLink to="/admin/groups">{t.groups}</NavLink>
+                  <NavLink to="/admin/emergency">{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink>
+                  <NavLink to="/admin/requests">{t.requests}</NavLink>
+                  <span className="nav-menu-label">{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
                   <NavLink to="/admin/staff">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink>
                   <NavLink to="/admin/staff/operations">{language === 'th' ? 'โควตาทีมงาน' : 'Staff Ops'}</NavLink>
                   <NavLink to="/admin/staff/import">{language === 'th' ? 'นำเข้าสตาฟ' : 'Import Staff'}</NavLink>
+                  <span className="nav-menu-label">{language === 'th' ? 'ระบบเสริม' : 'More tools'}</span>
                   <NavLink to="/admin/documents">{language === 'th' ? 'ศูนย์เอกสาร' : 'Documents'}</NavLink>
-                  <NavLink to="/admin/requests">{t.requests}</NavLink>
                   <NavLink to="/admin/logs">{t.logs}</NavLink>
-                  <NavLink to="/admin/emergency">{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink>
                 </>
               ) : null}
-              {isStaff ? (
+              {!isAdmin && isStaff ? (
                 <>
                   <span className="nav-menu-label">{language === 'th' ? 'สตาฟ' : 'Staff'}</span>
                   <NavLink to="/staff">{language === 'th' ? 'หน้าสตาฟ' : 'Staff Home'}</NavLink>
@@ -98,19 +99,7 @@ export function Layout() {
                   {canEmergency ? <NavLink to="/staff/emergency">{language === 'th' ? 'สุขภาพฉุกเฉิน' : 'Staff Emergency'}</NavLink> : null}
                 </>
               ) : null}
-              {!user ? (
-                <>
-                  <span className="nav-menu-label">{language === 'th' ? 'บัญชี' : 'Account'}</span>
-                  <NavLink to="/admin">{loginCopy.staffLogin}</NavLink>
-                </>
-              ) : (
-                <>
-                  <span className="nav-menu-label">{language === 'th' ? 'บัญชี' : 'Account'}</span>
-                  {isStaff ? <NavLink to="/staff">{loginCopy.staffHome}</NavLink> : null}
-                  {isAdmin ? <NavLink to="/admin/dashboard">{loginCopy.adminDashboard}</NavLink> : null}
-                  <NavLink to="/admin">{loginCopy.staffAccount}</NavLink>
-                </>
-              )}
+              {!isAdmin && !isStaff ? <span className="nav-menu-empty">{language === 'th' ? 'เข้าสู่ระบบทีมงานเพื่อดูเครื่องมือเพิ่มเติม' : 'Sign in as staff to see more tools.'}</span> : null}
             </div>
           </details>
           <NavLink className={`staff-login-link ${user ? 'staff-login-link-active' : ''}`} to={accountTarget}>
@@ -120,15 +109,6 @@ export function Layout() {
           <button className="language-toggle" type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
             {language === 'th' ? 'EN' : 'TH'}
           </button>
-          {user ? (
-            <NavLink className="auth-icon-link auth-signed-in" to={accountTarget} title={language === 'th' ? `เข้าสู่ระบบแล้ว: ${user.email ?? user.id}` : `Signed in: ${user.email ?? user.id}`} aria-label={language === 'th' ? 'เข้าสู่ระบบแล้ว ดูรายละเอียดบัญชี' : 'Signed in, view account details'}>
-              <UserCheck size={17} />
-            </NavLink>
-          ) : (
-            <NavLink className="auth-icon-link" to="/admin" title={language === 'th' ? 'เข้าสู่ระบบ' : 'Login'} aria-label={language === 'th' ? 'เข้าสู่ระบบ' : 'Login'}>
-              <Shield size={15} />
-            </NavLink>
-          )}
         </div>
       </nav>
       <main className="page-shell">
