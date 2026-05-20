@@ -68,6 +68,24 @@ function get(row, names) {
   return null;
 }
 
+function findHeaderRowIndex(matrix) {
+  let best = { index: -1, score: 0 };
+  matrix.slice(0, 30).forEach((row = [], index) => {
+    const headers = row.map((cell) => normalizeHeader(cell ?? ''));
+    const has = (names) => names.some((name) => headers.includes(normalizeHeader(name)));
+    const score = [
+      has(['รหัสนักศึกษา', 'student_id']) ? 3 : 0,
+      has(['ชื่อ - นามสกุล', 'ชื่อ-สกุล', 'ชื่อสกุล', 'name_th']) ? 3 : 0,
+      has(['ชื่อเล่น', 'nickname']) ? 2 : 0,
+      has(['เบอร์โทรศัพท์', 'เบอร์ติดต่อ', 'phone']) ? 2 : 0,
+      has(['สาขา', 'สาขาวิชา', 'หลักสูตร', 'major']) ? 3 : 0,
+      has(['ตำแหน่ง', 'position', 'หน้าที่', 'primary_role']) ? 2 : 0,
+    ].reduce((sum, value) => sum + value, 0);
+    if (score > best.score) best = { index, score };
+  });
+  return best.score > 0 ? best.index : matrix.findIndex((row = []) => row.some(Boolean));
+}
+
 function normalizeMajor(value) {
   const raw = clean(value);
   if (!raw) return null;
@@ -164,7 +182,7 @@ async function readSheets(inputPath) {
         matrix[rowNumber - 1][columnNumber - 1] = clean(typeof cell.value === 'object' && cell.value && 'text' in cell.value ? cell.value.text : cell.value);
       });
     });
-    const headerIndex = matrix.findIndex((row = []) => row.some(Boolean));
+    const headerIndex = findHeaderRowIndex(matrix);
     if (headerIndex < 0) {
       return { name: worksheet.name, rows: [] };
     }
@@ -324,13 +342,57 @@ if (!supabaseUrl || !serviceRoleKey) throw new Error('Set VITE_SUPABASE_URL and 
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
+function hasSpecifiedMajor(value) {
+  const text = clean(value);
+  return Boolean(text && !['ไม่ระบุ', 'not specified'].includes(text.toLowerCase()));
+}
+
+function digits(value) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
 for (const row of rows) {
-  const { data: profile, error: profileError } = await supabase
-    .from('staff_profiles')
-    .upsert(row.profile, { onConflict: row.profile.student_id ? 'student_id' : 'email' })
-    .select('*')
-    .single();
-  if (profileError) throw profileError;
+  const incomingProfile = { ...row.profile, major: normalizeMajor(row.profile.major) };
+  let existing = null;
+
+  if (incomingProfile.student_id) {
+    const { data, error } = await supabase.from('staff_profiles').select('*').eq('student_id', incomingProfile.student_id).limit(1);
+    if (error) throw error;
+    existing = data?.[0] ?? null;
+  }
+  if (!existing && incomingProfile.email) {
+    const { data, error } = await supabase.from('staff_profiles').select('*').ilike('email', incomingProfile.email).limit(1);
+    if (error) throw error;
+    existing = data?.[0] ?? null;
+  }
+  if (!existing && incomingProfile.phone) {
+    const { data, error } = await supabase.from('staff_profiles').select('*');
+    if (error) throw error;
+    existing = (data ?? []).find((item) => digits(item.phone) && digits(item.phone) === digits(incomingProfile.phone)) ?? null;
+  }
+
+  const profilePayload = Object.fromEntries(Object.entries(incomingProfile).filter(([, value]) => value != null));
+  if (existing) {
+    const major = hasSpecifiedMajor(incomingProfile.major) ? incomingProfile.major : existing.major;
+    const { data: profile, error: profileError } = await supabase
+      .from('staff_profiles')
+      .update({ ...profilePayload, major, updated_at: new Date().toISOString() })
+      .eq('id', existing.id)
+      .select('*')
+      .single();
+    if (profileError) throw profileError;
+    existing = profile;
+  } else {
+    const { data: profile, error: profileError } = await supabase
+      .from('staff_profiles')
+      .insert(incomingProfile)
+      .select('*')
+      .single();
+    if (profileError) throw profileError;
+    existing = profile;
+  }
+
+  const profile = existing;
 
   if (Object.values(row.medical).some(Boolean)) {
     const { error } = await supabase.from('staff_medical_info').upsert({ ...row.medical, staff_profile_id: profile.id }, { onConflict: 'staff_profile_id' });

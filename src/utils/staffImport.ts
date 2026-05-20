@@ -89,7 +89,7 @@ async function readSheets(file: ArrayBuffer): Promise<Array<{ name: string; rows
         matrix[rowNumber - 1][columnNumber - 1] = clean(value);
       });
     });
-    const headerRowIndex = matrix.findIndex((row) => row.some(Boolean));
+    const headerRowIndex = findHeaderRowIndex(matrix);
     if (headerRowIndex < 0) return { name: worksheet.name, rows: [] };
     const headerEntries = (matrix[headerRowIndex] ?? [])
       .map((header, index) => [clean(header) ?? '', index] as const)
@@ -99,6 +99,24 @@ async function readSheets(file: ArrayBuffer): Promise<Array<{ name: string; rows
       rows: matrix.slice(headerRowIndex + 1).map((row = []) => Object.fromEntries(headerEntries.map(([header, index]) => [header, clean(row[index])]))).filter((row) => Object.values(row).some(Boolean)),
     };
   });
+}
+
+function findHeaderRowIndex(matrix: Array<Array<string | null>>) {
+  let best = { index: -1, score: 0 };
+  matrix.slice(0, 30).forEach((row, index) => {
+    const headers = row.map((cell) => normalizeHeader(cell ?? ''));
+    const has = (names: string[]) => names.some((name) => headers.includes(normalizeHeader(name)));
+    const score = [
+      has(['รหัสนักศึกษา', 'student_id']) ? 3 : 0,
+      has(['ชื่อ - นามสกุล', 'ชื่อ-สกุล', 'ชื่อสกุล', 'name_th']) ? 3 : 0,
+      has(['ชื่อเล่น', 'nickname']) ? 2 : 0,
+      has(['เบอร์โทรศัพท์', 'เบอร์ติดต่อ', 'phone']) ? 2 : 0,
+      has(['สาขา', 'สาขาวิชา', 'หลักสูตร', 'major']) ? 3 : 0,
+      has(['ตำแหน่ง', 'position', 'หน้าที่', 'primary_role']) ? 2 : 0,
+    ].reduce((sum, value) => sum + value, 0);
+    if (score > best.score) best = { index, score };
+  });
+  return best.score > 0 ? best.index : matrix.findIndex((row) => row.some(Boolean));
 }
 
 function parseStaffContact(raw: string | null) {
