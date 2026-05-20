@@ -11,7 +11,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
-import { approveStaffEditRequest, fetchAdminStaffProfileDetail, rejectStaffEditRequest, staffDisplayName, updateStaffPublicProfileAdmin, type StaffPublicProfileInput } from '../services/staffProfiles';
+import { approveStaffEditRequest, fetchAdminStaffProfileDetail, rejectStaffEditRequest, staffDisplayName, updateStaffPublicProfileAdmin, uploadStaffAvatar, type StaffPublicProfileInput } from '../services/staffProfiles';
 import { updateStaffProfile } from '../services/staffManagement';
 import { errorMessage } from '../utils/error';
 
@@ -21,6 +21,7 @@ export function AdminStaffProfilePage() {
   const state = useAsync(() => fetchAdminStaffProfileDetail(id), [id]);
   const [toast, setToast] = useState<ToastState>(null);
   const [publicPatch, setPublicPatch] = useState<StaffPublicProfileInput>({});
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const data = state.data;
   const mergedPublic = useMemo(() => ({ ...(data?.public_profile ?? {}), ...publicPatch }), [data?.public_profile, publicPatch]);
   const publicCard = data ? {
@@ -50,6 +51,20 @@ export function AdminStaffProfilePage() {
       await state.reload();
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'บันทึกไม่สำเร็จ' : 'Save failed') });
+    }
+  }
+
+  async function uploadAvatar(file: File | null) {
+    if (!file || !data) return;
+    setUploadingAvatar(true);
+    try {
+      const url = await uploadStaffAvatar(file, data.profile.id);
+      setPublicPatch({ ...publicPatch, avatar_url: url });
+      setToast({ type: 'success', message: language === 'th' ? 'อัปโหลดรูปแล้ว อย่าลืมบันทึก Public Profile' : 'Avatar uploaded. Remember to save the public profile.' });
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'อัปโหลดรูปไม่สำเร็จ' : 'Avatar upload failed') });
+    } finally {
+      setUploadingAvatar(false);
     }
   }
 
@@ -97,7 +112,11 @@ export function AdminStaffProfilePage() {
             <Card>
               <h2>{language === 'th' ? 'Public Profile' : 'Public Profile'}</h2>
               {publicCard ? <PublicStaffCard staff={publicCard} /> : null}
-              <Input label="Avatar URL" value={mergedPublic.avatar_url ?? ''} onChange={(event) => setPublicPatch({ ...publicPatch, avatar_url: event.target.value })} />
+              <label className="field">
+                <span>{language === 'th' ? 'รูปโปรไฟล์' : 'Profile photo'}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void uploadAvatar(event.target.files?.[0] ?? null)} />
+                <small>{uploadingAvatar ? (language === 'th' ? 'กำลังอัปโหลด...' : 'Uploading...') : (language === 'th' ? 'รองรับ JPG, PNG, WebP ขนาดไม่เกิน 2 MB' : 'JPG, PNG, WebP up to 2 MB')}</small>
+              </label>
               <Input label="Bio" value={mergedPublic.bio ?? ''} onChange={(event) => setPublicPatch({ ...publicPatch, bio: event.target.value })} />
               <Input label={language === 'th' ? 'ภูมิลำเนา' : 'Hometown'} value={mergedPublic.hometown ?? ''} onChange={(event) => setPublicPatch({ ...publicPatch, hometown: event.target.value })} />
               <Input label={language === 'th' ? 'ความสนใจ' : 'Interests'} value={(mergedPublic.interests ?? []).join(', ')} onChange={(event) => setPublicPatch({ ...publicPatch, interests: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} />

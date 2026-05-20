@@ -2,7 +2,7 @@ import type { StaffRole } from './types';
 
 export const staffSystemRoles: StaffRole[] = ['staff', 'mentor', 'viewer', 'emergency_staff'];
 
-export const staffOperationalRoles = ['ทีมบริหาร', 'พี่กลุ่ม', 'พี่ฐาน', 'ไทม์เมอร์', 'พยาบาล', 'จราจร', 'สวัสดิการ', 'โสตทัศนูปกรณ์', 'โฟโต้'];
+export const staffOperationalRoles = ['ทีมบริหาร', 'พี่กลุ่ม', 'พี่ฐาน', 'ไทม์เมอร์', 'พยาบาล', 'จราจร', 'สวัสดิการ', 'โสตทัศนูปกรณ์'];
 
 export function normalizeStaffSystemRole(value?: string | null, primaryRole?: string | null): StaffRole | null {
   const raw = String(value ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -27,8 +27,8 @@ export function normalizeStaffOperationalRole(value?: string | null) {
   if (lower.includes('จราจร') || lower.includes('traffic')) return 'จราจร';
   if (lower.includes('สวัสดิการ') || lower.includes('welfare')) return 'สวัสดิการ';
   if (lower.includes('โสต') || lower.includes('av') || lower.includes('audio') || lower.includes('visual')) return 'โสตทัศนูปกรณ์';
-  if (lower.includes('บันเทิง') || lower.includes('สันทนาการ') || lower.includes('entertain')) return 'สตาฟให้ความบันเทิง';
-  if (lower.includes('โฟโต้') || lower.includes('photo') || lower.includes('photographer')) return 'โฟโต้';
+  if (lower.includes('บันเทิง') || lower.includes('สันทนาการ') || lower.includes('entertain')) return null;
+  if (lower.includes('โฟโต้') || lower.includes('photo') || lower.includes('photographer')) return null;
   if (lower.includes('พิธีกร') || lower.includes('mc')) return 'พิธีกร';
   return raw;
 }

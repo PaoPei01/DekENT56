@@ -11,7 +11,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { groupLabel } from '../lib/grouping';
-import { submitStaffEditRequestVerified, updateStaffPublicProfileVerified, verifyStaffIdentity, staffDisplayName, type StaffPublicProfileInput, type VerifiedStaffProfileContext } from '../services/staffProfiles';
+import { submitStaffEditRequestVerified, updateStaffPublicProfileVerified, uploadStaffAvatar, verifyStaffIdentity, staffDisplayName, type StaffPublicProfileInput, type VerifiedStaffProfileContext } from '../services/staffProfiles';
 import { errorMessage } from '../utils/error';
 
 export function StaffProfileVerifyPage() {
@@ -23,6 +23,7 @@ export function StaffProfileVerifyPage() {
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
 
   const mergedForm = useMemo(() => ({ ...(data?.public_profile ?? {}), instagram: data?.profile.instagram ?? '', facebook: data?.profile.facebook ?? '', ...form }), [data, form]);
@@ -115,6 +116,20 @@ export function StaffProfileVerifyPage() {
     }
   }
 
+  async function uploadAvatar(file: File | null) {
+    if (!file || !data) return;
+    setUploadingAvatar(true);
+    try {
+      const url = await uploadStaffAvatar(file, data.profile.id);
+      patch({ avatar_url: url });
+      setToast({ type: 'success', message: language === 'th' ? 'อัปโหลดรูปโปรไฟล์แล้ว อย่าลืมกดบันทึก' : 'Avatar uploaded. Remember to save.' });
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'อัปโหลดรูปไม่สำเร็จ' : 'Avatar upload failed') });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   return (
     <section className="narrow-page page-stack has-sticky-actions">
       <Toast toast={toast} />
@@ -146,7 +161,11 @@ export function StaffProfileVerifyPage() {
             </Card>
             <Card>
               <form className="form-grid" onSubmit={savePublic}>
-                <Input label={language === 'th' ? 'ลิงก์รูปโปรไฟล์' : 'Avatar URL'} value={mergedForm.avatar_url ?? ''} onChange={(event) => patch({ avatar_url: event.target.value })} />
+                <label className="field">
+                  <span>{language === 'th' ? 'รูปโปรไฟล์' : 'Profile photo'}</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void uploadAvatar(event.target.files?.[0] ?? null)} />
+                  <small>{uploadingAvatar ? (language === 'th' ? 'กำลังอัปโหลด...' : 'Uploading...') : (language === 'th' ? 'รองรับ JPG, PNG, WebP ขนาดไม่เกิน 2 MB' : 'JPG, PNG, WebP up to 2 MB')}</small>
+                </label>
                 <label className="field">
                   <span>Bio</span>
                   <textarea rows={4} value={mergedForm.bio ?? ''} onChange={(event) => patch({ bio: event.target.value })} />

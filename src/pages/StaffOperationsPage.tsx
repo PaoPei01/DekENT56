@@ -96,7 +96,7 @@ export function StaffOperationsPage() {
         label={language === 'th' ? 'ค้นหาหน้าที่' : 'Search roles'}
         value={search}
         onChange={setSearch}
-        placeholder={language === 'th' ? 'พี่ฐาน พยาบาล โฟโต้' : 'Base, medic, photo'}
+        placeholder={language === 'th' ? 'พี่ฐาน พยาบาล โสตทัศนูปกรณ์' : 'Base, medic, AV'}
         resultText={`${quotaRows.length} ${language === 'th' ? 'บทบาท' : 'roles'}`}
       />
 

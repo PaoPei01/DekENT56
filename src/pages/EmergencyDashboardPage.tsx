@@ -53,6 +53,7 @@ export function EmergencyDashboardPage() {
   const sortedContacts = useMemo(() => [...emergencyContacts].sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority]), []);
 
   const rows = useMemo(() => state.data?.participants ?? [], [state.data?.participants]);
+  const staffMedicalRows = state.data?.staff_medical ?? [];
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return rows.filter((profile) => {
@@ -141,6 +142,7 @@ export function EmergencyDashboardPage() {
           <DashboardStatCard label={language === 'th' ? 'โรคประจำตัว' : 'Medical conditions'} value={summary.disease} />
           <DashboardStatCard label={language === 'th' ? 'แพ้ยา' : 'Drug allergies'} value={summary.drug_allergy} />
           <DashboardStatCard label={language === 'th' ? 'แพ้อาหาร' : 'Food allergies'} value={summary.food_allergy} />
+          <DashboardStatCard label={language === 'th' ? 'ทีมงานมีข้อมูลสุขภาพ' : 'Staff medical flags'} value={summary.staff_medical ?? 0} />
         </div>
       ) : null}
 
@@ -316,6 +318,38 @@ export function EmergencyDashboardPage() {
           );
         })}
       </div>
+
+      {staffMedicalRows.length ? (
+        <Card className="sensitive-panel">
+          <div className="emergency-panel-head">
+            <div>
+              <h2>{language === 'th' ? 'ทีมงานที่มีข้อมูลสุขภาพ' : 'Staff with medical information'}</h2>
+              <p>{language === 'th' ? 'แสดงเฉพาะผู้มีสิทธิ์ดูข้อมูลฉุกเฉิน ใช้เพื่อดูแลทีมงานระหว่างกิจกรรม' : 'Visible only to emergency-authorized users for staff safety during operations.'}</p>
+            </div>
+            <Badge status="rejected">{String(staffMedicalRows.length)}</Badge>
+          </div>
+          <div className="emergency-list compact">
+            {staffMedicalRows.map((staff) => (
+              <div className="emergency-card staff-medical-card" key={staff.id}>
+                <div className="emergency-card-head">
+                  <div>
+                    <h3>{staff.nickname_th || staff.nickname || staff.nickname_en || staff.name_th || staff.name_en}</h3>
+                    <p>{staff.name_th || staff.name_en} · {staff.primary_role || staff.position || '-'}</p>
+                    <span>{groupLabel(staff.main_group, staff.subgroup, language)} · {majorLabel(staff.major, language)}</span>
+                  </div>
+                  <a className="btn btn-primary" href={staff.phone ? `tel:${staff.phone}` : undefined}><Phone size={18} />{staff.phone || '-'}</a>
+                </div>
+                <div className="health-flags detail">
+                  {staff.disease ? <span className="health-flag disease">{language === 'th' ? 'โรคประจำตัว' : 'Medical'}: {staff.disease}</span> : null}
+                  {staff.drug_allergy ? <span className="health-flag drug_allergy">{language === 'th' ? 'แพ้ยา' : 'Drug'}: {staff.drug_allergy}</span> : null}
+                  {staff.food_allergy ? <span className="health-flag food_allergy">{language === 'th' ? 'แพ้อาหาร' : 'Food'}: {staff.food_allergy}</span> : null}
+                  {staff.medical_note ? <span className="health-flag">{language === 'th' ? 'หมายเหตุ' : 'Note'}: {staff.medical_note}</span> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       <EmergencyQuickDock language={language} />
     </section>

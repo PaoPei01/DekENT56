@@ -337,11 +337,34 @@ export type EmergencySummary = {
   drug_allergy: number;
   food_allergy: number;
   needs_special_care: number;
+  staff_medical?: number;
+};
+
+export type EmergencyStaffMedicalProfile = {
+  id: string;
+  student_id: string | null;
+  email: string | null;
+  name_th: string | null;
+  name_en: string | null;
+  nickname: string | null;
+  nickname_th: string | null;
+  nickname_en: string | null;
+  phone: string | null;
+  major: string | null;
+  position: string | null;
+  main_group: MainGroup | null;
+  subgroup: Subgroup | null;
+  primary_role: string | null;
+  disease: string | null;
+  drug_allergy: string | null;
+  food_allergy: string | null;
+  medical_note: string | null;
 };
 
 export type EmergencyDashboardData = {
   summary: EmergencySummary;
   participants: EmergencyProfile[];
+  staff_medical?: EmergencyStaffMedicalProfile[];
 };
 
 export type GroupStats = {

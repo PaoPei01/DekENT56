@@ -39,6 +39,19 @@ export function PendingRequestsPage() {
     }
   }
 
+  function displayValue(value: unknown) {
+    if (value === true) return language === 'th' ? 'เปิด' : 'On';
+    if (value === false) return language === 'th' ? 'ปิด' : 'Off';
+    return String(value ?? '-');
+  }
+
+  function changedEntries(request: EditRequest) {
+    const oldData = (request.old_data ?? {}) as Record<string, unknown>;
+    const newData = (request.new_data ?? {}) as Record<string, unknown>;
+    const normalize = (value: unknown) => value === '' || value == null ? null : String(value).trim();
+    return Object.entries(newData).filter(([key, value]) => normalize(oldData[key]) !== normalize(value));
+  }
+
   return (
     <section className="page-stack">
       <Toast toast={toast} />
@@ -60,13 +73,14 @@ export function PendingRequestsPage() {
               <Badge status="pending">{language === 'th' ? 'รออนุมัติ' : 'Pending'}</Badge>
             </div>
             <div className="diff-grid">
-              {Object.keys(request.new_data ?? {}).map((key) => (
+              {changedEntries(request).map(([key, value]) => (
                 <div key={key}>
                   <span>{fieldLabel(key, language)}</span>
-                  <del>{String((request.old_data as Record<string, unknown> | null)?.[key] ?? '-')}</del>
-                  <strong>{String((request.new_data as Record<string, unknown> | null)?.[key] ?? '-')}</strong>
+                  <del>{displayValue((request.old_data as Record<string, unknown> | null)?.[key])}</del>
+                  <strong>{displayValue(value)}</strong>
                 </div>
               ))}
+              {!changedEntries(request).length ? <p className="muted">{language === 'th' ? 'ไม่มีข้อมูลที่เปลี่ยนจากเดิม' : 'No changed fields'}</p> : null}
             </div>
             <Input
               label={language === 'th' ? 'หมายเหตุกรณีปฏิเสธ' : 'Rejection note'}

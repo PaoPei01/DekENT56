@@ -78,7 +78,7 @@ export function PublicListPage() {
 
       <FilterDrawer
         title={language === 'th' ? 'ตัวกรองรายชื่อ' : 'Participant filters'}
-        open={!hasFilters}
+        open
         actions={hasFilters ? <Button variant="ghost" onClick={clearFilters}>{language === 'th' ? copy.th.clearFilters : copy.en.clearFilters}</Button> : null}
       >
         <div className="toolbar">
@@ -139,7 +139,7 @@ export function PublicListPage() {
               <span>{language === 'th' ? 'ข้อมูลติดต่อ ข้อมูลสุขภาพ และระบบแนะนำเพื่อนจะแสดงหลังยืนยันอีเมลและเบอร์โทรของตัวเองเท่านั้น' : 'Contact details, health details, and friend recommendations are available only after verifying your own email and phone.'}</span>
             </Card>
             <div className="form-actions">
-              <Button icon={<Eye size={18} />} onClick={() => navigate('/edit')}>
+              <Button icon={<Eye size={18} />} onClick={() => { setSelected(null); navigate('/edit'); }}>
                 {language === 'th' ? 'ดูข้อมูลเต็ม / แก้ไขข้อมูล' : 'View full details / edit'}
               </Button>
             </div>

@@ -19,7 +19,7 @@ import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { getMajorCode, majorCatalog, majorLabel, normalizeMajor } from '../lib/major';
 import type { GroupProfile, Profile } from '../lib/types';
 import { deleteProfile, fetchAdminMajors, fetchAdminProfiles, fetchAdminSummary, updateProfile } from '../services/profiles';
-import { exportProfilesCsv } from '../utils/csv';
+import { exportProfilesCsv, exportProfilesXlsx } from '../utils/csv';
 import { errorMessage } from '../utils/error';
 
 export function AdminDashboardPage() {
@@ -125,6 +125,9 @@ export function AdminDashboardPage() {
         <Select label={t.filterHealth} value={healthFilter} onChange={(event) => setHealthFilter(event.target.value)} options={healthOptions} />
         <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportProfilesCsv(profiles)}>
           Export CSV
+        </Button>
+        <Button variant="secondary" icon={<Download size={18} />} onClick={() => void exportProfilesXlsx(profiles)}>
+          Export Excel
         </Button>
       </div>
 

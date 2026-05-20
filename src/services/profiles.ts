@@ -64,11 +64,19 @@ export async function createEditRequest(profile: Profile, newData: EditableProfi
           : value,
     ]),
   );
+  const changed = Object.fromEntries(
+    Object.entries(cleaned).filter(([key, value]) => {
+      const oldValue = profile[key as keyof Profile];
+      const normalize = (input: unknown) => input === '' || input == null ? null : String(input).trim();
+      return normalize(oldValue) !== normalize(value);
+    }),
+  );
+  if (!Object.keys(changed).length) throw new Error('ยังไม่มีข้อมูลที่เปลี่ยนแปลง');
   const { error } = await supabase.rpc('submit_edit_request', {
     input_email: profile.email ?? '',
     input_phone: profile.phone ?? '',
     input_profile_id: profile.id,
-    input_new_data: cleaned,
+    input_new_data: changed,
   });
 
   if (error) throw error;

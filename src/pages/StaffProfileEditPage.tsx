@@ -11,7 +11,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
-import { fetchMyStaffProfile, staffDisplayName, submitStaffEditRequest, updateMyStaffPublicProfile, type StaffPublicProfileInput } from '../services/staffProfiles';
+import { fetchMyStaffProfile, staffDisplayName, submitStaffEditRequest, updateMyStaffPublicProfile, uploadStaffAvatar, type StaffPublicProfileInput } from '../services/staffProfiles';
 import { errorMessage } from '../utils/error';
 
 export function StaffProfileEditPage() {
@@ -19,6 +19,7 @@ export function StaffProfileEditPage() {
   const state = useAsync(fetchMyStaffProfile, []);
   const [toast, setToast] = useState<ToastState>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', instagram: '', facebook: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [form, setForm] = useState<StaffPublicProfileInput>({
@@ -88,6 +89,20 @@ export function StaffProfileEditPage() {
     }
   }
 
+  async function uploadAvatar(file: File | null) {
+    if (!file || !state.data) return;
+    setUploadingAvatar(true);
+    try {
+      const url = await uploadStaffAvatar(file, state.data.profile.id);
+      patch({ avatar_url: url });
+      setToast({ type: 'success', message: language === 'th' ? 'อัปโหลดรูปโปรไฟล์แล้ว อย่าลืมกดบันทึก' : 'Avatar uploaded. Remember to save.' });
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'อัปโหลดรูปไม่สำเร็จ' : 'Avatar upload failed') });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   return (
     <section className="page-stack">
       <Toast toast={toast} />
@@ -103,7 +118,11 @@ export function StaffProfileEditPage() {
           </Card>
           <Card>
             <form className="form-grid" onSubmit={save}>
-              <Input label={language === 'th' ? 'ลิงก์รูปโปรไฟล์' : 'Avatar URL'} value={mergedForm.avatar_url ?? ''} onChange={(event) => patch({ avatar_url: event.target.value })} />
+              <label className="field">
+                <span>{language === 'th' ? 'รูปโปรไฟล์' : 'Profile photo'}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void uploadAvatar(event.target.files?.[0] ?? null)} />
+                <small>{uploadingAvatar ? (language === 'th' ? 'กำลังอัปโหลด...' : 'Uploading...') : (language === 'th' ? 'รองรับ JPG, PNG, WebP ขนาดไม่เกิน 2 MB' : 'JPG, PNG, WebP up to 2 MB')}</small>
+              </label>
               <label className="field">
                 <span>{language === 'th' ? 'Bio' : 'Bio'}</span>
                 <textarea value={mergedForm.bio ?? ''} onChange={(event) => patch({ bio: event.target.value })} rows={4} />

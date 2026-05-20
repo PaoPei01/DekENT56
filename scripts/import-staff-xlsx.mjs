@@ -131,8 +131,8 @@ function normalizeOperationalRole(value) {
   if (lower.includes('จราจร') || lower.includes('traffic')) return 'จราจร';
   if (lower.includes('สวัสดิการ') || lower.includes('welfare')) return 'สวัสดิการ';
   if (lower.includes('โสต') || lower.includes('av') || lower.includes('audio') || lower.includes('visual')) return 'โสตทัศนูปกรณ์';
-  if (lower.includes('บันเทิง') || lower.includes('สันทนาการ') || lower.includes('entertain')) return 'สตาฟให้ความบันเทิง';
-  if (lower.includes('โฟโต้') || lower.includes('photo') || lower.includes('photographer')) return 'โฟโต้';
+  if (lower.includes('บันเทิง') || lower.includes('สันทนาการ') || lower.includes('entertain')) return null;
+  if (lower.includes('โฟโต้') || lower.includes('photo') || lower.includes('photographer')) return null;
   if (lower.includes('พิธีกร') || lower.includes('mc')) return 'พิธีกร';
   return raw;
 }
