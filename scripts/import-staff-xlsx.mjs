@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import JSZip from 'jszip';
 import { createClient } from '@supabase/supabase-js';
 import ExcelJS from 'exceljs';
 
@@ -140,35 +139,6 @@ function normalizeOperationalRole(value) {
 
 function normalizeSecondaryRoles(value) {
   return [...new Set(String(value ?? '').split(/[,/|]+/).map(normalizeOperationalRole).filter(Boolean))];
-}
-
-function tagAttr(tag, name) {
-  return tag.match(new RegExp(`(?:^|\\s)(?:\\w+:)?${name}="([^"]*)"`))?.[1] ?? '';
-}
-
-function extractTags(xml, tag) {
-  return [...xml.matchAll(new RegExp(`<[^>]*:?${tag}\\b[^>]*>[\\s\\S]*?<\\/[^>]*:?${tag}>`, 'g'))].map((match) => match[0]);
-}
-
-function extractSelfClosing(xml, tag) {
-  return [...xml.matchAll(new RegExp(`<[^>]*:?${tag}\\b[^>]*/>`, 'g'))].map((match) => match[0]);
-}
-
-function tagText(xml, tag) {
-  return clean(xml.match(new RegExp(`<[^>]*:?${tag}\\b[^>]*>([\\s\\S]*?)<\\/[^>]*:?${tag}>`))?.[1] ?? '');
-}
-
-function columnIndex(ref) {
-  const letters = String(ref ?? '').replace(/[0-9]/g, '').toUpperCase();
-  return [...letters].reduce((sum, letter) => sum * 26 + letter.charCodeAt(0) - 64, 0) - 1;
-}
-
-function decodeCell(cellXml, sharedStrings) {
-  const type = tagAttr(cellXml, 't');
-  if (type === 'inlineStr') return tagText(cellXml, 't');
-  const value = tagText(cellXml, 'v');
-  if (type === 's' && value) return clean(sharedStrings[Number(value)]);
-  return value;
 }
 
 async function readSheets(inputPath) {

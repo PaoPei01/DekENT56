@@ -21,8 +21,25 @@ export function DocumentTemplatesPage() {
   const [documentType, setDocumentType] = useState<DocumentType>('project_approval');
   const [active, setActive] = useState(true);
   const [file, setFile] = useState<File | null>(null);
+  const [detectedPlaceholders, setDetectedPlaceholders] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState>(null);
   const templates = state.data?.templates ?? [];
+  const invalidPlaceholders = detectedPlaceholders.filter((item) => !/^[a-z0-9_.-]+$/.test(item));
+
+  async function inspectFile(nextFile: File | null) {
+    setFile(nextFile);
+    setDetectedPlaceholders([]);
+    if (!nextFile) return;
+    if (!nextFile.name.toLowerCase().endsWith('.docx')) {
+      setToast({ type: 'error', message: 'รองรับเฉพาะไฟล์ .docx เท่านั้น' });
+      return;
+    }
+    try {
+      setDetectedPlaceholders(extractDocxPlaceholders(await nextFile.arrayBuffer()));
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, 'อ่าน placeholder ไม่สำเร็จ') });
+    }
+  }
 
   async function upload() {
     if (!file) return setToast({ type: 'error', message: 'กรุณาเลือกไฟล์ .docx' });
@@ -42,6 +59,7 @@ export function DocumentTemplatesPage() {
       setName('');
       setDescription('');
       setFile(null);
+      setDetectedPlaceholders([]);
       await state.reload();
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, 'อัปโหลดไม่สำเร็จ') });
@@ -69,9 +87,18 @@ export function DocumentTemplatesPage() {
         <label className="field checkbox-field"><span>เปิดใช้งาน</span><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /></label>
         <label className="field full-span">
           <span>ไฟล์ DOCX</span>
-          <input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+          <input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(event) => void inspectFile(event.target.files?.[0] ?? null)} />
           <small>{file?.name ?? 'รองรับเฉพาะ .docx template และเก็บใน private Supabase Storage'}</small>
         </label>
+        {detectedPlaceholders.length ? (
+          <div className="full-span">
+            <strong>Detected placeholders</strong>
+            <div className="filter-chip-row">
+              {detectedPlaceholders.map((item) => <span className="filter-chip" key={item}>{`{${item}}`}</span>)}
+            </div>
+            {invalidPlaceholders.length ? <p className="error-state">พบ placeholder ที่ไม่ใช่ lowercase syntax: {invalidPlaceholders.join(', ')}</p> : null}
+          </div>
+        ) : null}
         <div className="form-actions full-span">
           <Button icon={<FileUp size={18} />} onClick={upload}>อัปโหลด template</Button>
         </div>

@@ -37,14 +37,21 @@ export function AdminLoginPage() {
     event.preventDefault();
     setLoading(true);
     setToast(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       setToast({ type: 'error', message: error.message });
       return;
     }
-    const { data } = await supabase.auth.getUser();
-    setUser(data.user ?? null);
+    const signedInUser = signInData.user;
+    const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin', { uid: signedInUser.id });
+    if (adminError || !isAdmin) {
+      await supabase.auth.signOut();
+      setUser(null);
+      setToast({ type: 'error', message: language === 'th' ? 'บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ' : 'This account does not have admin access.' });
+      return;
+    }
+    setUser(signedInUser);
     navigate('/admin/dashboard');
   }
 
@@ -75,7 +82,11 @@ export function AdminLoginPage() {
             </div>
           </div>
           <div className="form-actions">
-            <Button onClick={() => navigate('/admin/dashboard')}>{language === 'th' ? 'ไปหน้าแดชบอร์ด' : 'Go to dashboard'}</Button>
+            <Button onClick={async () => {
+              const { data: isAdmin } = await supabase.rpc('is_admin', { uid: user.id });
+              if (isAdmin) navigate('/admin/dashboard');
+              else setToast({ type: 'error', message: language === 'th' ? 'บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ' : 'This account does not have admin access.' });
+            }}>{language === 'th' ? 'ไปหน้าแดชบอร์ด' : 'Go to dashboard'}</Button>
             <Button variant="danger" icon={<LogOut size={18} />} onClick={handleSignOut} disabled={signingOut}>
               {language === 'th' ? 'ออกจากระบบ' : 'Sign out'}
             </Button>

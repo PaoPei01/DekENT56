@@ -473,7 +473,7 @@ export type Database = {
     };
     Functions: {
       search_public_profiles: {
-        Args: { search_text: string; major_filter: string };
+        Args: { search_text: string; major_filter: string; main_group_filter: string; subgroup_filter: string };
         Returns: PublicProfile[];
       };
       verify_profile_identity: {

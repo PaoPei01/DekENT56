@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver';
 import Docxtemplater from 'docxtemplater';
 import PizZip from 'pizzip';
-import type { DocumentBudgetItem, DocumentCenterData, DocumentEquipmentItem, DocumentScheduleItem, DocumentTemplate, DocumentType, DocumentVenue } from './documentTypes';
+import type { DocumentBudgetItem, DocumentCenterData, DocumentEquipmentItem, DocumentScheduleItem, DocumentType, DocumentVenue } from './documentTypes';
 
 export const documentTypeOptions: Array<{ value: DocumentType; label: string }> = [
   { value: 'project_approval', label: 'เอกสารขออนุมัติโครงการ' },
@@ -197,8 +197,17 @@ export function findMissingFields(documentType: DocumentType, placeholders: stri
   return fields.filter((field) => isMissing(field.split('.')[0], payload)).map((field) => ({ field, label: fieldLabel(field) }));
 }
 
+export function escapeHtml(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function tableRows(rows: Record<string, unknown>[], columns: string[]) {
-  return rows.map((row) => `<tr>${columns.map((col) => `<td>${String(row[col] ?? '')}</td>`).join('')}</tr>`).join('');
+  return rows.map((row) => `<tr>${columns.map((col) => `<td>${escapeHtml(row[col] ?? '')}</td>`).join('')}</tr>`).join('');
 }
 
 export function renderPreviewHtml(documentType: DocumentType, title: string, payload: Record<string, unknown>, missing: Array<{ field: string; label: string }>) {
@@ -207,19 +216,19 @@ export function renderPreviewHtml(documentType: DocumentType, title: string, pay
   const venues = payload.venues as Record<string, unknown>[] ?? [];
   const equipment = payload.equipment_items as Record<string, unknown>[] ?? [];
   return `<section class="document-preview">
-    <h1>${title || documentTypeLabel(documentType)}</h1>
-    <p>${payload.document_date_th || payload.generated_date || ''}</p>
-    <div><span>ชื่อโครงการ</span><strong>${payload.project_name || '-'}</strong></div>
-    <div><span>วัน เวลา สถานที่</span><strong>${payload.event_date_th || '-'} ${payload.event_time_range || ''} ${payload.location || ''}</strong></div>
-    <h2>หลักการและเหตุผล</h2><p>${payload.rationale || '-'}</p>
-    <h2>วัตถุประสงค์</h2><p>${payload.objectives || '-'}</p>
-    <h2>ผลที่คาดว่าจะได้รับ</h2><p>${payload.expected_outcomes || '-'}</p>
+    <h1>${escapeHtml(title || documentTypeLabel(documentType))}</h1>
+    <p>${escapeHtml(payload.document_date_th || payload.generated_date || '')}</p>
+    <div><span>ชื่อโครงการ</span><strong>${escapeHtml(payload.project_name || '-')}</strong></div>
+    <div><span>วัน เวลา สถานที่</span><strong>${escapeHtml(`${payload.event_date_th || '-'} ${payload.event_time_range || ''} ${payload.location || ''}`)}</strong></div>
+    <h2>หลักการและเหตุผล</h2><p>${escapeHtml(payload.rationale || '-')}</p>
+    <h2>วัตถุประสงค์</h2><p>${escapeHtml(payload.objectives || '-')}</p>
+    <h2>ผลที่คาดว่าจะได้รับ</h2><p>${escapeHtml(payload.expected_outcomes || '-')}</p>
     <h2>กำหนดการ</h2><table><tbody>${tableRows(schedule, ['time_range', 'title', 'duration_minutes', 'location', 'responsible_team'])}</tbody></table>
-    <h2>งบประมาณ</h2><table><tbody>${tableRows(budget, ['item_name', 'quantity', 'unit', 'unit_price', 'amount'])}</tbody></table><p><strong>รวม ${payload.budget_total || '0.00'} บาท</strong></p>
+    <h2>งบประมาณ</h2><table><tbody>${tableRows(budget, ['item_name', 'quantity', 'unit', 'unit_price', 'amount'])}</tbody></table><p><strong>รวม ${escapeHtml(payload.budget_total || '0.00')} บาท</strong></p>
     <h2>สถานที่</h2><table><tbody>${tableRows(venues, ['name', 'use_date', 'time_range', 'purpose', 'participant_count'])}</tbody></table>
     <h2>อุปกรณ์</h2><table><tbody>${tableRows(equipment, ['name', 'quantity', 'unit', 'borrow_date', 'return_date', 'status'])}</tbody></table>
-    <h2>ผู้ลงนาม</h2><p>${payload.signing_person_name || payload.project_chair_name || '-'} ${payload.signing_person_position || payload.project_chair_position || ''}</p>
-    ${missing.length ? `<h2>ข้อมูลที่ยังขาด</h2><p>${missing.map((item) => item.label).join(', ')}</p>` : ''}
+    <h2>ผู้ลงนาม</h2><p>${escapeHtml(`${payload.signing_person_name || payload.project_chair_name || '-'} ${payload.signing_person_position || payload.project_chair_position || ''}`)}</p>
+    ${missing.length ? `<h2>ข้อมูลที่ยังขาด</h2><p>${missing.map((item) => escapeHtml(item.label)).join(', ')}</p>` : ''}
   </section>`;
 }
 

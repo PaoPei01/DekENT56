@@ -11,7 +11,7 @@ import { Toast, ToastState } from '../components/ui/Toast';
 import { buildDocumentData, documentTypeLabel, downloadBlob, findMissingFields, renderDocxBlob, renderPreviewHtml } from '../lib/documentGeneration';
 import type { DocumentType } from '../lib/documentTypes';
 import { useAsync } from '../hooks/useAsync';
-import { downloadTemplateBuffer, fetchDocumentCenterData, nextDocumentVersion, recordGeneratedDocument, uploadGeneratedDocx } from '../services/documents';
+import { downloadTemplateBuffer, fetchDocumentCenterData, recordGeneratedDocument, uploadGeneratedDocx } from '../services/documents';
 import { errorMessage } from '../utils/error';
 
 export function DocumentGeneratePage() {
@@ -20,6 +20,7 @@ export function DocumentGeneratePage() {
   const [documentType, setDocumentType] = useState<DocumentType>('project_approval');
   const [title, setTitle] = useState('');
   const [previewHtml, setPreviewHtml] = useState('');
+  const [generating, setGenerating] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const data = state.data;
   const templates = (data?.templates ?? []).filter((item) => item.is_active !== false && item.document_type === documentType);
@@ -33,22 +34,37 @@ export function DocumentGeneratePage() {
 
   async function download() {
     if (!template || !data) return;
+    setGenerating(true);
     try {
-      const version = await nextDocumentVersion(template.id, documentType);
       const fileTitle = title || template.name || documentTypeLabel(documentType);
-      const fileName = `${fileTitle.replace(/[^\wก-๙.-]+/g, '-')}_v${version}.docx`;
+      const html = previewHtml || renderPreviewHtml(documentType, fileTitle, payload, missing);
+      const reserved = await recordGeneratedDocument({
+        project_profile_id: data.profile?.id ?? null,
+        template_id: template.id,
+        file_name: `${fileTitle.replace(/[^\wก-๙.-]+/g, '-')}.docx`,
+        title: fileTitle,
+        document_type: documentType,
+        version: 0,
+        status: 'generating',
+        output_docx_path: '',
+        placeholders: payload,
+        snapshot_data: payload,
+        missing_fields: missing.map((item) => item.field),
+        preview_html: html,
+      });
+      const fileName = `${fileTitle.replace(/[^\wก-๙.-]+/g, '-')}_v${reserved.version}.docx`;
       const buffer = await downloadTemplateBuffer(template);
       const blob = renderDocxBlob(buffer, payload);
       const outputPath = await uploadGeneratedDocx(fileName, blob);
       downloadBlob(blob, fileName);
-      const html = previewHtml || renderPreviewHtml(documentType, fileTitle, payload, missing);
       await recordGeneratedDocument({
+        id: reserved.id,
         project_profile_id: data.profile?.id ?? null,
         template_id: template.id,
         file_name: fileName,
         title: fileTitle,
         document_type: documentType,
-        version,
+        version: reserved.version,
         status: missing.length ? 'incomplete' : 'generated',
         output_docx_path: outputPath,
         placeholders: payload,
@@ -56,10 +72,12 @@ export function DocumentGeneratePage() {
         missing_fields: missing.map((item) => item.field),
         preview_html: html,
       });
-      setToast({ type: 'success', message: `สร้าง DOCX v${version} และบันทึกลง Storage แล้ว` });
+      setToast({ type: 'success', message: `สร้าง DOCX v${reserved.version} และบันทึกลง Storage แล้ว` });
       await state.reload();
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, 'สร้าง DOCX ไม่สำเร็จ ตรวจ template และ Storage permission อีกครั้ง') });
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -84,11 +102,11 @@ export function DocumentGeneratePage() {
             <Input label="ชื่อเอกสาร" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={template?.name ?? documentTypeLabel(documentType)} />
             <div className="document-readiness">
               <Badge status={missing.length ? 'pending' : 'approved'}>{missing.length ? `ขาด ${missing.length} ช่อง` : 'ข้อมูลพร้อม'}</Badge>
-              <span>{template ? `${template.placeholders.length} placeholders` : 'ยังไม่ได้เลือก template'}</span>
+              <span>{template ? `${template.placeholders.length} placeholders · ${missing.length ? 'ยังไม่พร้อมเต็มที่' : 'พร้อมสร้าง'}` : 'ยังไม่ได้เลือก template'}</span>
             </div>
             <div className="form-actions full-span">
               <Button variant="secondary" icon={<Eye size={18} />} onClick={preview}>HTML Preview</Button>
-              <Button icon={<Download size={18} />} onClick={download} disabled={!template}>ดาวน์โหลด DOCX</Button>
+              <Button icon={<Download size={18} />} onClick={download} disabled={!template || generating}>{generating ? 'กำลังสร้าง...' : 'ดาวน์โหลด DOCX'}</Button>
             </div>
           </Card>
           <Card className="document-missing-card">

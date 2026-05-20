@@ -31,7 +31,14 @@ export function VerifyEditPage() {
   const [groupSoftMessage, setGroupSoftMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [contextLoading, setContextLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
+
+  function updateForm(values: Partial<EditableProfileFields>) {
+    if (!form) return;
+    setSubmitted(false);
+    setForm({ ...form, ...values });
+  }
 
   async function handleVerify(event: FormEvent) {
     event.preventDefault();
@@ -49,6 +56,7 @@ export function VerifyEditPage() {
       }
       setProfile(verified);
       setForm(pickEditableFields(verified));
+      setSubmitted(false);
       setToast({ type: 'success', message: language === 'th' ? 'ยืนยันตัวตนสำเร็จ' : 'Identity verified' });
       setContextLoading(true);
       fetchVerifiedGroupContext(email, phone)
@@ -82,6 +90,7 @@ export function VerifyEditPage() {
     setLoading(true);
     try {
       await createEditRequest(profile, form);
+      setSubmitted(true);
       setToast({ type: 'success', message: language === 'th' ? 'ส่งคำขอแก้ไขแล้ว รอแอดมินอนุมัติ' : 'Edit request submitted. Waiting for admin approval.' });
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ส่งคำขอไม่สำเร็จ' : 'Request submission failed') });
@@ -154,6 +163,10 @@ export function VerifyEditPage() {
             <h2>{profile.name_th}</h2>
             <p>{language === 'th' ? 'แก้ไขได้เฉพาะข้อมูลติดต่อและข้อมูลสุขภาพด้านล่าง' : 'Only the contact and health fields below can be edited.'}</p>
             <Card className="privacy-notice">
+              <strong>{language === 'th' ? 'ข้อมูลที่แก้ไขไม่ได้จากหน้านี้' : 'Protected fields'}</strong>
+              <span>{language === 'th' ? 'อีเมล รหัสนักศึกษา ชื่อจริง และสาขาเป็นข้อมูลยืนยันตัวตน หากผิดให้แจ้งแอดมินแก้ไขให้' : 'Email, student ID, legal name, and major are protected identity fields. Ask an admin if they are incorrect.'}</span>
+            </Card>
+            <Card className="privacy-notice">
               <strong>{language === 'th' ? 'Consent การแสดงข้อมูลกับเพื่อนในกลุ่ม' : 'Consent for group friend visibility'}</strong>
               <span>{language === 'th' ? 'เปิดโปรไฟล์สาธารณะ = ยอมให้ระบบแนะนำชื่อเล่น ชื่อจริง และสาขาของคุณกับเพื่อนในกลุ่มเดียวกัน ส่วน Instagram/Line จะแสดงเฉพาะเมื่อเลือกยินยอมแยกด้านล่างเท่านั้น เบอร์โทรและข้อมูลสุขภาพจะไม่แสดงให้เพื่อนเห็น' : 'Public profile ON allows the system to recommend your nickname, first name, and major to people in your subgroup. Instagram/Line are shown only when separately allowed. Phone numbers and health data are never shown to friends.'}</span>
             </Card>
@@ -164,22 +177,31 @@ export function VerifyEditPage() {
                     <input
                       type="checkbox"
                       checked={Boolean(form[field])}
-                      onChange={(event) => setForm({ ...form, [field]: event.target.checked })}
+                      onChange={(event) => updateForm({ [field]: event.target.checked } as Partial<EditableProfileFields>)}
                     />
-                    <span>{fieldLabel(field, language)}</span>
+                    <span>
+                      {fieldLabel(field, language)}
+                      <small>
+                        {field === 'public_profile'
+                          ? (language === 'th' ? ' แสดงเฉพาะชื่อ/ชื่อเล่น/สาขาในระบบแนะนำเพื่อน' : ' shows only name/nickname/major in friend recommendations')
+                          : field === 'show_instagram'
+                            ? (language === 'th' ? ' แสดง IG เฉพาะเมื่อเปิดโปรไฟล์สาธารณะ' : ' shows IG only when public profile is on')
+                            : (language === 'th' ? ' แสดง LINE เฉพาะเมื่อเปิดโปรไฟล์สาธารณะ' : ' shows LINE only when public profile is on')}
+                      </small>
+                    </span>
                   </label>
                 ) : (
                   <Input
                     key={field}
                     label={fieldLabel(field, language)}
                     value={String(form[field] ?? '')}
-                    onChange={(event) => setForm({ ...form, [field]: event.target.value })}
+                    onChange={(event) => updateForm({ [field]: event.target.value } as Partial<EditableProfileFields>)}
                   />
                 ),
               )}
               <div className="form-actions full-span">
-                <Button type="submit" disabled={loading} icon={<Save size={18} />}>
-                  {language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit edit request'}
+                <Button type="submit" disabled={loading || submitted} icon={<Save size={18} />}>
+                  {submitted ? (language === 'th' ? 'ส่งคำขอแล้ว' : 'Submitted') : (language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit edit request')}
                 </Button>
               </div>
             </form>

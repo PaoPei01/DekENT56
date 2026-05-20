@@ -41,10 +41,6 @@ export async function fetchDocumentCenterData(): Promise<DocumentCenterData> {
   };
 }
 
-function withoutIds<T extends { id?: string; project_profile_id?: string }>(items: Array<Partial<T>>, profileId: string) {
-  return items.map(({ id: _id, ...item }) => ({ ...item, project_profile_id: profileId }));
-}
-
 export async function saveProjectProfile(input: {
   profile: Partial<DocumentProjectProfile>;
   budgetItems: Array<Partial<DocumentBudgetItem>>;
@@ -52,42 +48,8 @@ export async function saveProjectProfile(input: {
   venues: Array<Partial<DocumentVenue>>;
   equipmentItems: Array<Partial<DocumentEquipmentItem>>;
 }) {
-  const userId = await currentUserId();
-  const calculatedBudgetTotal = input.budgetItems.reduce((sum, item) => sum + Number(item.quantity ?? 0) * Number(item.unit_price ?? 0), 0);
-  const calculatedParticipants = Number(input.profile.freshmen_count ?? 0) + Number(input.profile.staff_count ?? 0);
-  const profilePayload = {
-    ...input.profile,
-    budget_total: calculatedBudgetTotal,
-    total_participants: input.profile.total_participants ?? (calculatedParticipants > 0 ? calculatedParticipants : null),
-    updated_by: userId,
-  };
-  const { data: profile, error } = input.profile.id
-    ? await supabase.from('document_project_profiles').update(profilePayload).eq('id', input.profile.id).select('*').single()
-    : await supabase.from('document_project_profiles').insert({ ...profilePayload, created_by: userId }).select('*').single();
+  const { data: profile, error } = await supabase.rpc('save_document_project_profile', { input_data: input });
   if (error) throw error;
-  const profileId = (profile as DocumentProjectProfile).id;
-
-  await Promise.all([
-    supabase.from('document_budget_items').delete().eq('project_profile_id', profileId),
-    supabase.from('document_schedule_items').delete().eq('project_profile_id', profileId),
-    supabase.from('document_venues').delete().eq('project_profile_id', profileId),
-    supabase.from('document_equipment_items').delete().eq('project_profile_id', profileId),
-  ]);
-
-  const budgetRows = withoutIds<DocumentBudgetItem>(input.budgetItems.filter((item) => item.item_name).map(({ amount: _amount, ...item }) => item), profileId);
-  const scheduleRows = withoutIds<DocumentScheduleItem>(input.scheduleItems.filter((item) => item.title).map((item, index) => ({ ...item, sort_order: item.sort_order ?? index + 1 })), profileId);
-  const venueRows = withoutIds<DocumentVenue>(input.venues.filter((item) => item.name), profileId);
-  const equipmentRows = withoutIds<DocumentEquipmentItem>(input.equipmentItems.filter((item) => item.name), profileId);
-
-  const inserts = [
-    budgetRows.length ? supabase.from('document_budget_items').insert(budgetRows) : null,
-    scheduleRows.length ? supabase.from('document_schedule_items').insert(scheduleRows) : null,
-    venueRows.length ? supabase.from('document_venues').insert(venueRows) : null,
-    equipmentRows.length ? supabase.from('document_equipment_items').insert(equipmentRows) : null,
-  ].filter(Boolean);
-  const results = await Promise.all(inserts);
-  const insertError = results.find((result) => result?.error)?.error;
-  if (insertError) throw insertError;
   return profile as DocumentProjectProfile;
 }
 
@@ -161,6 +123,7 @@ export async function uploadGeneratedDocx(fileName: string, blob: Blob) {
 }
 
 export async function recordGeneratedDocument(input: {
+  id?: string;
   project_profile_id: string | null;
   template_id: string | null;
   file_name: string;
@@ -174,8 +137,7 @@ export async function recordGeneratedDocument(input: {
   missing_fields: string[];
   preview_html: string;
 }) {
-  const userId = await currentUserId();
-  const { data, error } = await supabase.from('generated_documents').insert({ ...input, generated_by: userId, generated_at: new Date().toISOString() }).select('*').single();
+  const { data, error } = await supabase.rpc('create_generated_document_record', { input_data: input });
   if (error) throw error;
   return data as GeneratedDocument;
 }

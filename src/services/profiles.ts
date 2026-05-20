@@ -1,4 +1,5 @@
 import { editableFields } from '../lib/constants';
+import { cleanEmail } from '../lib/cleaners';
 import { cleanNullableText, normalizePhoneNumber } from '../lib/dataClean';
 import { getMajorCode, majorCodeOptions } from '../lib/major';
 import { supabase } from '../lib/supabase';
@@ -15,11 +16,12 @@ type SearchOptions = {
 export async function fetchPublicProfiles(options: SearchOptions): Promise<PublicProfile[]> {
   const { data, error } = await supabase.rpc('search_public_profiles', {
     search_text: options.search?.trim() ?? '',
-    major_filter: '',
+    major_filter: options.major ?? '',
+    main_group_filter: options.mainGroup ?? '',
+    subgroup_filter: options.subgroup ?? '',
   });
   if (error) throw error;
-  const rows = (data ?? []) as PublicProfile[];
-  return rows.filter((row) => {
+  return ((data ?? []) as PublicProfile[]).filter((row) => {
     if (options.major && getMajorCode(row.major) !== options.major) return false;
     if (options.mainGroup && row.main_group !== options.mainGroup) return false;
     if (options.subgroup && row.subgroup !== options.subgroup) return false;
@@ -35,8 +37,8 @@ export async function fetchPublicMajors(): Promise<string[]> {
 
 export async function verifyProfileIdentity(email: string, phone: string): Promise<Profile | null> {
   const { data, error } = await supabase.rpc('verify_profile_identity', {
-    input_email: email.trim().toLowerCase(),
-    input_phone: phone.trim(),
+    input_email: cleanEmail(email) ?? '',
+    input_phone: normalizePhoneNumber(phone) ?? '',
   });
 
   if (error) throw error;
@@ -52,11 +54,21 @@ export function pickEditableFields(profile: Partial<Profile>): EditableProfileFi
 }
 
 export async function createEditRequest(profile: Profile, newData: EditableProfileFields) {
+  const cleaned = Object.fromEntries(
+    Object.entries(newData).map(([key, value]) => [
+      key,
+      key === 'phone' || key === 'emergency_phone'
+        ? normalizePhoneNumber(value)
+        : typeof value === 'string' || value == null
+          ? cleanNullableText(value)
+          : value,
+    ]),
+  );
   const { error } = await supabase.rpc('submit_edit_request', {
     input_email: profile.email ?? '',
     input_phone: profile.phone ?? '',
     input_profile_id: profile.id,
-    input_new_data: newData,
+    input_new_data: cleaned,
   });
 
   if (error) throw error;
