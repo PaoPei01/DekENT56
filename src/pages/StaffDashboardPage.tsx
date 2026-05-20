@@ -1,6 +1,7 @@
 import { AlertTriangle, ClipboardCheck, Search, ShieldAlert, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { MobileSafeAreaSpacer } from '../components/mobile/MobileSafeAreaSpacer';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { DashboardStatCard } from '../components/ui/DashboardStatCard';
@@ -67,10 +68,14 @@ export function StaffDashboardPage() {
         ) : null}
       </div>
 
-      <Card className="staff-confidential-card">
-        <strong>{language === 'th' ? 'กติกาสิทธิ์' : 'Role rules'}</strong>
-        <span>{language === 'th' ? 'emergency_staff ใช้เฉพาะเครื่องมือสุขภาพ: ดูข้อมูลฉุกเฉินทุกกลุ่ม บันทึก note และ special care ได้ แต่ไม่แตะงานสตาฟกลุ่มหรือแอดมิน' : 'emergency_staff can only use health tools: view all emergency data, save notes, and mark special care without accessing group staff or admin tools.'}</span>
-      </Card>
+      <details className="filter-disclosure staff-role-note">
+        <summary>{language === 'th' ? 'เกี่ยวกับสิทธิ์ของบัญชีนี้' : 'About this account access'}</summary>
+        <Card className="staff-confidential-card">
+          <strong>{language === 'th' ? 'กติกาสิทธิ์' : 'Role rules'}</strong>
+          <span>{language === 'th' ? 'emergency_staff ใช้เฉพาะเครื่องมือสุขภาพ: ดูข้อมูลฉุกเฉินทุกกลุ่ม บันทึก note และ special care ได้ แต่ไม่แตะงานสตาฟกลุ่มหรือแอดมิน' : 'emergency_staff can only use health tools: view all emergency data, save notes, and mark special care without accessing group staff or admin tools.'}</span>
+        </Card>
+      </details>
+      <MobileSafeAreaSpacer />
     </section>
   );
 }

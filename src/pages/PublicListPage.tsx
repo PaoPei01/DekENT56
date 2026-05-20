@@ -4,9 +4,11 @@ import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
+import { MobileSafeAreaSpacer } from '../components/mobile/MobileSafeAreaSpacer';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { FilterDrawer } from '../components/ui/FilterDrawer';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -59,7 +61,7 @@ export function PublicListPage() {
       <Card className="privacy-notice">
         <strong>{language === 'th' ? 'ประกาศความเป็นส่วนตัว' : 'Privacy notice'}</strong>
         <span>{language === 'th' ? 'แสดงเฉพาะชื่อ ชื่อเล่น สาขา และกลุ่มเท่านั้น ข้อมูลติดต่อและข้อมูลสุขภาพถูกซ่อนไว้เพื่อความเป็นส่วนตัว' : 'Only name, nickname, major, and group are visible. Contact and medical data stay private.'}</span>
-        <Button variant="secondary" onClick={() => navigate('/edit')}>{language === 'th' ? 'แก้ไขข้อมูลของฉัน' : 'Edit my information'}</Button>
+        <Button variant="secondary" onClick={() => navigate('/edit')}>{language === 'th' ? 'ตรวจสอบ/แก้ไขข้อมูลของฉัน' : 'Check/edit my information'}</Button>
       </Card>
 
       <MobileSearchHeader
@@ -74,8 +76,11 @@ export function PublicListPage() {
         </button>
       </MobileSearchHeader>
 
-      <details className="filter-disclosure" open={!hasFilters}>
-        <summary>{language === 'th' ? 'ตัวกรองรายชื่อ' : 'Participant filters'}</summary>
+      <FilterDrawer
+        title={language === 'th' ? 'ตัวกรองรายชื่อ' : 'Participant filters'}
+        open={!hasFilters}
+        actions={hasFilters ? <Button variant="ghost" onClick={clearFilters}>{language === 'th' ? copy.th.clearFilters : copy.en.clearFilters}</Button> : null}
+      >
         <div className="toolbar">
           <div className="search-shell">
             <Search size={18} aria-hidden="true" />
@@ -85,7 +90,7 @@ export function PublicListPage() {
           <Select label={t.filterGroup} value={mainGroup} onChange={(event) => setMainGroup(event.target.value)} options={mainGroups.map((group) => ({ value: group, label: language === 'th' ? groupMeta[group].th : groupMeta[group].en }))} placeholder={t.all} />
           <Select label={t.filterSubgroup} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} placeholder={t.all} />
         </div>
-      </details>
+      </FilterDrawer>
 
       {activeFilters.length ? (
         <div className="filter-chip-row">
@@ -96,7 +101,7 @@ export function PublicListPage() {
 
       {loading ? <LoadingSkeleton /> : null}
       {error ? <div className="error-state">{error}</div> : null}
-      {!loading && !error && participants.length === 0 ? <EmptyState title={language === 'th' ? 'ไม่พบรายชื่อ' : 'No participants found'} description={language === 'th' ? copy.th.tryNicknameOrMajor : copy.en.tryNicknameOrMajor} /> : null}
+      {!loading && !error && participants.length === 0 ? <EmptyState title={language === 'th' ? 'ไม่พบรายชื่อ' : 'No participants found'} description={language === 'th' ? copy.th.tryPublicSearch : copy.en.tryPublicSearch} /> : null}
 
       <div className="participant-grid">
         {participants.map((profile) => (
@@ -138,9 +143,11 @@ export function PublicListPage() {
                 {language === 'th' ? 'ดูข้อมูลเต็ม / แก้ไขข้อมูล' : 'View full details / edit'}
               </Button>
             </div>
+            <MobileSafeAreaSpacer />
           </div>
         ) : null}
       </Modal>
+      <MobileSafeAreaSpacer />
     </section>
   );
 }

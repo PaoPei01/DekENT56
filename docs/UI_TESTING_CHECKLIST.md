@@ -1,46 +1,97 @@
-# UI Testing Checklist
+# TFBP UI Testing Checklist
 
-## Viewports
+Run this checklist before event-day deployment and after major UI changes.
 
-- iPhone SE width
-- iPhone 12/13/14 width
-- Android mid-range width
-- tablet
-- desktop
+## Devices And Viewports
+
+- iPhone SE width.
+- iPhone 12/13/14 width.
+- Android mid-range width.
+- Tablet width.
+- Desktop admin width.
 
 ## Roles
 
-- public user sees only Home, Search, Edit info
-- staff sees only allowed staff routes
-- emergency_staff sees emergency tools without admin tools
-- admin sees dashboard, groups, staff, emergency, logs
+- Public user signed out.
+- Staff user.
+- Mentor user.
+- Emergency staff user.
+- Admin user.
 
-## Critical Flows
+## Navigation
 
-- public search does not leak email, phone, Line, Instagram, Facebook, emergency phone, disease, allergies, or drug allergies
-- staff can mark present, late, absent, excused on mobile with visible buttons
-- attendance offline queue banner appears and sync button is reachable
-- emergency numbers are reachable in one tap
-- emergency page still shows hotline cache when offline
-- admin can clear groups only after typed confirmation
-- admin can import staff with preview, warnings, duplicates, and confirmation
+- Public users do not see inaccessible admin/staff links.
+- Staff users can reach Staff Home, My Group, Attendance if allowed, and Emergency if allowed.
+- Emergency staff can reach emergency tools without unrelated admin tools.
+- Admin users can reach Dashboard, Groups, Staff, Emergency, and More.
+- Staff Login is visible and understandable in Thai.
+- Active nav state is clear.
 
-## Data States
+## Mobile Bottom Spacing
 
-- long Thai names
-- long English names
-- empty data states
-- duplicate staff import rows
-- import rows with missing fields
-- group imbalance warnings
-- locked group state
-- unsaved group draft state
+Verify no button is hidden behind bottom navigation on:
 
-## Accessibility
+- `/`
+- `/edit`
+- `/admin/dashboard`
+- `/admin/groups`
+- `/admin/staff`
+- `/admin/staff/import`
+- `/admin/requests`
+- `/staff`
+- `/staff/my-group`
+- `/staff/attendance`
+- `/staff/emergency`
 
-- keyboard focus is visible
-- Escape closes modals
-- icon-only buttons have aria-label
-- touch targets are at least 44px
-- status indicators include text, not only color
-- tables have visible headers on desktop
+Primary CTAs must remain tappable above the bottom nav on iPhone SE and Android Chrome.
+
+## Public Privacy
+
+- Public list shows only safe fields.
+- Public profile modal says hidden for privacy.
+- Public pages do not expose email, phone, emergency phone, Line, Instagram, Facebook, disease, food allergy, or drug allergy.
+
+## Staff Operations
+
+- Staff can search group participants quickly.
+- Staff can check attendance using visible one-tap buttons.
+- Attendance sync button appears when unsynced records exist.
+- Medical information is hidden unless the user is admin or emergency_staff.
+- Long Thai and English names do not break cards.
+
+## Emergency
+
+- 1669, Head Medic, University Hospital, Police, and Fire are reachable in one tap.
+- Copy phone number fallback works.
+- Offline emergency fallback appears when data cannot load.
+- Confidentiality notice is visible when medical data is shown.
+- Incident note/draft UI does not cover emergency buttons.
+
+## Imports
+
+- Staff import preview is understandable without developer knowledge.
+- Warning-only, duplicate-only, and missing-data views work.
+- Duplicate data states are clear.
+- Rejected/flagged rows can be downloaded.
+- Commit import requires confirmation.
+- After import, Sync Staff Roster is shown as the next action.
+
+## Destructive Actions
+
+- Delete/reset/clear actions use ConfirmDialog.
+- Dangerous actions are separated from primary actions.
+- Required typed confirmation works where enabled.
+
+## Accessibility And Motion
+
+- Keyboard navigation reaches all major controls.
+- Focus ring is visible.
+- Modal Escape close works.
+- Screen-reader labels exist for icon-only buttons.
+- Reduced motion setting removes nonessential motion.
+
+## Build
+
+- `npm run build` passes.
+- No public page leaks private data.
+- Mobile pages remain readable and not overcrowded.

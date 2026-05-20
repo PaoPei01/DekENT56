@@ -1,7 +1,9 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { FileText, HeartPulse, Home, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
+import { HeartPulse, Home, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { RoleAwareBottomNav } from './mobile/RoleAwareBottomNav';
 import { useLanguage } from '../context/LanguageContext';
+import { copy } from '../lib/copy';
 import { supabase } from '../lib/supabase';
 import type { StaffAccessContext } from '../lib/types';
 import { fetchStaffAccessContext } from '../services/staff';
@@ -52,6 +54,8 @@ export function Layout() {
   const isStaff = Boolean(access?.can_view_staff || access?.can_mark_attendance || access?.can_view_emergency);
   const canAttend = Boolean(access?.can_mark_attendance);
   const canEmergency = Boolean(access?.can_view_emergency || access?.is_admin);
+  const loginCopy = language === 'th' ? copy.th : copy.en;
+  const accountTarget = isAdmin ? '/admin/dashboard' : isStaff ? '/staff' : '/admin';
 
   return (
     <div>
@@ -94,13 +98,30 @@ export function Layout() {
                   {canEmergency ? <NavLink to="/staff/emergency">{language === 'th' ? 'สุขภาพฉุกเฉิน' : 'Staff Emergency'}</NavLink> : null}
                 </>
               ) : null}
+              {!user ? (
+                <>
+                  <span className="nav-menu-label">{language === 'th' ? 'บัญชี' : 'Account'}</span>
+                  <NavLink to="/admin">{loginCopy.staffLogin}</NavLink>
+                </>
+              ) : (
+                <>
+                  <span className="nav-menu-label">{language === 'th' ? 'บัญชี' : 'Account'}</span>
+                  {isStaff ? <NavLink to="/staff">{loginCopy.staffHome}</NavLink> : null}
+                  {isAdmin ? <NavLink to="/admin/dashboard">{loginCopy.adminDashboard}</NavLink> : null}
+                  <NavLink to="/admin">{loginCopy.staffAccount}</NavLink>
+                </>
+              )}
             </div>
           </details>
+          <NavLink className={`staff-login-link ${user ? 'staff-login-link-active' : ''}`} to={accountTarget}>
+            {user ? <UserCheck size={17} /> : <Shield size={17} />}
+            <span>{user ? loginCopy.staffAccount : loginCopy.staffLogin}</span>
+          </NavLink>
           <button className="language-toggle" type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
             {language === 'th' ? 'EN' : 'TH'}
           </button>
           {user ? (
-            <NavLink className="auth-icon-link auth-signed-in" to="/admin" title={language === 'th' ? `เข้าสู่ระบบแล้ว: ${user.email ?? user.id}` : `Signed in: ${user.email ?? user.id}`} aria-label={language === 'th' ? 'เข้าสู่ระบบแล้ว ดูรายละเอียดบัญชี' : 'Signed in, view account details'}>
+            <NavLink className="auth-icon-link auth-signed-in" to={accountTarget} title={language === 'th' ? `เข้าสู่ระบบแล้ว: ${user.email ?? user.id}` : `Signed in: ${user.email ?? user.id}`} aria-label={language === 'th' ? 'เข้าสู่ระบบแล้ว ดูรายละเอียดบัญชี' : 'Signed in, view account details'}>
               <UserCheck size={17} />
             </NavLink>
           ) : (
@@ -113,19 +134,23 @@ export function Layout() {
       <main className="page-shell">
         <Outlet />
       </main>
-      <nav className="mobile-bottom-nav" aria-label={language === 'th' ? 'เมนูหลักมือถือ' : 'Mobile primary navigation'}>
-        <NavLink to="/">
-          <Home size={19} />
-          <span>{language === 'th' ? 'หน้าหลัก' : 'Home'}</span>
-        </NavLink>
-        <Link to="/">
-          <Search size={19} />
-          <span>{language === 'th' ? 'ค้นหา' : 'Search'}</span>
-        </Link>
+      <RoleAwareBottomNav label={language === 'th' ? 'เมนูหลักมือถือ' : 'Mobile primary navigation'}>
+        {!isAdmin && !isStaff ? (
+          <>
+            <NavLink to="/">
+              <Home size={19} />
+              <span>{language === 'th' ? 'หน้าหลัก' : 'Home'}</span>
+            </NavLink>
+            <Link to="/">
+              <Search size={19} />
+              <span>{language === 'th' ? 'ค้นหา' : 'Search'}</span>
+            </Link>
+          </>
+        ) : null}
         {!isAdmin && !isStaff ? (
           <NavLink to="/edit">
             <Pencil size={19} />
-            <span>{language === 'th' ? 'แก้ไข' : 'Edit'}</span>
+            <span>{language === 'th' ? 'แก้ไขข้อมูล' : 'Edit Info'}</span>
           </NavLink>
         ) : null}
         {isAdmin ? (
@@ -142,13 +167,13 @@ export function Layout() {
               <UserCheck size={19} />
               <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
             </NavLink>
-            <NavLink to="/admin/documents">
-              <FileText size={19} />
-              <span>{language === 'th' ? 'เอกสาร' : 'Docs'}</span>
-            </NavLink>
             <NavLink to="/admin/emergency">
               <HeartPulse size={19} />
               <span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span>
+            </NavLink>
+            <NavLink to="/admin">
+              <Menu size={19} />
+              <span>{language === 'th' ? 'เพิ่มเติม' : 'More'}</span>
             </NavLink>
           </>
         ) : null}
@@ -156,7 +181,7 @@ export function Layout() {
           <>
             <NavLink to="/staff">
               <Shield size={19} />
-              <span>{language === 'th' ? 'สตาฟ' : 'Staff'}</span>
+              <span>{language === 'th' ? 'หน้าสตาฟ' : 'Staff'}</span>
             </NavLink>
             {access?.can_view_staff ? (
               <NavLink to="/staff/my-group">
@@ -178,7 +203,7 @@ export function Layout() {
             ) : null}
           </>
         ) : null}
-      </nav>
+      </RoleAwareBottomNav>
     </div>
   );
 }

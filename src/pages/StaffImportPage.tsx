@@ -2,6 +2,8 @@ import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, RefreshCw, Uplo
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { MobileSafeAreaSpacer } from '../components/mobile/MobileSafeAreaSpacer';
+import { StickyActionBar } from '../components/mobile/StickyActionBar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -11,6 +13,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import { groupLabel } from '../lib/grouping';
 import { majorLabel } from '../lib/major';
+import { copy } from '../lib/copy';
 import { fetchAdminStaffProfiles, importStaffRecords, syncStaffRoster } from '../services/staffManagement';
 import { errorMessage } from '../utils/error';
 import { parseStaffImportWorkbook, type StaffImportPreview } from '../utils/staffImport';
@@ -23,6 +26,7 @@ export function StaffImportPage() {
   const [rowFilter, setRowFilter] = useState<'all' | 'warnings' | 'duplicates'>('all');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
+  const [imported, setImported] = useState(false);
 
   const existingDuplicates = useMemo(() => {
     if (!preview) return [];
@@ -51,6 +55,7 @@ export function StaffImportPage() {
     try {
       const result = await parseStaffImportWorkbook(file);
       setPreview(result);
+      setImported(false);
       setToast({ type: 'success', message: language === 'th' ? `อ่านไฟล์สำเร็จ ${result.rows.length} แถว` : `Parsed ${result.rows.length} rows` });
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'อ่านไฟล์ไม่สำเร็จ' : 'Import preview failed') });
@@ -65,6 +70,7 @@ export function StaffImportPage() {
     try {
       const result = await importStaffRecords(preview.rows);
       setToast({ type: 'success', message: language === 'th' ? `นำเข้าสำเร็จ ${result.imported} รายการ ขั้นต่อไปกดซิงค์ข้อมูลทีมงาน` : `Imported ${result.imported} records. Next, sync staff roster.` });
+      setImported(true);
       setConfirmOpen(false);
       await existingState.reload();
     } catch (err) {
@@ -94,6 +100,27 @@ export function StaffImportPage() {
     URL.revokeObjectURL(url);
   }
 
+  function downloadRejectedRows() {
+    if (!preview) return;
+    const rejected = preview.rows.filter((row) => row.warnings.length || [row.profile.student_id, row.profile.email, row.profile.phone].some((value) => value && duplicateKeys.has(value.toLowerCase())));
+    const headers = ['student_id', 'name_th', 'nickname', 'phone', 'major', 'warnings'];
+    const body = rejected.map((row) => [
+      row.profile.student_id ?? '',
+      row.profile.name_th ?? '',
+      row.profile.nickname ?? '',
+      row.profile.phone ?? '',
+      row.profile.major ?? '',
+      row.warnings.join('|'),
+    ].map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([`\uFEFF${headers.join(',')}\n${body}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'tfbp-staff-import-rejected-rows.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <section className="page-stack">
       <Toast toast={toast} />
@@ -101,6 +128,12 @@ export function StaffImportPage() {
         <p className="eyebrow">Staff Import</p>
         <h1>{language === 'th' ? 'นำเข้าข้อมูลสตาฟจาก Excel' : 'Import staff from Excel'}</h1>
         <p>{language === 'th' ? 'ระบบจะแสดง preview, duplicate warning, contact parsing และข้อมูลที่ขาดก่อนบันทึกลง Supabase' : 'Preview duplicate warnings, contact parsing, and missing data before committing to Supabase.'}</p>
+      </div>
+
+      <div className="import-stepper" aria-label={language === 'th' ? 'ขั้นตอนนำเข้า' : 'Import steps'}>
+        {['อัปโหลด', 'ตรวจตัวอย่าง', 'ตรวจคำเตือน', 'นำเข้าจริง', 'ซิงค์ทีมงาน'].map((step, index) => (
+          <span key={step} className={index <= (imported ? 4 : preview ? 2 : 0) ? 'active' : ''}>{index + 1}. {language === 'th' ? step : ['Upload', 'Preview', 'Validate', 'Commit', 'Sync'][index]}</span>
+        ))}
       </div>
 
       <Card className="import-drop-card">
@@ -124,6 +157,7 @@ export function StaffImportPage() {
         </label>
         <Link className="btn btn-secondary" to="/admin/staff">{language === 'th' ? 'กลับหน้าสตาฟ' : 'Back to staff'}</Link>
         <Button variant="secondary" icon={<Download size={18} />} onClick={downloadTemplate}>{language === 'th' ? 'ดาวน์โหลด template' : 'Download template'}</Button>
+        {preview ? <Button variant="secondary" icon={<Download size={18} />} onClick={downloadRejectedRows}>{language === 'th' ? 'ดาวน์โหลดแถวที่ต้องตรวจ' : 'Download flagged rows'}</Button> : null}
       </Card>
 
       {loading || existingState.loading ? <LoadingSkeleton /> : null}
@@ -136,12 +170,6 @@ export function StaffImportPage() {
             <Card className="stat-card"><div><p>{language === 'th' ? 'ซ้ำในไฟล์' : 'Duplicates in file'}</p><strong>{preview.duplicates.length}</strong></div></Card>
             <Card className="stat-card"><div><p>{language === 'th' ? 'ซ้ำกับระบบเดิม' : 'Existing matches'}</p><strong>{existingDuplicates.length}</strong></div></Card>
             <Card className="stat-card"><div><p>{language === 'th' ? 'ข้อมูลขาด' : 'Missing data'}</p><strong>{preview.rows.filter((row) => row.warnings.length).length}</strong></div></Card>
-          </div>
-
-          <div className="import-stepper" aria-label={language === 'th' ? 'ขั้นตอนนำเข้า' : 'Import steps'}>
-            {['Upload', 'Preview', 'Validate', 'Commit'].map((step, index) => (
-              <span key={step} className={index <= (preview ? 2 : 0) ? 'active' : ''}>{index + 1}. {language === 'th' ? ['อัปโหลด', 'ตรวจตัวอย่าง', 'ตรวจคำเตือน', 'นำเข้าจริง'][index] : step}</span>
-            ))}
           </div>
 
           <div className="segmented-control compact-segments">
@@ -177,17 +205,24 @@ export function StaffImportPage() {
             ]}
           />
 
-          <div className="admin-action-bar">
+          {imported ? (
+            <Card className="warning-panel">
+              <h2>{language === 'th' ? 'ขั้นตอนถัดไป' : 'Next step'}</h2>
+              <p><RefreshCw size={14} /> {language === 'th' ? 'กดซิงค์ข้อมูลทีมงานเพื่อให้รายชื่อพี่กลุ่มและหน้ากลุ่มใช้ข้อมูลล่าสุด' : 'Sync staff roster so group mentor lists and staff pages use the latest data.'}</p>
+            </Card>
+          ) : null}
+
+          <StickyActionBar label={language === 'th' ? 'การนำเข้าสตาฟ' : 'Staff import actions'}>
             <Button icon={<UploadCloud size={18} />} onClick={() => setConfirmOpen(true)} disabled={loading || !preview.rows.length}>
-              {language === 'th' ? 'นำเข้าข้อมูลจริง' : 'Commit import'}
+              {language === 'th' ? copy.th.importCommit : copy.en.importCommit}
             </Button>
-            <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={syncRoster}>{language === 'th' ? 'ซิงค์ข้อมูลทีมงาน' : 'Sync Staff Roster'}</Button>
-          </div>
+            <Button variant={imported ? 'primary' : 'secondary'} icon={<RefreshCw size={18} />} onClick={syncRoster}>{language === 'th' ? copy.th.syncStaffRoster : copy.en.syncStaffRoster}</Button>
+          </StickyActionBar>
 
           <ConfirmDialog
             open={confirmOpen}
             title={language === 'th' ? 'ยืนยันการนำเข้าข้อมูลจริง' : 'Confirm staff import'}
-            message={language === 'th' ? `ระบบจะบันทึกข้อมูล ${preview.rows.length} รายการลง Supabase และอัปเดตรายการที่ student_id ซ้ำ` : `This will save ${preview.rows.length} records to Supabase and update matching student_id rows.`}
+            message={language === 'th' ? `ระบบจะบันทึกข้อมูล ${preview.rows.length} รายการลง Supabase และอัปเดตรายการเดิมที่ตรงกับรหัสนักศึกษา อีเมล หรือเบอร์โทร` : `This will save ${preview.rows.length} records to Supabase and update existing matches by student ID, email, or phone.`}
             confirmLabel={language === 'th' ? 'นำเข้าข้อมูลจริง' : 'Commit import'}
             onConfirm={commitImport}
             onClose={() => setConfirmOpen(false)}
@@ -195,6 +230,7 @@ export function StaffImportPage() {
           />
         </>
       ) : null}
+      <MobileSafeAreaSpacer />
     </section>
   );
 }

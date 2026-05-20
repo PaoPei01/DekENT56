@@ -1,55 +1,98 @@
 # TFBP UI/UX Guidelines
 
-## Principles
+TFBP is an event operations platform, not only a registration website. Every new page must stay clear, fast, role-aware, and privacy-safe for public participants, staff, emergency staff, and admins.
 
-- Mobile-first for live event operations.
-- Thai-first wording; English must be complete, not decorative.
-- Public pages never expose private contact, emergency contact, or medical data.
-- Emergency pages prioritize speed, contrast, and one-tap calling over decoration.
-- Use Apple-inspired clarity: light surfaces, soft borders, restrained shadow, minimal blur.
+## Design Principles
 
-## Layout
+- Thai-first, mobile-first, operations-first.
+- Public pages must feel friendly and simple.
+- Staff pages must support one-hand use during live activities.
+- Emergency pages must be high contrast and action-oriented.
+- Admin pages may be dense on desktop, but mobile must use cards, filters, and progressive disclosure.
+- Keep the Apple-inspired iOS style: soft cards, rounded corners, subtle shadows, clean typography.
+- Reduce blur on mobile and avoid nested decorative cards.
 
-- Every page starts with the same header pattern: eyebrow, title, short helper text, optional meta.
-- Primary actions are visible. Secondary actions may move into grouped toolbars or action sheets.
-- Destructive actions must use `ConfirmDialog`; high-risk resets require typing `RESET` or `ยืนยัน`.
-- On mobile, use cards instead of wide tables.
-- Keep touch targets at least 44px.
+## Layout Patterns
 
-## Components
+- Use `PageHeader` for page title, short description, and top-level metadata.
+- Use `PageSection` for major sections with optional actions.
+- Use `Card`, `InfoCard`, or `ActionCard` for grouped content.
+- Use `ResponsiveDataTable` for desktop table plus mobile card behavior.
+- Use `FilterDrawer` for mobile filters and dense admin filters.
+- Use `StickyActionBar` for important mobile actions.
+- Add `MobileSafeAreaSpacer` or equivalent bottom spacing when a page has bottom actions.
 
-- `PageHeader`: page title and context.
-- `Card`: neutral content container.
-- `Button`: commands only; use icons for quick recognition.
-- `Badge`: status label with text and color.
-- `Modal` / `ConfirmDialog`: edits, confirmations, dangerous actions.
-- `MobileSearchHeader`: sticky/compact mobile search.
-- `StickyBottomBar`: fast mobile actions.
-- `ResponsiveDataTable`: desktop table, mobile cards.
+## Action Hierarchy
+
+- Primary: the main action, such as Save, Check-in, Call 1669, Commit Import.
+- Secondary: useful but not primary, such as Export, Rebalance, Copy.
+- Utility: small helpers, such as Clear Filter, Copy ID, Refresh.
+- Destructive: delete, reset, clear, or irreversible actions.
+
+Destructive actions must live in `DangerZone` or use `ConfirmDialog`. Do not place destructive buttons directly beside primary actions unless visually separated. For irreversible actions, require typed confirmation such as `DELETE`, `RESET`, `ลบ`, or `ยืนยัน`.
+
+## Role-Based UI
+
+- Public users see only public-safe routes and fields.
+- Staff users see Staff Home, My Group, Attendance if allowed, and Emergency if allowed.
+- Emergency staff see health/emergency tools without unrelated admin or group operations.
+- Admin users see dashboard, groups, staff, emergency, and more tools.
+- Do not show inaccessible links as disabled primary navigation.
+- While access is loading, show public-safe navigation first.
+
+## Privacy Rules
+
+- Public pages must never show email, phone, emergency phone, Line, Instagram, Facebook, disease, food allergy, or drug allergy.
+- Medical data is visible only to admin and emergency_staff.
+- If medical data is visible, show a confidentiality notice.
+- Do not cache private medical data unless it is access-controlled and short-lived.
+- Never expose Supabase service_role keys in frontend code.
+
+## Emergency UI
+
+- Emergency numbers must be reachable in one tap on mobile.
+- Top actions should include 1669, Head Medic Staff, University Hospital, Police, and Fire.
+- Use short labels: โทร 1669, คัดลอกเบอร์, บันทึกเหตุการณ์.
+- Keep `EmergencyQuickDock` visible on mobile.
+- Provide offline fallback hotlines.
+- Use red/orange/yellow status colors with text labels, not color alone.
 
 ## Wording
 
-- Use operational labels:
-  - “นำเข้าข้อมูลจริง” instead of “Commit Import”.
-  - “ซิงค์ข้อมูลทีมงาน” instead of “Sync Staff Roster”.
-  - “จัดกลุ่มใหม่แล้ว อย่าลืมกดบันทึก”.
-  - “ซ่อนเพื่อความเป็นส่วนตัว” for public hidden fields.
-- Error messages should say what to do next.
+- Use Thai-first operational wording.
+- Public copy should be friendly and reassuring.
+- Staff copy should be action-oriented.
+- Admin copy should be precise.
+- Emergency copy should be short and direct.
 
-## Privacy
+Preferred wording:
 
-- Public pages show only safe profile fields.
-- Staff pages show medical details only to admin or emergency staff.
-- Emergency data requires a confidentiality banner.
-- Do not cache participant medical data unless the access and expiry rules are explicit.
+- Commit Import -> นำเข้าข้อมูลจริง
+- Sync Staff Roster -> ซิงค์ข้อมูลทีมงาน
+- Clear all groups -> ลบการจัดกลุ่มทั้งหมด
+- Medical visible -> ข้อมูลสุขภาพที่มองเห็น
+- No participants match your search -> ไม่พบรายชื่อ ลองค้นด้วยชื่อเล่นหรือสาขา
+- Groups generated -> จัดกลุ่มใหม่แล้ว อย่าลืมกดบันทึก
 
-## Future Features
+## Accessibility
 
-Announcements, maps, duty schedules, push notifications, and operations tools must follow:
+- Touch targets must be at least 44px.
+- Focus states must be visible.
+- Icon-only buttons need `aria-label`.
+- Modals must trap focus and close on Escape.
+- Do not rely on color alone.
+- Form inputs need labels.
+- Tables need headers.
+- Respect `prefers-reduced-motion`.
 
-- same header pattern
-- same mobile navigation behavior
-- same privacy rules
-- same action hierarchy
-- same confirmation dialog pattern
-- same responsive table/card rules
+## Future Features Checklist
+
+New pages for announcements, maps, duty schedule, staff quota, push notifications, emergency incident reports, attendance analytics, and event tools must follow:
+
+- Same header pattern.
+- Same card pattern.
+- Same mobile navigation behavior.
+- Same privacy rules.
+- Same action hierarchy.
+- Same confirmation dialog pattern.
+- Same bottom safe-area spacing.
