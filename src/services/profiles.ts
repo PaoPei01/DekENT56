@@ -1,6 +1,7 @@
 import { editableFields } from '../lib/constants';
 import { getMajorCode, majorCodeOptions } from '../lib/major';
 import { supabase } from '../lib/supabase';
+import { normalizeMajor } from '../lib/major';
 import type { AdminSummary, ChangeLog, EditableProfileFields, EditRequest, GroupAssignment, GroupProfile, Profile, PublicProfile } from '../lib/types';
 
 type SearchOptions = {
@@ -141,6 +142,7 @@ export async function updateProfile(id: string, values: Partial<Profile>) {
       .filter(([key]) => !['id', 'created_at', 'updated_at'].includes(key))
       .map(([key, value]) => [key, value === '' ? null : value]),
   );
+  if (cleaned.major) cleaned.major = normalizeMajor(String(cleaned.major));
   const { error } = await supabase.rpc('update_profile_admin', { input_profile_id: id, input_new_data: cleaned });
   if (error) throw error;
 }

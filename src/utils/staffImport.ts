@@ -12,6 +12,8 @@ export type StaffImportRow = {
     name_th: string | null;
     name_en: string | null;
     nickname: string | null;
+    nickname_th: string | null;
+    nickname_en: string | null;
     phone: string | null;
     major: string | null;
     instagram: string | null;
@@ -68,6 +70,9 @@ function get(row: Record<string, string | null>, names: string[]) {
   }
   return null;
 }
+
+const nicknameThColumns = ['nickname_th', 'nickname TH', 'nicknameTH', 'ชื่อเล่น TH', 'ชื่อเล่นไทย', 'nickname thai'];
+const nicknameEnColumns = ['nickname_en', 'nickname EN', 'nicknameEN', 'ชื่อเล่น EN', 'ชื่อเล่นอังกฤษ', 'nickname english'];
 
 function parseXml(text: string) {
   return new DOMParser().parseFromString(text, 'application/xml');
@@ -190,12 +195,17 @@ function normalizeSubgroup(value: string | null): Subgroup | null {
 function rowToStaff(row: Record<string, string | null>, sourceSheet: string, sourceRow: number): StaffImportRow {
   const contact = get(row, ['ช่องทางการติดต่อ', 'contact', 'contact_channel', 'ช่องทางติดต่อ']);
   const parsed = parseStaffContact(contact);
+  const legacyNickname = get(row, ['nickname', 'ชื่อเล่น']);
+  const nicknameTh = get(row, nicknameThColumns) ?? legacyNickname;
+  const nicknameEn = get(row, nicknameEnColumns);
   const profile = {
     student_id: get(row, ['student_id', 'รหัสนักศึกษา']),
     email: get(row, ['email', 'อีเมล', 'ที่อยู่อีเมล']),
     name_th: get(row, ['name_th', 'ชื่อ - นามสกุล', 'ชื่อ-สกุล', 'ชื่อสกุล']),
     name_en: get(row, ['name_en', 'ชื่ออังกฤษ', 'name english']),
-    nickname: get(row, ['nickname', 'ชื่อเล่น']),
+    nickname: nicknameTh ?? legacyNickname ?? nicknameEn,
+    nickname_th: nicknameTh,
+    nickname_en: nicknameEn,
     phone: get(row, ['phone', 'เบอร์โทรศัพท์', 'เบอร์ติดต่อ']),
     major: normalizeMajor(get(row, ['major', 'สาขา'])),
     instagram: get(row, ['instagram', 'ig']) ?? parsed.instagram,

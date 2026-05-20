@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Pencil, Search, Trash2 } from 'lucide-react';
+import { Download, FileSpreadsheet, Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
@@ -18,7 +18,7 @@ import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorCatalog, majorCodeOptions, majorLabel, normalizeMajor } from '../lib/major';
 import type { MainGroup, StaffAssignment, StaffManagementRow, StaffMedicalInfo, StaffRole, Subgroup } from '../lib/types';
-import { deleteStaffProfile, fetchAdminStaffProfiles, updateStaffProfile } from '../services/staffManagement';
+import { deleteStaffProfile, fetchAdminStaffProfiles, syncStaffRoster, updateStaffProfile } from '../services/staffManagement';
 import { errorMessage } from '../utils/error';
 import { exportStaffCsv, exportStaffXlsx } from '../utils/staffExport';
 
@@ -41,6 +41,7 @@ export function StaffManagementPage() {
   const [major, setMajor] = useState('');
   const [editing, setEditing] = useState<StaffManagementRow | null>(null);
   const [deleting, setDeleting] = useState<StaffManagementRow | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const state = useAsync(() => fetchAdminStaffProfiles({ search, position, mainGroup, subgroup, major }), [search, position, mainGroup, subgroup, major]);
   const rows = useMemo(() => state.data ?? [], [state.data]);
@@ -58,6 +59,8 @@ export function StaffManagementPage() {
           name_th: editing.name_th,
           name_en: editing.name_en,
           nickname: editing.nickname,
+          nickname_th: editing.nickname_th,
+          nickname_en: editing.nickname_en,
           phone: editing.phone,
           major: editing.major,
           instagram: editing.instagram,
@@ -103,6 +106,19 @@ export function StaffManagementPage() {
     }
   }
 
+  async function syncRoster() {
+    try {
+      setSyncing(true);
+      const result = await syncStaffRoster();
+      setToast({ type: 'success', message: language === 'th' ? `ซิงค์ข้อมูลพี่กลุ่มแล้ว ${result.synced ?? 0} รายการ` : `Staff roster synced: ${result.synced ?? 0} records` });
+      await state.reload();
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ซิงค์ไม่สำเร็จ' : 'Sync failed') });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <section className="page-stack">
       <Toast toast={toast} />
@@ -123,6 +139,7 @@ export function StaffManagementPage() {
       <Card className="group-action-panel">
         <div className="form-actions">
           <Link className="btn btn-primary" to="/admin/staff/import"><FileSpreadsheet size={18} />{language === 'th' ? 'นำเข้า Excel' : 'Import Excel'}</Link>
+          <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={syncRoster} disabled={syncing}>{language === 'th' ? 'ซิงค์ข้อมูลพี่กลุ่ม' : 'Sync Staff Roster'}</Button>
           <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportStaffCsv(rows)}>CSV</Button>
           <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportStaffXlsx(rows)}>Excel</Button>
         </div>
@@ -147,7 +164,7 @@ export function StaffManagementPage() {
         getKey={(row) => row.id}
         emptyText={language === 'th' ? 'ยังไม่มีข้อมูลสตาฟ' : 'No staff records yet'}
         mobileDetailsLabel={language === 'th' ? 'ข้อมูลเพิ่มเติม' : 'More details'}
-        mobileTitle={(row) => row.nickname || row.name_th || '-'}
+        mobileTitle={(row) => row.nickname_th || row.nickname || row.nickname_en || row.name_th || row.name_en || '-'}
         mobileSubtitle={(row) => `${row.name_th || '-'} · ${majorLabel(row.major, language)}`}
         mobileMeta={(row) => groupLabel(row.assignment?.main_group, row.assignment?.subgroup, language)}
         mobileActions={(row) => (
@@ -157,7 +174,7 @@ export function StaffManagementPage() {
           </div>
         )}
         columns={[
-          { key: 'name', header: language === 'th' ? 'ชื่อ' : 'Name', render: (row) => <div className="participant-admin-cell"><strong>{row.name_th}</strong><span>{row.nickname} · {row.student_id}</span></div> },
+          { key: 'name', header: language === 'th' ? 'ชื่อ' : 'Name', render: (row) => <div className="participant-admin-cell"><strong>{row.name_th || row.name_en}</strong><span>{row.nickname_th || row.nickname || row.nickname_en} · {row.student_id}</span></div> },
           { key: 'major', header: language === 'th' ? 'สาขา' : 'Major', render: (row) => majorLabel(row.major, language) },
           { key: 'position', header: language === 'th' ? 'ตำแหน่ง' : 'Position', render: (row) => row.position || '-' },
           { key: 'role', header: language === 'th' ? 'สิทธิ์' : 'Role', render: (row) => row.assignment?.role || '-' },
@@ -186,9 +203,11 @@ export function StaffManagementPage() {
             <Input label={language === 'th' ? 'อีเมล' : 'Email'} value={editing.email ?? ''} onChange={(event) => patchEditing({ email: event.target.value })} />
             <Input label={language === 'th' ? 'ชื่อไทย' : 'Thai name'} value={editing.name_th ?? ''} onChange={(event) => patchEditing({ name_th: event.target.value })} />
             <Input label={language === 'th' ? 'ชื่ออังกฤษ' : 'English name'} value={editing.name_en ?? ''} onChange={(event) => patchEditing({ name_en: event.target.value })} />
-            <Input label={language === 'th' ? 'ชื่อเล่น' : 'Nickname'} value={editing.nickname ?? ''} onChange={(event) => patchEditing({ nickname: event.target.value })} />
+            <Input label={language === 'th' ? 'ชื่อเล่นไทย' : 'Nickname TH'} value={editing.nickname_th ?? ''} onChange={(event) => patchEditing({ nickname_th: event.target.value })} />
+            <Input label={language === 'th' ? 'ชื่อเล่นอังกฤษ' : 'Nickname EN'} value={editing.nickname_en ?? ''} onChange={(event) => patchEditing({ nickname_en: event.target.value })} />
+            <Input label={language === 'th' ? 'ชื่อเล่นเดิม' : 'Legacy nickname'} value={editing.nickname ?? ''} onChange={(event) => patchEditing({ nickname: event.target.value })} />
             <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} value={editing.phone ?? ''} onChange={(event) => patchEditing({ phone: event.target.value })} />
-            <Select label={language === 'th' ? 'สาขา' : 'Major'} value={editing.major ? normalizeMajor(editing.major) : ''} options={majorCatalog.map((item) => ({ value: `${item.th} (${item.code})`, label: majorLabel(`(${item.code})`, language) }))} onChange={(event) => patchEditing({ major: event.target.value })} />
+            <Select label={language === 'th' ? 'สาขา' : 'Major'} value={editing.major ? normalizeMajor(editing.major) : ''} options={majorCatalog.map((item) => ({ value: normalizeMajor(`(${item.code})`), label: majorLabel(`(${item.code})`, language) }))} onChange={(event) => patchEditing({ major: event.target.value })} />
             <Input label="Instagram" value={editing.instagram ?? ''} onChange={(event) => patchEditing({ instagram: event.target.value })} />
             <Input label="Line ID" value={editing.line_id ?? ''} onChange={(event) => patchEditing({ line_id: event.target.value })} />
             <Input label="Facebook" value={editing.facebook ?? ''} onChange={(event) => patchEditing({ facebook: event.target.value })} />
@@ -211,7 +230,7 @@ export function StaffManagementPage() {
 
       <Modal open={Boolean(deleting)} title={language === 'th' ? 'ยืนยันการลบรายชื่อทีมงาน' : 'Confirm staff deletion'} onClose={() => setDeleting(null)}>
         <div className="modal-body">
-          <p>{language === 'th' ? `ต้องการลบข้อมูลทีมงานของ ${deleting?.name_th ?? deleting?.nickname ?? deleting?.student_id} หรือไม่ ข้อมูลสุขภาพและ assignment ที่ผูกกับรายชื่อนี้จะถูกลบด้วย` : `Delete staff record for ${deleting?.name_th ?? deleting?.nickname ?? deleting?.student_id}? Linked medical info and assignment will also be deleted.`}</p>
+          <p>{language === 'th' ? `ต้องการลบข้อมูลทีมงานของ ${deleting?.name_th ?? deleting?.nickname_th ?? deleting?.nickname ?? deleting?.student_id} หรือไม่ ข้อมูลสุขภาพและ assignment ที่ผูกกับรายชื่อนี้จะถูกลบด้วย` : `Delete staff record for ${deleting?.name_en ?? deleting?.name_th ?? deleting?.nickname_en ?? deleting?.nickname ?? deleting?.student_id}? Linked medical info and assignment will also be deleted.`}</p>
           <div className="form-actions">
             <Button variant="danger" icon={<Trash2 size={18} />} onClick={confirmDelete}>
               {language === 'th' ? 'ลบรายชื่อทีมงาน' : 'Delete staff'}

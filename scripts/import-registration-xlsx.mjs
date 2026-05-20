@@ -18,9 +18,24 @@ loadDotEnv(path.resolve(process.cwd(), '.env'));
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const emptyValues = new Set(['', '-', 'ไม่มี', 'none', 'no', 'n/a', 'null', 'ไม่่มี']);
-const majorAliases = [
-  ['IEL', ['Industrial Engineering and Logistics Management', 'โลจิสติกส์ (IEL)', 'Logistics Management (IEL)']],
-  ['IGE International', ['Integrated and Multi-disciplinary Engineering', 'พหุวิทยาการ', 'IGE international']],
+const canonicalMajors = [
+  ['CE', 'วิศวกรรมโยธา', 'Civil Engineering'],
+  ['CIE', 'วิศวกรรมโยธา (นานาชาติ)', 'Civil Engineering (International)'],
+  ['CPE', 'วิศวกรรมคอมพิวเตอร์', 'Computer Engineering'],
+  ['EE', 'วิศวกรรมไฟฟ้า', 'Electrical Engineering'],
+  ['EESG', 'วิศวกรรมไฟฟ้าและเทคโนโลยีโครงข่ายไฟฟ้าอัจฉริยะ', 'Electrical Engineering and Smart Grid Technology'],
+  ['ENVI', 'วิศวกรรมสิ่งแวดล้อม', 'Environmental Engineering'],
+  ['IE', 'วิศวกรรมอุตสาหการ', 'Industrial Engineering'],
+  ['IEL', 'วิศวกรรมอุตสาหการและการจัดการ โลจิสติกส์', 'Industrial Engineering and Logistics Management'],
+  ['IGE', 'วิศวกรรมบูรณาการ', 'Integrated Engineering'],
+  ['IGME', 'วิศวกรรมบูรณาการ และพหุวิทยาการ', 'Integrated and Multi-disciplinary Engineering'],
+  ['ISCE', 'วิศวกรรมระบบสารสนเทศและความมั่นคงปลอดภัยไซเบอร์', 'Information Systems and Cybersecurity Engineering'],
+  ['ISNE', 'วิศวกรรมระบบสารสนเทศและเครือข่าย', 'Information Systems and Network Engineering'],
+  ['ME', 'วิศวกรรมเครื่องกล', 'Mechanical Engineering'],
+  ['MEPM', 'วิศวกรรมเครื่องกลและการบริหารโครงการวิศวกรรม', 'Mechanical Engineering and Engineering Project Management'],
+  ['MNP', 'วิศวกรรมเหมืองแร่และปิโตรเลียม', 'Mining and Petroleum Engineering'],
+  ['REAI', 'วิศวกรรมหุ่นยนต์และปัญญาประดิษฐ์', 'Robotics Engineering and Artificial Intelligence'],
+  ['SCE', 'วิศวกรรมเซมิคอนดักเตอร์', 'Semiconductor Engineering'],
 ];
 
 function loadDotEnv(envPath) {
@@ -99,12 +114,20 @@ function parseContact(contact) {
 function normalizeMajor(value) {
   const major = clean(value);
   if (!major) return null;
-  for (const [code, aliases] of majorAliases) {
-    if (aliases.some((alias) => major.toLowerCase().includes(alias.toLowerCase()))) {
-      if (code === 'IEL') return 'ภาควิชาวิศวกรรมอุตสาหการและการจัดการ โลจิสติกส์ (IEL)';
-      if (code === 'IGE International') return 'ภาควิชาวิศวกรรมบูรณาการ และพหุวิทยาการ (IGE International)';
-    }
-  }
+  const text = major.toLowerCase().replace(/ภาควิชา/g, '').replace(/\s+/g, ' ').trim();
+  const codeMatch = major.match(/\(([^)]+)\)\s*$/);
+  const code = codeMatch?.[1]?.replace(/\s+/g, ' ').trim().toUpperCase();
+  const found = canonicalMajors
+    .slice()
+    .sort((a, b) => b[1].length - a[1].length)
+    .find(([itemCode, th, en]) => {
+      const normalizedCodes = itemCode === 'IGME' ? ['IGME', 'IGE INTERNATIONAL'] : [itemCode];
+      return normalizedCodes.includes(code ?? '')
+        || normalizedCodes.includes(text.toUpperCase())
+        || text.includes(th.toLowerCase())
+        || text.includes(en.toLowerCase());
+    });
+  if (found) return `${found[1]} (${found[0] === 'IGME' ? 'IGE international' : found[0]})`;
   return major;
 }
 

@@ -1177,6 +1177,36 @@ th {
   color: var(--text-soft);
 }
 
+.btn-compact {
+  min-height: 42px;
+  padding: 0.55rem 0.75rem;
+  justify-content: center;
+}
+
+.compact-segments {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.compact-segments button {
+  min-height: 42px;
+  border: 1px solid rgba(132, 155, 190, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
+  font-weight: 800;
+  padding: 0.55rem 0.85rem;
+  white-space: nowrap;
+}
+
+.compact-segments button.active {
+  background: rgba(40, 104, 232, 0.12);
+  border-color: rgba(40, 104, 232, 0.32);
+  color: var(--accent-strong);
+}
+
 .staff-participant-card {
   display: grid;
   gap: 0.85rem;
@@ -1233,6 +1263,29 @@ th {
 
 .attendance-actions .btn {
   width: 100%;
+}
+
+.offline-banner,
+.attendance-summary-strip {
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  border-radius: 18px;
+  background: rgba(255, 251, 235, 0.86);
+  color: #7c4a03;
+  font-weight: 800;
+  padding: 0.75rem 0.9rem;
+}
+
+.attendance-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: space-between;
+}
+
+.attendance-summary-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .emergency-page {

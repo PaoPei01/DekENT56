@@ -15,7 +15,7 @@ function csvEscape(value: unknown) {
   return `"${String(value ?? '').replace(/"/g, '""')}"`;
 }
 
-const headers = ['student_id', 'email', 'name_th', 'name_en', 'nickname', 'phone', 'major', 'position', 'role', 'main_group', 'subgroup', 'instagram', 'line_id', 'facebook'];
+const headers = ['student_id', 'email', 'name_th', 'name_en', 'nickname', 'nickname_th', 'nickname_en', 'phone', 'major', 'position', 'role', 'main_group', 'subgroup', 'instagram', 'line_id', 'facebook'];
 
 export function exportStaffCsv(rows: StaffManagementRow[]) {
   const csv = [
@@ -26,6 +26,8 @@ export function exportStaffCsv(rows: StaffManagementRow[]) {
       row.name_th,
       row.name_en,
       row.nickname,
+      row.nickname_th,
+      row.nickname_en,
       row.phone,
       majorLabel(row.major),
       row.position,
@@ -52,6 +54,8 @@ export async function exportStaffXlsx(rows: StaffManagementRow[]) {
     { header: 'Name TH', key: 'name_th', width: 28 },
     { header: 'Name EN', key: 'name_en', width: 28 },
     { header: 'Nickname', key: 'nickname', width: 14 },
+    { header: 'Nickname TH', key: 'nickname_th', width: 14 },
+    { header: 'Nickname EN', key: 'nickname_en', width: 14 },
     { header: 'Phone', key: 'phone', width: 16 },
     { header: 'Major', key: 'major', width: 36 },
     { header: 'Position', key: 'position', width: 20 },
@@ -67,6 +71,8 @@ export async function exportStaffXlsx(rows: StaffManagementRow[]) {
     name_th: row.name_th,
     name_en: row.name_en,
     nickname: row.nickname,
+    nickname_th: row.nickname_th,
+    nickname_en: row.nickname_en,
     phone: row.phone,
     major: majorLabel(row.major),
     position: row.position,

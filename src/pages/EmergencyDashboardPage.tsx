@@ -25,6 +25,8 @@ import { errorMessage } from '../utils/error';
 type MedicalFilter = '' | 'any' | 'disease' | 'drug_allergy' | 'food_allergy' | 'special';
 type Incident = { id: string; contact: string; phone: string; createdAt: string };
 const incidentKey = 'tfbp_emergency_incidents';
+const emergencyCacheKey = 'tfbp_emergency_contacts_cache';
+const emergencyCacheTimeKey = 'tfbp_emergency_contacts_cache_synced_at';
 
 function loadIncidents(): Incident[] {
   try {
@@ -46,6 +48,7 @@ export function EmergencyDashboardPage() {
   const [notes, setNotes] = useState<Record<string, { note: string; needs: boolean }>>({});
   const [toast, setToast] = useState<ToastState>(null);
   const [incidents, setIncidents] = useState<Incident[]>(loadIncidents);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => localStorage.getItem(emergencyCacheTimeKey));
   const canEditHealthTools = Boolean(accessState.data?.is_admin || accessState.data?.roles.includes('emergency_staff'));
   const sortedContacts = useMemo(() => [...emergencyContacts].sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority]), []);
 
@@ -112,7 +115,10 @@ export function EmergencyDashboardPage() {
   }
 
   useEffect(() => {
-    localStorage.setItem('tfbp_emergency_contacts_cache', JSON.stringify(emergencyContacts));
+    const now = new Date().toISOString();
+    localStorage.setItem(emergencyCacheKey, JSON.stringify(emergencyContacts));
+    localStorage.setItem(emergencyCacheTimeKey, now);
+    setLastSyncedAt(now);
   }, []);
 
   const summary = state.data?.summary;
@@ -163,7 +169,9 @@ export function EmergencyDashboardPage() {
             <h2>{language === 'th' ? 'โทรตามลำดับความเร่งด่วน' : 'Call in priority order'}</h2>
           </div>
           <span>{language === 'th' ? 'พร้อมใช้ออฟไลน์' : 'Offline cache ready'}</span>
+          {lastSyncedAt ? <small>{language === 'th' ? 'อัปเดตล่าสุด' : 'Last synced'} {new Date(lastSyncedAt).toLocaleString(language === 'th' ? 'th-TH' : 'en-US')}</small> : null}
         </div>
+        {!navigator.onLine ? <div className="offline-banner">{language === 'th' ? 'กำลังออฟไลน์: ใช้เบอร์ฉุกเฉินจาก cache บนเครื่องนี้' : 'Offline: showing emergency hotlines cached on this device'}</div> : null}
         <div className="escalation-flow">
           {sortedContacts.map((contact, index) => (
             <div className={`flow-step priority-${contact.priority}`} key={contact.name}>

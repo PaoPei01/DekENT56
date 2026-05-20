@@ -1,4 +1,4 @@
-import { getMajorCode } from '../lib/major';
+import { getMajorCode, normalizeMajor } from '../lib/major';
 import { supabase } from '../lib/supabase';
 import type { MainGroup, StaffManagementRow, StaffProfile, StaffRole, Subgroup } from '../lib/types';
 import type { StaffImportRow } from '../utils/staffImport';
@@ -37,6 +37,8 @@ export async function fetchAdminStaffProfiles(filters: StaffFilters = {}): Promi
         row.name_th,
         row.name_en,
         row.nickname,
+        row.nickname_th,
+        row.nickname_en,
         row.student_id,
         row.phone,
         row.email,
@@ -57,9 +59,11 @@ export async function fetchAdminStaffProfiles(filters: StaffFilters = {}): Promi
 
 export async function updateStaffProfile(id: string, payload: StaffUpdatePayload) {
   const clean = (object: Record<string, unknown>) => Object.fromEntries(Object.entries(object).map(([key, value]) => [key, value === '' ? null : value]));
+  const profile = clean(payload.profile as Record<string, unknown>);
+  if (profile.major) profile.major = normalizeMajor(String(profile.major));
   const { error } = await supabase.rpc('update_staff_profile_admin', {
     input_staff_profile_id: id,
-    input_profile: clean(payload.profile as Record<string, unknown>),
+    input_profile: profile,
     input_medical: clean(payload.medical),
     input_assignment: clean(payload.assignment),
   });
@@ -80,4 +84,10 @@ export async function importStaffRecords(rows: StaffImportRow[]) {
   const { data, error } = await supabase.rpc('import_staff_records_admin', { input_rows: payload });
   if (error) throw error;
   return data as { imported: number };
+}
+
+export async function syncStaffRoster() {
+  const { data, error } = await supabase.rpc('rebuild_staff_roster_sync');
+  if (error) throw error;
+  return data as { synced?: number; groups?: number };
 }

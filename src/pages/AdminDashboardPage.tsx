@@ -192,7 +192,7 @@ export function AdminDashboardPage() {
                   key={field}
                   label={fieldLabel(field, language)}
                   value={editing.major ? normalizeMajor(editing.major) : ''}
-                  options={majorCatalog.map((major) => ({ value: `${major.th} (${major.code})`, label: majorLabel(`(${major.code})`, language) }))}
+                  options={majorCatalog.map((major) => ({ value: normalizeMajor(`(${major.code})`), label: majorLabel(`(${major.code})`, language) }))}
                   onChange={(event) => setEditing({ ...editing, major: event.target.value })}
                 />
               ) : field === 'admission_round' ? (

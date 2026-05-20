@@ -44,21 +44,27 @@ export function StaffDashboardPage() {
       </div>
 
       <div className="staff-action-grid">
-        <Link className={`staff-action-card ${isEmergencyOnly ? 'disabled-link' : ''}`} to={isEmergencyOnly ? '#' : '/staff/my-group'} aria-disabled={isEmergencyOnly}>
-          <Search size={28} />
-          <strong>{language === 'th' ? 'กลุ่มของฉัน' : 'My Group'}</strong>
-          <span>{language === 'th' ? 'รายชื่อและช่องทางติดต่อในกลุ่ม' : 'Participant list and group contact details'}</span>
-        </Link>
-        <Link className={`staff-action-card ${access.can_mark_attendance ? '' : 'disabled-link'}`} to={access.can_mark_attendance ? '/staff/attendance' : '#'} aria-disabled={!access.can_mark_attendance}>
-          <ClipboardCheck size={28} />
-          <strong>{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</strong>
-          <span>{language === 'th' ? 'เช็กชื่อแบบเก็บคิว offline ได้' : 'Offline-friendly attendance queue'}</span>
-        </Link>
-        <Link className={`staff-action-card ${access.can_view_emergency ? 'danger-card' : 'disabled-link'}`} to={access.can_view_emergency ? '/staff/emergency' : '#'} aria-disabled={!access.can_view_emergency}>
-          <ShieldAlert size={28} />
-          <strong>{language === 'th' ? 'เครื่องมือสุขภาพ' : 'Health Tools'}</strong>
-          <span>{language === 'th' ? 'emergency_staff ใช้เครื่องมือสุขภาพได้เต็มรูปแบบทุกกลุ่ม' : 'emergency_staff can use full health tools across all groups'}</span>
-        </Link>
+        {!isEmergencyOnly && access.can_view_staff ? (
+          <Link className="staff-action-card" to="/staff/my-group">
+            <Search size={28} />
+            <strong>{language === 'th' ? 'กลุ่มของฉัน' : 'My Group'}</strong>
+            <span>{language === 'th' ? 'รายชื่อและช่องทางติดต่อในกลุ่ม' : 'Participant list and group contact details'}</span>
+          </Link>
+        ) : null}
+        {access.can_mark_attendance ? (
+          <Link className="staff-action-card" to="/staff/attendance">
+            <ClipboardCheck size={28} />
+            <strong>{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</strong>
+            <span>{language === 'th' ? 'เช็กชื่อแบบเก็บคิว offline ได้' : 'Offline-friendly attendance queue'}</span>
+          </Link>
+        ) : null}
+        {access.can_view_emergency ? (
+          <Link className="staff-action-card danger-card" to="/staff/emergency">
+            <ShieldAlert size={28} />
+            <strong>{language === 'th' ? 'เครื่องมือสุขภาพ' : 'Health Tools'}</strong>
+            <span>{language === 'th' ? 'emergency_staff ใช้เครื่องมือสุขภาพได้เต็มรูปแบบทุกกลุ่ม' : 'emergency_staff can use full health tools across all groups'}</span>
+          </Link>
+        ) : null}
       </div>
 
       <Card className="staff-confidential-card">

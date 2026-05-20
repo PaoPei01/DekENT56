@@ -19,6 +19,25 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const emptyValues = new Set(['', '-', 'ไม่มี', 'none', 'no', 'n/a', 'null']);
 const targetSheets = new Set(['ข้อมูลทีมงาน', 'ข้อมูลสตาฟ', 'staff_profiles_import', 'staff_medical_info_import', 'staff_group_assignments']);
+const canonicalMajors = [
+  ['CE', 'วิศวกรรมโยธา', 'Civil Engineering'],
+  ['CIE', 'วิศวกรรมโยธา (นานาชาติ)', 'Civil Engineering (International)'],
+  ['CPE', 'วิศวกรรมคอมพิวเตอร์', 'Computer Engineering'],
+  ['EE', 'วิศวกรรมไฟฟ้า', 'Electrical Engineering'],
+  ['EESG', 'วิศวกรรมไฟฟ้าและเทคโนโลยีโครงข่ายไฟฟ้าอัจฉริยะ', 'Electrical Engineering and Smart Grid Technology'],
+  ['ENVI', 'วิศวกรรมสิ่งแวดล้อม', 'Environmental Engineering'],
+  ['IE', 'วิศวกรรมอุตสาหการ', 'Industrial Engineering'],
+  ['IEL', 'วิศวกรรมอุตสาหการและการจัดการ โลจิสติกส์', 'Industrial Engineering and Logistics Management'],
+  ['IGE', 'วิศวกรรมบูรณาการ', 'Integrated Engineering'],
+  ['IGME', 'วิศวกรรมบูรณาการ และพหุวิทยาการ', 'Integrated and Multi-disciplinary Engineering'],
+  ['ISCE', 'วิศวกรรมระบบสารสนเทศและความมั่นคงปลอดภัยไซเบอร์', 'Information Systems and Cybersecurity Engineering'],
+  ['ISNE', 'วิศวกรรมระบบสารสนเทศและเครือข่าย', 'Information Systems and Network Engineering'],
+  ['ME', 'วิศวกรรมเครื่องกล', 'Mechanical Engineering'],
+  ['MEPM', 'วิศวกรรมเครื่องกลและการบริหารโครงการวิศวกรรม', 'Mechanical Engineering and Engineering Project Management'],
+  ['MNP', 'วิศวกรรมเหมืองแร่และปิโตรเลียม', 'Mining and Petroleum Engineering'],
+  ['REAI', 'วิศวกรรมหุ่นยนต์และปัญญาประดิษฐ์', 'Robotics Engineering and Artificial Intelligence'],
+  ['SCE', 'วิศวกรรมเซมิคอนดักเตอร์', 'Semiconductor Engineering'],
+];
 
 function loadDotEnv(envPath) {
   if (!fs.existsSync(envPath)) return;
@@ -46,6 +65,25 @@ function get(row, names) {
     if (value) return value;
   }
   return null;
+}
+
+function normalizeMajor(value) {
+  const raw = clean(value);
+  if (!raw) return null;
+  const text = raw.toLowerCase().replace(/ภาควิชา/g, '').replace(/\s+/g, ' ').trim();
+  const codeMatch = raw.match(/\(([^)]+)\)\s*$/);
+  const code = codeMatch?.[1]?.replace(/\s+/g, ' ').trim().toUpperCase();
+  const found = canonicalMajors
+    .slice()
+    .sort((a, b) => b[1].length - a[1].length)
+    .find(([itemCode, th, en]) => {
+      const normalizedCode = itemCode === 'IGME' ? ['IGME', 'IGE INTERNATIONAL'] : [itemCode];
+      return normalizedCode.includes(code ?? '')
+        || normalizedCode.includes(text.toUpperCase())
+        || text.includes(th.toLowerCase())
+        || text.includes(en.toLowerCase());
+    });
+  return found ? `${found[1]} (${found[0] === 'IGME' ? 'IGE international' : found[0]})` : raw;
 }
 
 function tagAttr(tag, name) {
@@ -165,14 +203,19 @@ function normalizeRole(value) {
 
 function rowToStaff(row, sourceSheet, index) {
   const parsedContact = parseContact(get(row, ['ช่องทางการติดต่อ', 'contact', 'contact_channel', 'ช่องทางติดต่อ']));
+  const legacyNickname = get(row, ['nickname', 'ชื่อเล่น']);
+  const nicknameTh = get(row, ['nickname_th', 'nickname TH', 'nicknameTH', 'ชื่อเล่น TH', 'ชื่อเล่นไทย', 'nickname thai']) ?? legacyNickname;
+  const nicknameEn = get(row, ['nickname_en', 'nickname EN', 'nicknameEN', 'ชื่อเล่น EN', 'ชื่อเล่นอังกฤษ', 'nickname english']);
   const profile = {
     student_id: get(row, ['student_id', 'รหัสนักศึกษา']),
     email: get(row, ['email', 'อีเมล', 'ที่อยู่อีเมล'])?.toLowerCase() ?? null,
     name_th: get(row, ['name_th', 'ชื่อ - นามสกุล', 'ชื่อ-สกุล', 'ชื่อสกุล']),
     name_en: get(row, ['name_en', 'ชื่ออังกฤษ']),
-    nickname: get(row, ['nickname', 'ชื่อเล่น']),
+    nickname: nicknameTh ?? legacyNickname ?? nicknameEn,
+    nickname_th: nicknameTh,
+    nickname_en: nicknameEn,
     phone: get(row, ['phone', 'เบอร์โทรศัพท์', 'เบอร์ติดต่อ']),
-    major: get(row, ['major', 'สาขา']),
+    major: normalizeMajor(get(row, ['major', 'สาขา'])),
     instagram: get(row, ['instagram', 'ig']) ?? parsedContact.instagram,
     line_id: get(row, ['line_id', 'line']) ?? parsedContact.line_id,
     facebook: get(row, ['facebook', 'fb']) ?? parsedContact.facebook,

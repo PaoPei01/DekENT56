@@ -70,6 +70,14 @@ export function StaffAttendancePage() {
 
   const queueForDate = queue.filter((item) => item.eventDate === eventDate);
   const queueByProfile = new Map(queueForDate.map((item) => [item.profileId, item]));
+  const attendanceSummary = participants.reduce(
+    (sum, profile) => {
+      const status = queueByProfile.get(profile.id)?.status ?? profile.attendance?.status ?? 'unmarked';
+      sum[status] = (sum[status] ?? 0) + 1;
+      return sum;
+    },
+    { present: 0, late: 0, absent: 0, excused: 0, unmarked: 0 } as Record<string, number>,
+  );
 
   async function mark(profileId: string, status: StaffAttendance['status']) {
     const item = { profileId, status, note: '', eventDate };
@@ -143,6 +151,16 @@ export function StaffAttendancePage() {
           <Search size={18} aria-hidden="true" />
           <Input label={language === 'th' ? 'ค้นหา' : 'Search'} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น เบอร์ หรือสาขา' : 'Name, nickname, phone, or major'} />
         </div>
+      </div>
+
+      {queueForDate.length ? <div className="offline-banner">{language === 'th' ? `มีรายการรอ sync ${queueForDate.length} รายการบนเครื่องนี้` : `${queueForDate.length} attendance marks waiting to sync on this device`}</div> : null}
+
+      <div className="attendance-summary-strip">
+        <span>{language === 'th' ? 'มาแล้ว' : 'Present'} <strong>{attendanceSummary.present}</strong></span>
+        <span>{language === 'th' ? 'สาย' : 'Late'} <strong>{attendanceSummary.late}</strong></span>
+        <span>{language === 'th' ? 'ไม่มา' : 'Absent'} <strong>{attendanceSummary.absent}</strong></span>
+        <span>{language === 'th' ? 'ยังไม่เช็ก' : 'Unmarked'} <strong>{attendanceSummary.unmarked}</strong></span>
+        <span>{language === 'th' ? 'รอ sync' : 'Unsynced'} <strong>{queueForDate.length}</strong></span>
       </div>
 
       <div className="staff-section-head">

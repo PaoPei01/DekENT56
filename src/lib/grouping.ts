@@ -14,7 +14,7 @@ const majorWeight = 9.2;
 const registrationWeight = 2.6;
 const medicalWeight = 1.8;
 const admissionWeight = 1.2;
-const internationalSupportMajors = new Set(['MEPM', 'EESG', 'CIE', 'IEL', 'IGME', 'ISCE', 'SCE']);
+const internationalSupportMajors = new Set(['MEPM', 'EESG', 'CIE', 'IEL', 'IGME', 'ISCE', 'SCE', 'ISNE']);
 
 function allBuckets() {
   return mainGroups.flatMap((mainGroup, mainIndex) => {

@@ -139,6 +139,8 @@ export type StaffProfile = {
   name_th: string | null;
   name_en: string | null;
   nickname: string | null;
+  nickname_th: string | null;
+  nickname_en: string | null;
   phone: string | null;
   major: string | null;
   instagram: string | null;
@@ -190,16 +192,28 @@ export type StaffAttendance = {
 
 export type GroupStaff = {
   id: string;
+  staff_profile_id?: string | null;
+  user_id?: string | null;
   student_id: string | null;
   name: string;
+  name_th?: string | null;
+  name_en?: string | null;
   nickname: string | null;
+  nickname_th?: string | null;
+  nickname_en?: string | null;
   phone: string | null;
+  instagram?: string | null;
+  line_id?: string | null;
+  facebook?: string | null;
+  other_contact?: string | null;
   disease: string | null;
   drug_allergy: string | null;
   food_allergy: string | null;
   main_group: MainGroup;
   subgroup: Subgroup;
   duty: string | null;
+  position?: string | null;
+  source?: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -423,6 +437,10 @@ export type Database = {
         Returns: undefined;
       };
       get_admin_staff_profiles: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      rebuild_staff_roster_sync: {
         Args: Record<string, never>;
         Returns: Json;
       };

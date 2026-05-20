@@ -1,12 +1,12 @@
-import { ClipboardCheck, Home, MapPin, Search, UsersRound } from 'lucide-react';
+import { ClipboardCheck, Home, MapPin, Phone, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
 import { HealthFlags } from '../components/HealthFlags';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
 import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import { groupLabel } from '../lib/grouping';
@@ -18,16 +18,22 @@ import { fetchStaffGroupContext } from '../services/staff';
 export function StaffMobilePage() {
   const { language } = useLanguage();
   const [search, setSearch] = useState('');
+  const [quickFilter, setQuickFilter] = useState<'all' | 'special' | 'sameMajor'>('all');
   const state = useAsync(fetchStaffGroupContext, []);
   const context = state.data;
+  const canViewMedical = Boolean(context?.access.is_admin || context?.access.roles.includes('emergency_staff'));
+  const canCallStaff = Boolean(context?.access.is_admin || context?.access.can_mark_attendance || context?.access.can_view_staff);
+  const referenceMajor = context?.participants?.[0]?.major ?? null;
   const settingsByKey = useMemo(() => new Map((context?.settings ?? []).map((setting) => [settingKey(setting.main_group, setting.subgroup), setting])), [context?.settings]);
   const participants = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (context?.participants ?? []).filter((profile) => {
+      if (quickFilter === 'special' && !(profile.disease || profile.drug_allergy || profile.food_allergy)) return false;
+      if (quickFilter === 'sameMajor' && referenceMajor && profile.major !== referenceMajor) return false;
       if (!term) return true;
-      return [profile.name_th, profile.name_en, profile.nickname, profile.major, profile.phone].some((value) => value?.toLowerCase().includes(term));
+      return [profile.name_th, profile.name_en, profile.nickname, profile.nickname_en, profile.major, profile.phone].some((value) => value?.toLowerCase().includes(term));
     });
-  }, [context?.participants, search]);
+  }, [context?.participants, quickFilter, referenceMajor, search]);
   const primarySetting = context?.settings?.[0];
 
   if (state.loading) return <LoadingSkeleton />;
@@ -75,17 +81,32 @@ export function StaffMobilePage() {
               <div key={`${staff.main_group}-${staff.subgroup}-${staff.student_id || staff.name}`} className="staff-roster-person">
                 <strong>{staff.nickname || staff.name}</strong>
                 <span>{staff.name}</span>
-                <small>{staff.phone || '-'}</small>
-                <HealthFlags profile={staff} detail />
+                <ContactLinks instagram={staff.instagram} facebook={staff.facebook} lineId={staff.line_id} other={staff.other_contact} />
+                {canCallStaff && staff.phone ? <a className="btn btn-secondary btn-compact" href={`tel:${staff.phone}`}><Phone size={16} />{language === 'th' ? 'โทร' : 'Call'}</a> : null}
+                {canViewMedical ? <HealthFlags profile={staff} detail /> : null}
               </div>
             ))}
           </div>
         </Card>
       ) : null}
 
-      <div className="search-shell">
-        <Search size={18} aria-hidden="true" />
-        <Input label={language === 'th' ? 'ค้นหาในกลุ่ม' : 'Search group'} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น เบอร์ หรือสาขา' : 'Name, nickname, phone, or major'} />
+      <MobileSearchHeader
+        label={language === 'th' ? 'ค้นหาในกลุ่ม' : 'Search group'}
+        value={search}
+        onChange={setSearch}
+        placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น เบอร์ หรือสาขา' : 'Name, nickname, phone, or major'}
+        resultText={`${participants.length} ${language === 'th' ? 'คน' : 'people'}`}
+      />
+      <div className="segmented-control compact-segments" aria-label={language === 'th' ? 'ตัวกรองด่วน' : 'Quick filters'}>
+        {[
+          { value: 'all', label: language === 'th' ? 'ทั้งหมด' : 'All' },
+          { value: 'special', label: language === 'th' ? 'ดูแลพิเศษ' : 'Special care' },
+          { value: 'sameMajor', label: language === 'th' ? 'สาขาเดียวกัน' : 'Same major' },
+        ].map((item) => (
+          <button key={item.value} type="button" className={quickFilter === item.value ? 'active' : ''} onClick={() => setQuickFilter(item.value as typeof quickFilter)}>
+            {item.label}
+          </button>
+        ))}
       </div>
 
       <div className="staff-list">
@@ -112,8 +133,8 @@ export function StaffMobilePage() {
               <div className="staff-card-head">
                 <span className="group-dot" />
                 <div>
-                  <h2>{profile.nickname || profile.name_th}</h2>
-                  <p>{profile.name_th}</p>
+                  <h2>{language === 'en' ? profile.nickname_en || profile.nickname || profile.name_en || profile.name_th : profile.nickname || profile.name_th}</h2>
+                  <p>{language === 'en' ? profile.name_en || profile.name_th : profile.name_th}</p>
                 </div>
               </div>
               <div className="profile-facts">
@@ -126,7 +147,7 @@ export function StaffMobilePage() {
                 <strong>{setting?.meeting_point || '-'}</strong>
                 <span>{setting?.schedule || '-'}</span>
               </div>
-              <HealthFlags profile={profile} detail />
+              {canViewMedical ? <HealthFlags profile={profile} detail /> : null}
               <ContactLinks instagram={profile.instagram} facebook={profile.facebook} lineId={profile.line_id} other={profile.other_contact} />
             </Card>
           );

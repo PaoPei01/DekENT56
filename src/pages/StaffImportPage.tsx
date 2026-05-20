@@ -117,11 +117,12 @@ export function StaffImportPage() {
             getKey={(row) => row.row_key}
             emptyText={language === 'th' ? 'ยังไม่มีข้อมูล preview' : 'No preview rows'}
             mobileDetailsLabel={language === 'th' ? 'รายละเอียด' : 'Details'}
-            mobileTitle={(row) => row.profile.nickname || row.profile.name_th || row.profile.student_id}
+            mobileTitle={(row) => row.profile.nickname_th || row.profile.nickname || row.profile.nickname_en || row.profile.name_th || row.profile.student_id}
             mobileSubtitle={(row) => `${row.profile.name_th || '-'} · ${majorLabel(row.profile.major, language)}`}
             mobileMeta={(row) => groupLabel(row.assignment.main_group, row.assignment.subgroup, language)}
             columns={[
-              { key: 'name', header: language === 'th' ? 'ชื่อ' : 'Name', render: (row) => <div className="participant-admin-cell"><strong>{row.profile.name_th}</strong><span>{row.profile.nickname} · {row.profile.student_id}</span></div> },
+              { key: 'name', header: language === 'th' ? 'ชื่อ' : 'Name', render: (row) => <div className="participant-admin-cell"><strong>{row.profile.name_th}</strong><span>{row.profile.nickname_th || row.profile.nickname || row.profile.nickname_en} · {row.profile.student_id}</span></div> },
+              { key: 'nickname_en', header: language === 'th' ? 'ชื่อเล่น EN' : 'Nickname EN', render: (row) => row.profile.nickname_en || '-' },
               { key: 'major', header: language === 'th' ? 'สาขา' : 'Major', render: (row) => majorLabel(row.profile.major, language) },
               { key: 'position', header: language === 'th' ? 'ตำแหน่ง' : 'Position', render: (row) => row.profile.position || '-' },
               { key: 'group', header: language === 'th' ? 'กลุ่ม' : 'Group', render: (row) => groupLabel(row.assignment.main_group, row.assignment.subgroup, language) },
