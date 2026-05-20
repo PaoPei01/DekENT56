@@ -1,4 +1,4 @@
-import JSZip from 'jszip';
+import ExcelJS from 'exceljs';
 import { getMajorCode, normalizeMajor } from '../lib/major';
 import { normalizeStaffOperationalRole, normalizeStaffSecondaryRoles, normalizeStaffSystemRole } from '../lib/staffRoles';
 import type { MainGroup, StaffRole, Subgroup } from '../lib/types';
@@ -77,76 +77,28 @@ function get(row: Record<string, string | null>, names: string[]) {
 const nicknameThColumns = ['nickname_th', 'nickname TH', 'nicknameTH', 'ชื่อเล่น TH', 'ชื่อเล่นไทย', 'nickname thai'];
 const nicknameEnColumns = ['nickname_en', 'nickname EN', 'nicknameEN', 'ชื่อเล่น EN', 'ชื่อเล่นอังกฤษ', 'nickname english'];
 
-function parseXml(text: string) {
-  return new DOMParser().parseFromString(text, 'application/xml');
-}
-
-function attr(node: Element, name: string) {
-  return node.getAttribute(name) ?? node.getAttribute(`r:${name}`) ?? '';
-}
-
-function textContent(node: Element | null) {
-  return clean(node?.textContent ?? '');
-}
-
-function decodeCell(cell: Element, sharedStrings: string[]) {
-  const type = cell.getAttribute('t');
-  if (type === 'inlineStr') return textContent(cell.querySelector('is t, x\\:is x\\:t'));
-  const value = textContent(cell.querySelector('v, x\\:v'));
-  if (type === 's' && value) return sharedStrings[Number(value)] ?? null;
-  return value;
-}
-
-function columnIndex(ref: string) {
-  const letters = ref.replace(/[0-9]/g, '').toUpperCase();
-  return [...letters].reduce((sum, letter) => sum * 26 + letter.charCodeAt(0) - 64, 0) - 1;
-}
-
 async function readSheets(file: ArrayBuffer): Promise<Array<{ name: string; rows: Record<string, string | null>[] }>> {
-  const zip = await JSZip.loadAsync(file);
-  const workbookXml = await zip.file('xl/workbook.xml')?.async('string');
-  const relsXml = await zip.file('xl/_rels/workbook.xml.rels')?.async('string');
-  const sharedXml = await zip.file('xl/sharedStrings.xml')?.async('string');
-  if (!workbookXml || !relsXml) throw new Error('Invalid Excel workbook.');
-
-  const sharedStrings = sharedXml
-    ? [...parseXml(sharedXml).querySelectorAll('si, x\\:si')].map((node) => [...node.querySelectorAll('t, x\\:t')].map((item) => item.textContent ?? '').join(''))
-    : [];
-  const rels = new Map(
-    [...parseXml(relsXml).querySelectorAll('Relationship')].map((node) => [node.getAttribute('Id') ?? '', node.getAttribute('Target') ?? '']),
-  );
-
-  const workbook = parseXml(workbookXml);
-  const sheets = await Promise.all(
-    [...workbook.querySelectorAll('sheet, x\\:sheet')].map(async (sheet) => {
-      const name = sheet.getAttribute('name') ?? '';
-      const relationshipId = attr(sheet, 'id');
-      const target = rels.get(relationshipId);
-      if (!target) return null;
-      const targetPath = target.replace(/^\//, '');
-      const xml = await zip.file(targetPath.startsWith('xl/') ? targetPath : `xl/${targetPath}`)?.async('string');
-      if (!xml) return null;
-      const doc = parseXml(xml);
-      const rows: string[][] = [];
-      [...doc.querySelectorAll('sheetData row, x\\:sheetData x\\:row')].forEach((rowNode) => {
-        const rowIndex = Number(rowNode.getAttribute('r') ?? rows.length + 1) - 1;
-        rows[rowIndex] = rows[rowIndex] ?? [];
-        [...rowNode.querySelectorAll('c, x\\:c')].forEach((cell) => {
-          rows[rowIndex][columnIndex(cell.getAttribute('r') ?? '')] = decodeCell(cell, sharedStrings) ?? '';
-        });
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(file);
+  return workbook.worksheets.map((worksheet) => {
+    const matrix: Array<Array<string | null>> = [];
+    worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+      matrix[rowNumber - 1] = [];
+      row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+        const value = cell.value && typeof cell.value === 'object' && 'text' in cell.value ? cell.value.text : cell.value;
+        matrix[rowNumber - 1][columnNumber - 1] = clean(value);
       });
-      const headerRowIndex = rows.findIndex((row) => row.some(Boolean));
-      if (headerRowIndex < 0) return { name, rows: [] };
-      const headerEntries = (rows[headerRowIndex] ?? [])
-        .map((header, index) => [clean(header) ?? '', index] as const)
-        .filter(([header]) => header);
-      return {
-        name,
-        rows: rows.slice(headerRowIndex + 1).map((row = []) => Object.fromEntries(headerEntries.map(([header, index]) => [header, clean(row[index])]))).filter((row) => Object.values(row).some(Boolean)),
-      };
-    }),
-  );
-  return sheets.filter(Boolean) as Array<{ name: string; rows: Record<string, string | null>[] }>;
+    });
+    const headerRowIndex = matrix.findIndex((row) => row.some(Boolean));
+    if (headerRowIndex < 0) return { name: worksheet.name, rows: [] };
+    const headerEntries = (matrix[headerRowIndex] ?? [])
+      .map((header, index) => [clean(header) ?? '', index] as const)
+      .filter(([header]) => header);
+    return {
+      name: worksheet.name,
+      rows: matrix.slice(headerRowIndex + 1).map((row = []) => Object.fromEntries(headerEntries.map(([header, index]) => [header, clean(row[index])]))).filter((row) => Object.values(row).some(Boolean)),
+    };
+  });
 }
 
 function parseStaffContact(raw: string | null) {
