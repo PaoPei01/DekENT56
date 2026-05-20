@@ -3,6 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import JSZip from 'jszip';
 import { createClient } from '@supabase/supabase-js';
+import ExcelJS from 'exceljs';
 
 const args = process.argv.slice(2);
 const filePath = args.find((arg) => !arg.startsWith('--'));
@@ -18,7 +19,7 @@ loadDotEnv(path.resolve(process.cwd(), '.env'));
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const emptyValues = new Set(['', '-', 'ไม่มี', 'none', 'no', 'n/a', 'null']);
-const targetSheets = new Set(['ข้อมูลทีมงาน', 'ข้อมูลสตาฟ', 'staff_profiles_import', 'staff_medical_info_import', 'staff_group_assignments']);
+const targetSheets = new Set(['ข้อมูลทีมงาน', 'ข้อมูลสตาฟ', 'staff list', 'medical admin only', 'staff_profiles_import', 'staff_medical_info_import', 'staff_group_assignments']);
 const canonicalMajors = [
   ['CE', 'วิศวกรรมโยธา', 'Civil Engineering'],
   ['CIE', 'วิศวกรรมโยธา (นานาชาติ)', 'Civil Engineering (International)'],
@@ -71,6 +72,7 @@ function normalizeMajor(value) {
   const raw = clean(value);
   if (!raw) return null;
   const text = raw.toLowerCase().replace(/ภาควิชา/g, '').replace(/\s+/g, ' ').trim();
+  const compactText = text.replace(/\s+/g, '');
   const codeMatch = raw.match(/\(([^)]+)\)\s*$/);
   const code = codeMatch?.[1]?.replace(/\s+/g, ' ').trim().toUpperCase();
   const found = canonicalMajors
@@ -81,7 +83,9 @@ function normalizeMajor(value) {
       return normalizedCode.includes(code ?? '')
         || normalizedCode.includes(text.toUpperCase())
         || text.includes(th.toLowerCase())
-        || text.includes(en.toLowerCase());
+        || compactText.includes(th.toLowerCase().replace(/\s+/g, ''))
+        || text.includes(en.toLowerCase())
+        || compactText.includes(en.toLowerCase().replace(/\s+/g, ''));
     });
   return found ? `${found[1]} (${found[0] === 'IGME' ? 'IGE international' : found[0]})` : raw;
 }
@@ -102,7 +106,7 @@ function normalizeOperationalRole(value) {
   if (!raw) return null;
   const lower = raw.toLowerCase();
   if (['staff', 'mentor', 'viewer', 'emergency_staff'].includes(lower)) return null;
-  if (lower.includes('ทีมบอ') || lower.includes('วางแผน') || lower.includes('planner') || lower.includes('plan')) return 'วางแผน (ทีมบอ)';
+  if (lower.includes('ทีมบริหาร') || lower.includes('ทีมบอ') || lower.includes('วางแผน') || lower.includes('planner') || lower.includes('plan')) return 'ทีมบริหาร';
   if (lower.includes('พี่กลุ่ม') || lower.includes('mentor') || lower.includes('group staff')) return 'พี่กลุ่ม';
   if (lower.includes('พี่ฐาน') || lower.includes('ฐาน') || lower.includes('base')) return 'พี่ฐาน';
   if (lower.includes('ไทม์') || lower.includes('timer')) return 'ไทม์เมอร์';
@@ -150,45 +154,28 @@ function decodeCell(cellXml, sharedStrings) {
 }
 
 async function readSheets(inputPath) {
-  const zip = await JSZip.loadAsync(fs.readFileSync(inputPath));
-  const workbookXml = await zip.file('xl/workbook.xml')?.async('string');
-  const relsXml = await zip.file('xl/_rels/workbook.xml.rels')?.async('string');
-  const sharedXml = await zip.file('xl/sharedStrings.xml')?.async('string');
-  if (!workbookXml || !relsXml) throw new Error('Invalid Excel workbook.');
-
-  const sharedStrings = sharedXml ? extractTags(sharedXml, 'si').map((node) => [...node.matchAll(/<[^>]*:?t\b[^>]*>([\s\S]*?)<\/[^>]*:?t>/g)].map((match) => clean(match[1]) ?? '').join('')) : [];
-  const rels = new Map(extractSelfClosing(relsXml, 'Relationship').map((node) => [tagAttr(node, 'Id'), tagAttr(node, 'Target')]));
-  const sheetNodes = extractSelfClosing(workbookXml, 'sheet');
-  const sheets = [];
-
-  for (const sheetNode of sheetNodes) {
-    const name = clean(tagAttr(sheetNode, 'name')) ?? '';
-    const relationshipId = tagAttr(sheetNode, 'id');
-    const target = rels.get(relationshipId);
-    if (!target) continue;
-    const targetPath = target.replace(/^\//, '');
-    const xml = await zip.file(targetPath.startsWith('xl/') ? targetPath : `xl/${targetPath}`)?.async('string');
-    if (!xml) continue;
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(inputPath);
+  return workbook.worksheets.map((worksheet) => {
     const matrix = [];
-    for (const rowNode of extractTags(xml, 'row')) {
-      const rowIndex = Number(tagAttr(rowNode, 'r') || matrix.length + 1) - 1;
-      matrix[rowIndex] = matrix[rowIndex] ?? [];
-      for (const cell of extractTags(rowNode, 'c')) {
-        matrix[rowIndex][columnIndex(tagAttr(cell, 'r'))] = decodeCell(cell, sharedStrings) ?? '';
-      }
-    }
-    const headerIndex = matrix.findIndex((row) => row.some(Boolean));
+    worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+      matrix[rowNumber - 1] = [];
+      row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+        matrix[rowNumber - 1][columnNumber - 1] = clean(typeof cell.value === 'object' && cell.value && 'text' in cell.value ? cell.value.text : cell.value);
+      });
+    });
+    const headerIndex = matrix.findIndex((row = []) => row.some(Boolean));
     if (headerIndex < 0) {
-      sheets.push({ name, rows: [] });
-      continue;
+      return { name: worksheet.name, rows: [] };
     }
-    const headers = matrix[headerIndex].map((header) => clean(header) ?? '');
+    const headerEntries = (matrix[headerIndex] ?? [])
+      .map((header, index) => [clean(header) ?? '', index])
+      .filter(([header]) => header);
     const rows = matrix.slice(headerIndex + 1)
-      .map((row) => Object.fromEntries(headers.map((header, index) => [header, clean(row[index])])))
+      .map((row = []) => Object.fromEntries(headerEntries.map(([header, index]) => [header, clean(row[index])])))
       .filter((row) => Object.values(row).some(Boolean));
-    sheets.push({ name, rows });
-  }
-  return sheets;
+    return { name: worksheet.name, rows };
+  });
 }
 
 function parseContact(raw) {
@@ -218,7 +205,8 @@ const groupMap = new Map([
 ]);
 
 function normalizeGroup(value) {
-  return groupMap.get(String(value ?? '').trim().toLowerCase()) ?? null;
+  const raw = String(value ?? '').trim().toLowerCase();
+  return groupMap.get(raw) ?? [...groupMap.entries()].find(([key]) => raw.includes(key))?.[1] ?? null;
 }
 
 function normalizeSubgroup(value) {
@@ -250,7 +238,7 @@ function rowToStaff(row, sourceSheet, index) {
     nickname_th: nicknameTh,
     nickname_en: nicknameEn,
     phone: get(row, ['phone', 'เบอร์โทรศัพท์', 'เบอร์ติดต่อ']),
-    major: normalizeMajor(get(row, ['major', 'สาขา'])),
+    major: normalizeMajor(get(row, ['major', 'department', 'program', 'curriculum', 'สาขา', 'สาขาวิชา', 'หลักสูตร', 'ภาควิชา'])),
     instagram: get(row, ['instagram', 'ig']) ?? parsedContact.instagram,
     line_id: get(row, ['line_id', 'line']) ?? parsedContact.line_id,
     facebook: get(row, ['facebook', 'fb']) ?? parsedContact.facebook,
@@ -275,8 +263,8 @@ function rowToStaff(row, sourceSheet, index) {
   const primaryRole = normalizeOperationalRole(get(row, ['primary_role', 'บทบาทหลัก', 'หน้าที่หลัก', 'duty', 'หน้าที่']) ?? profile.position ?? rawRole);
   const assignment = {
     role: normalizeRole(rawRole, primaryRole),
-    main_group: normalizeGroup(get(row, ['main_group', 'สี', 'กลุ่มสี'])),
-    subgroup: normalizeSubgroup(get(row, ['subgroup', 'กลุ่มย่อย'])),
+    main_group: normalizeGroup(get(row, ['main_group', 'สี', 'กลุ่มสี', 'group', 'กลุ่ม'])),
+    subgroup: normalizeSubgroup(get(row, ['subgroup', 'กลุ่มย่อย', 'group', 'กลุ่ม'])),
     primary_role: primaryRole,
     secondary_roles: normalizeSecondaryRoles(get(row, ['secondary_roles', 'บทบาทเสริม', 'หน้าที่เสริม'])),
   };
@@ -295,7 +283,7 @@ function countDuplicates(rows, key) {
 }
 
 const sheets = await readSheets(path.resolve(filePath));
-const selectedSheets = sheets.filter((sheet) => targetSheets.has(sheet.name));
+const selectedSheets = sheets.filter((sheet) => targetSheets.has(sheet.name.toLowerCase()));
 const sourceSheets = selectedSheets.length ? selectedSheets : sheets.filter((sheet) => sheet.rows.some((row) => get(row, ['student_id', 'รหัสนักศึกษา'])));
 const byKey = new Map();
 

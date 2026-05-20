@@ -53,7 +53,7 @@ export type StaffImportPreview = {
   duplicates: Array<{ type: 'student_id' | 'email' | 'phone'; value: string; count: number }>;
 };
 
-const wantedSheets = new Set(['ข้อมูลทีมงาน', 'ข้อมูลสตาฟ', 'staff_profiles_import', 'staff_medical_info_import', 'staff_group_assignments']);
+const wantedSheets = new Set(['ข้อมูลทีมงาน', 'ข้อมูลสตาฟ', 'staff list', 'medical admin only', 'staff_profiles_import', 'staff_medical_info_import', 'staff_group_assignments']);
 const emptyValues = new Set(['', '-', 'ไม่มี', 'none', 'no', 'n/a', 'null']);
 
 function clean(value: unknown) {
@@ -137,10 +137,12 @@ async function readSheets(file: ArrayBuffer): Promise<Array<{ name: string; rows
       });
       const headerRowIndex = rows.findIndex((row) => row.some(Boolean));
       if (headerRowIndex < 0) return { name, rows: [] };
-      const headers = rows[headerRowIndex].map((header) => clean(header) ?? '');
+      const headerEntries = (rows[headerRowIndex] ?? [])
+        .map((header, index) => [clean(header) ?? '', index] as const)
+        .filter(([header]) => header);
       return {
         name,
-        rows: rows.slice(headerRowIndex + 1).map((row) => Object.fromEntries(headers.map((header, index) => [header, clean(row[index])]))).filter((row) => Object.values(row).some(Boolean)),
+        rows: rows.slice(headerRowIndex + 1).map((row = []) => Object.fromEntries(headerEntries.map(([header, index]) => [header, clean(row[index])]))).filter((row) => Object.values(row).some(Boolean)),
       };
     }),
   );
@@ -178,7 +180,7 @@ const groupMap: Record<string, MainGroup> = {
 
 function normalizeGroup(value: string | null): MainGroup | null {
   const raw = value?.trim() ?? '';
-  return groupMap[raw.toLowerCase()] ?? groupMap[raw] ?? null;
+  return groupMap[raw.toLowerCase()] ?? groupMap[raw] ?? Object.entries(groupMap).find(([key]) => raw.toLowerCase().includes(key.toLowerCase()))?.[1] ?? null;
 }
 
 function normalizeSubgroup(value: string | null): Subgroup | null {
@@ -205,7 +207,7 @@ function rowToStaff(row: Record<string, string | null>, sourceSheet: string, sou
     nickname_th: nicknameTh,
     nickname_en: nicknameEn,
     phone: get(row, ['phone', 'เบอร์โทรศัพท์', 'เบอร์ติดต่อ']),
-    major: normalizeMajor(get(row, ['major', 'สาขา'])),
+    major: normalizeMajor(get(row, ['major', 'department', 'program', 'curriculum', 'สาขา', 'สาขาวิชา', 'หลักสูตร', 'ภาควิชา'])),
     instagram: get(row, ['instagram', 'ig']) ?? parsed.instagram,
     line_id: get(row, ['line_id', 'line']) ?? parsed.line_id,
     facebook: get(row, ['facebook', 'fb']) ?? parsed.facebook,
@@ -224,8 +226,8 @@ function rowToStaff(row: Record<string, string | null>, sourceSheet: string, sou
   const primaryRole = normalizeStaffOperationalRole(get(row, ['primary_role', 'บทบาทหลัก', 'หน้าที่หลัก', 'duty', 'หน้าที่']) ?? profile.position ?? rawRole);
   const assignment = {
     role: normalizeStaffSystemRole(rawRole, primaryRole),
-    main_group: normalizeGroup(get(row, ['main_group', 'สี', 'กลุ่มสี'])),
-    subgroup: normalizeSubgroup(get(row, ['subgroup', 'กลุ่มย่อย'])),
+    main_group: normalizeGroup(get(row, ['main_group', 'สี', 'กลุ่มสี', 'group', 'กลุ่ม'])),
+    subgroup: normalizeSubgroup(get(row, ['subgroup', 'กลุ่มย่อย', 'group', 'กลุ่ม'])),
     primary_role: primaryRole,
     secondary_roles: normalizeStaffSecondaryRoles(get(row, ['secondary_roles', 'บทบาทเสริม', 'หน้าที่เสริม'])),
   };
@@ -265,7 +267,7 @@ function duplicateWarnings(rows: StaffImportRow[], key: 'student_id' | 'email' |
 export async function parseStaffImportWorkbook(file: File | ArrayBuffer): Promise<StaffImportPreview> {
   const buffer = file instanceof File ? await file.arrayBuffer() : file;
   const sheets = await readSheets(buffer);
-  const sourceSheets = sheets.filter((sheet) => wantedSheets.has(sheet.name));
+  const sourceSheets = sheets.filter((sheet) => wantedSheets.has(sheet.name.toLowerCase()));
   const primarySheets = sourceSheets.length ? sourceSheets : sheets.filter((sheet) => sheet.rows.some((row) => get(row, ['รหัสนักศึกษา', 'student_id'])));
   const byKey = new Map<string, StaffImportRow>();
 

@@ -37,6 +37,10 @@ function simplifyMajor(value: string) {
     .trim();
 }
 
+function compactMajor(value: string) {
+  return simplifyMajor(value).replace(/\s+/g, '');
+}
+
 export function getMajorCode(major?: string | null) {
   const value = major ?? '';
   const match = value.match(/\(([^)]+)\)\s*$/);
@@ -47,6 +51,7 @@ export function getMajorCode(major?: string | null) {
     if (majorCatalog.some((majorInfo) => majorInfo.code === code)) return code;
   }
   const normalized = simplifyMajor(value);
+  const compact = compactMajor(value);
   const exactCode = majorCatalog.find((majorInfo) => normalized === majorInfo.code.toLowerCase());
   if (exactCode) return exactCode.code;
   return (
@@ -57,7 +62,7 @@ export function getMajorCode(major?: string | null) {
         majorInfo.th,
         ...(majorInfo.aliases ?? []),
         `(${code})`,
-      ].some((candidate) => normalized.includes(simplifyMajor(candidate)));
+      ].some((candidate) => normalized.includes(simplifyMajor(candidate)) || compact.includes(compactMajor(candidate)));
     })?.code ?? value
   );
 }

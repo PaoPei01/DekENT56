@@ -2,7 +2,7 @@ import type { StaffRole } from './types';
 
 export const staffSystemRoles: StaffRole[] = ['staff', 'mentor', 'viewer', 'emergency_staff'];
 
-export const staffOperationalRoles = ['วางแผน (ทีมบอ)', 'พี่กลุ่ม', 'พี่ฐาน', 'ไทม์เมอร์', 'พยาบาล', 'จราจร', 'สวัสดิการ', 'โสตทัศนูปกรณ์', 'โฟโต้'];
+export const staffOperationalRoles = ['ทีมบริหาร', 'พี่กลุ่ม', 'พี่ฐาน', 'ไทม์เมอร์', 'พยาบาล', 'จราจร', 'สวัสดิการ', 'โสตทัศนูปกรณ์', 'โฟโต้'];
 
 export function normalizeStaffSystemRole(value?: string | null, primaryRole?: string | null): StaffRole | null {
   const raw = String(value ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -19,7 +19,7 @@ export function normalizeStaffOperationalRole(value?: string | null) {
   const lower = raw.toLowerCase();
   if (!raw) return null;
   if (['staff', 'mentor', 'viewer', 'emergency_staff'].includes(lower)) return null;
-  if (lower.includes('ทีมบอ') || lower.includes('วางแผน') || lower.includes('planner') || lower.includes('plan')) return 'วางแผน (ทีมบอ)';
+  if (lower.includes('ทีมบริหาร') || lower.includes('ทีมบอ') || lower.includes('วางแผน') || lower.includes('planner') || lower.includes('plan')) return 'ทีมบริหาร';
   if (lower.includes('พี่กลุ่ม') || lower.includes('mentor') || lower.includes('group staff')) return 'พี่กลุ่ม';
   if (lower.includes('พี่ฐาน') || lower.includes('ฐาน') || lower.includes('base')) return 'พี่ฐาน';
   if (lower.includes('ไทม์') || lower.includes('timer')) return 'ไทม์เมอร์';
