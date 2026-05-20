@@ -1,5 +1,5 @@
 import { getMajorCode, normalizeMajor } from '../lib/major';
-import { cleanNullableText } from '../lib/dataClean';
+import { cleanNullableText, normalizePhoneNumber } from '../lib/dataClean';
 import { normalizeStaffOperationalRole, normalizeStaffSecondaryRoles, normalizeStaffSystemRole } from '../lib/staffRoles';
 import { supabase } from '../lib/supabase';
 import type { MainGroup, StaffAssignmentRecommendation, StaffManagementRow, StaffProfile, StaffQuotaAnalytics, StaffRole, StaffRoleConflict, StaffStructureValidation, Subgroup } from '../lib/types';
@@ -69,6 +69,7 @@ export async function updateStaffProfile(id: string, payload: StaffUpdatePayload
   const clean = (object: Record<string, unknown>) => Object.fromEntries(Object.entries(object).map(([key, value]) => [key, typeof value === 'string' || value == null ? cleanNullableText(value) : value]));
   const profile = clean(payload.profile as Record<string, unknown>);
   if (profile.major) profile.major = normalizeMajor(String(profile.major));
+  if ('phone' in profile) profile.phone = normalizePhoneNumber(profile.phone);
   const assignment = clean(payload.assignment);
   if (assignment.primary_role) assignment.primary_role = normalizeStaffOperationalRole(String(assignment.primary_role));
   if (assignment.secondary_roles) assignment.secondary_roles = normalizeStaffSecondaryRoles(assignment.secondary_roles as string[]);
@@ -89,7 +90,7 @@ export async function deleteStaffProfile(id: string) {
 
 export async function importStaffRecords(rows: StaffImportRow[], mode: StaffImportMode = 'full') {
   const payload = rows.map((row) => ({
-    profile: Object.fromEntries(Object.entries(row.profile).map(([key, value]) => [key, cleanNullableText(value)])),
+    profile: Object.fromEntries(Object.entries(row.profile).map(([key, value]) => [key, key === 'phone' ? normalizePhoneNumber(value) : cleanNullableText(value)])),
     medical: Object.fromEntries(Object.entries(row.medical).map(([key, value]) => [key, cleanNullableText(value)])),
     assignment: {
       ...row.assignment,

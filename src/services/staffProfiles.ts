@@ -1,4 +1,4 @@
-import { cleanNullableText } from '../lib/dataClean';
+import { cleanNullableText, normalizePhoneNumber } from '../lib/dataClean';
 import { supabase } from '../lib/supabase';
 import type { Json, MainGroup, StaffAssignment, StaffEditRequest, StaffManagementRow, StaffMedicalInfo, StaffProfile, StaffPublicProfile, Subgroup } from '../lib/types';
 
@@ -86,6 +86,9 @@ export async function submitStaffEditRequest(input: { profile?: Record<string, u
     profile: cleanInput(input.profile ?? {}),
     medical: cleanInput(input.medical ?? {}),
   };
+  if (payload.profile && typeof payload.profile === 'object' && !Array.isArray(payload.profile) && 'phone' in payload.profile) {
+    payload.profile.phone = normalizePhoneNumber(payload.profile.phone);
+  }
   const { data, error } = await supabase.rpc('submit_staff_edit_request', { input_new_data: payload });
   if (error) throw error;
   return data as StaffEditRequest;
@@ -107,6 +110,9 @@ export async function submitStaffEditRequestVerified(email: string, phone: strin
     medical: cleanInput(input.medical ?? {}),
     assignment: input.assignment ?? {},
   };
+  if (payload.profile && typeof payload.profile === 'object' && !Array.isArray(payload.profile) && 'phone' in payload.profile) {
+    payload.profile.phone = normalizePhoneNumber(payload.profile.phone);
+  }
   const { data, error } = await supabase.rpc('submit_staff_edit_request_verified', { input_email: email, input_phone: phone, input_new_data: payload });
   if (error) throw error;
   return data as Pick<StaffEditRequest, 'id' | 'status' | 'created_at'>;

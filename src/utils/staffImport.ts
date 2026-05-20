@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs';
-import { cleanNullableText } from '../lib/dataClean';
+import { cleanNullableText, normalizePhoneNumber } from '../lib/dataClean';
 import { getMajorCode, normalizeMajor } from '../lib/major';
 import { normalizeStaffOperationalRole, normalizeStaffSecondaryRoles, normalizeStaffSystemRole } from '../lib/staffRoles';
 import type { MainGroup, StaffRole, Subgroup } from '../lib/types';
@@ -177,7 +177,7 @@ function rowToStaff(row: Record<string, string | null>, sourceSheet: string, sou
     nickname: nicknameTh ?? legacyNickname ?? nicknameEn,
     nickname_th: nicknameTh,
     nickname_en: nicknameEn,
-    phone: get(row, ['phone', 'เบอร์โทรศัพท์', 'เบอร์ติดต่อ']),
+    phone: normalizePhoneNumber(get(row, ['phone', 'เบอร์โทรศัพท์', 'เบอร์ติดต่อ'])),
     major: normalizeMajor(get(row, ['major', 'department', 'program', 'curriculum', 'สาขา', 'สาขาวิชา', 'หลักสูตร', 'ภาควิชา'])),
     instagram: get(row, ['instagram', 'ig']) ?? parsed.instagram,
     line_id: get(row, ['line_id', 'line']) ?? parsed.line_id,
