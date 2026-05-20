@@ -1,5 +1,6 @@
 import { Save, SearchCheck, Send } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PublicStaffCard } from '../components/PublicStaffCard';
 import { StickyActionBar } from '../components/mobile/StickyActionBar';
 import { Button } from '../components/ui/Button';
@@ -120,7 +121,8 @@ export function StaffProfileVerifyPage() {
       <PageHeader
         eyebrow="Staff Profile Verify"
         title={language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit Staff Profile'}
-        description={language === 'th' ? 'สำหรับทีมงานรายบุคคลที่ต้องการแก้ไขโปรไฟล์ ไม่จำเป็นต้องมีบัญชีเข้าสู่ระบบ' : 'For individual staff profile updates. No staff login account required.'}
+        description={language === 'th' ? 'หน้านี้สำหรับทีมงานรายบุคคลที่ต้องการแก้ไขโปรไฟล์ของตัวเอง ไม่ใช่บัญชีเข้าสู่ระบบทีมงานสำหรับปฏิบัติงาน' : 'This page is for individual staff profile updates, not operational staff login.'}
+        meta={<Link className="btn btn-secondary" to="/admin">{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff Login'}</Link>}
       />
       <Card>
         <form className="form-grid" onSubmit={verify}>
@@ -183,9 +185,18 @@ export function StaffProfileVerifyPage() {
 
       <Modal open={requestOpen} title={language === 'th' ? 'ขอแก้ไขข้อมูลสำคัญ' : 'Request sensitive changes'} onClose={() => setRequestOpen(false)}>
         <div className="form-grid two-col modal-body">
-          {Object.keys(requestForm).map((key) => (
-            <Input key={key} label={key} value={requestForm[key as keyof typeof requestForm]} onChange={(event) => setRequestForm({ ...requestForm, [key]: event.target.value })} />
-          ))}
+          <h3 className="full-span">{language === 'th' ? 'ข้อมูลติดต่อ' : 'Contact'}</h3>
+          <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} value={requestForm.phone} onChange={(event) => setRequestForm({ ...requestForm, phone: event.target.value })} />
+          <Input label="LINE ID" value={requestForm.line_id} onChange={(event) => setRequestForm({ ...requestForm, line_id: event.target.value })} />
+          <h3 className="full-span">{language === 'th' ? 'ข้อมูลสุขภาพ' : 'Medical'}</h3>
+          <Input label={language === 'th' ? 'โรคประจำตัว' : 'Medical condition'} value={requestForm.disease} onChange={(event) => setRequestForm({ ...requestForm, disease: event.target.value })} />
+          <Input label={language === 'th' ? 'แพ้ยา' : 'Drug allergy'} value={requestForm.drug_allergy} onChange={(event) => setRequestForm({ ...requestForm, drug_allergy: event.target.value })} />
+          <Input label={language === 'th' ? 'แพ้อาหาร' : 'Food allergy'} value={requestForm.food_allergy} onChange={(event) => setRequestForm({ ...requestForm, food_allergy: event.target.value })} />
+          <Input label={language === 'th' ? 'หมายเหตุสุขภาพ/ฉุกเฉิน' : 'Medical/emergency note'} value={requestForm.medical_note} onChange={(event) => setRequestForm({ ...requestForm, medical_note: event.target.value })} />
+          <Card className="privacy-notice full-span">
+            <strong>{language === 'th' ? 'ข้อมูลสุขภาพเป็นความลับ' : 'Medical data is confidential'}</strong>
+            <span>{language === 'th' ? 'การส่งคำขอนี้จะยังไม่อัปเดตทันที ต้องรอแอดมินอนุมัติก่อน' : 'This request will not update immediately. Admin approval is required.'}</span>
+          </Card>
           <div className="form-actions full-span">
             <Button disabled={loading} icon={<Send size={18} />} onClick={submitRequest}>{language === 'th' ? 'ส่งคำขอ' : 'Submit request'}</Button>
             <Button variant="secondary" onClick={() => setRequestOpen(false)}>{language === 'th' ? 'ยกเลิก' : 'Cancel'}</Button>

@@ -128,6 +128,7 @@ export type StaffAssignment = {
   role: StaffRole | null;
   primary_role: string | null;
   secondary_roles: string[] | null;
+  base_number?: number | null;
   created_at: string | null;
 };
 

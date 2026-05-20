@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs';
 import { cleanNullableText, normalizePhoneNumber } from '../lib/dataClean';
+import { cleanEmail } from '../lib/cleaners';
 import { getMajorCode, normalizeMajor } from '../lib/major';
 import { normalizeStaffOperationalRole, normalizeStaffSecondaryRoles, normalizeStaffSystemRole } from '../lib/staffRoles';
 import type { MainGroup, StaffRole, Subgroup } from '../lib/types';
@@ -171,7 +172,7 @@ function rowToStaff(row: Record<string, string | null>, sourceSheet: string, sou
   const nicknameEn = get(row, nicknameEnColumns);
   const profile = {
     student_id: get(row, ['student_id', 'รหัสนักศึกษา']),
-    email: get(row, ['email', 'อีเมล', 'ที่อยู่อีเมล']),
+    email: cleanEmail(get(row, ['email', 'อีเมล', 'ที่อยู่อีเมล'])),
     name_th: get(row, ['name_th', 'ชื่อ - นามสกุล', 'ชื่อ-สกุล', 'ชื่อสกุล']),
     name_en: get(row, ['name_en', 'ชื่ออังกฤษ', 'name english']),
     nickname: nicknameTh ?? legacyNickname ?? nicknameEn,

@@ -8,8 +8,12 @@ import { PublicListPage } from './pages/PublicListPage';
 import { VerifyEditPage } from './pages/VerifyEditPage';
 
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then((module) => ({ default: module.AdminDashboardPage })));
+const AdminAnnouncementsPage = lazy(() => import('./pages/AdminAnnouncementsPage').then((module) => ({ default: module.AdminAnnouncementsPage })));
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage').then((module) => ({ default: module.AdminLoginPage })));
 const AdminStaffProfilePage = lazy(() => import('./pages/AdminStaffProfilePage').then((module) => ({ default: module.AdminStaffProfilePage })));
+const AnnouncementDetailPage = lazy(() => import('./pages/AnnouncementDetailPage').then((module) => ({ default: module.AnnouncementDetailPage })));
+const AnnouncementEditPage = lazy(() => import('./pages/AnnouncementEditPage').then((module) => ({ default: module.AnnouncementEditPage })));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage').then((module) => ({ default: module.AnnouncementsPage })));
 const ChangeLogPage = lazy(() => import('./pages/ChangeLogPage').then((module) => ({ default: module.ChangeLogPage })));
 const DataHealthPage = lazy(() => import('./pages/DataHealthPage').then((module) => ({ default: module.DataHealthPage })));
 const EmergencyDashboardPage = lazy(() => import('./pages/EmergencyDashboardPage').then((module) => ({ default: module.EmergencyDashboardPage })));
@@ -37,6 +41,8 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<PublicListPage />} />
+        <Route path="announcements" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementsPage /></Suspense>} />
+        <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
         <Route path="edit" element={<VerifyEditPage />} />
         <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
         <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AdminLoginPage /></Suspense>} />
@@ -57,6 +63,9 @@ export function App() {
         </Route>
         <Route element={<AdminGuard />}>
           <Route path="admin/dashboard" element={<Suspense fallback={<LoadingSkeleton />}><AdminDashboardPage /></Suspense>} />
+          <Route path="admin/announcements" element={<Suspense fallback={<LoadingSkeleton />}><AdminAnnouncementsPage /></Suspense>} />
+          <Route path="admin/announcements/new" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementEditPage /></Suspense>} />
+          <Route path="admin/announcements/:id/edit" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementEditPage /></Suspense>} />
           <Route path="admin/emergency" element={<Suspense fallback={<LoadingSkeleton />}><EmergencyDashboardPage /></Suspense>} />
           <Route path="admin/groups" element={<Suspense fallback={<LoadingSkeleton />}><GroupDashboardPage /></Suspense>} />
           <Route path="admin/staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffManagementPage /></Suspense>} />

@@ -28,7 +28,22 @@ export async function runDataHealthRepair(action: 'normalize_majors' | 'clean_pl
     repair_orphans: 'repair_orphan_staff_assignments',
     sync_staff_roster: 'sync_staff_roster_safe',
   }[action];
-  const { data, error } = await supabase.rpc(rpc);
+  const { data, error } = rpc ? await supabase.rpc(rpc) : await supabase.rpc('run_data_health_repair', { input_action: action });
+  if (error) throw error;
+  return data as Record<string, unknown>;
+}
+
+export type DataHealthRepairAction =
+  | 'clean_placeholders'
+  | 'normalize_majors'
+  | 'repair_staff_roles'
+  | 'repair_orphans'
+  | 'sync_staff_roster'
+  | 'rebuild_group_settings_mentors'
+  | 'major_only_repair';
+
+export async function runUnifiedDataHealthRepair(action: DataHealthRepairAction) {
+  const { data, error } = await supabase.rpc('run_data_health_repair', { input_action: action });
   if (error) throw error;
   return data as Record<string, unknown>;
 }

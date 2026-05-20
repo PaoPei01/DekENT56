@@ -1,4 +1,4 @@
-import { RefreshCw, ShieldCheck, Wrench } from 'lucide-react';
+import { Download, RefreshCw, ShieldCheck, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Badge } from '../components/ui/Badge';
@@ -11,7 +11,7 @@ import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
-import { runDataHealthRepair, validateDataIntegrity, type DataHealthIssue } from '../services/dataHealth';
+import { runUnifiedDataHealthRepair, validateDataIntegrity, type DataHealthIssue, type DataHealthRepairAction } from '../services/dataHealth';
 import { errorMessage } from '../utils/error';
 
 type DetailRow = Record<string, unknown> & {
@@ -32,14 +32,21 @@ const summaryLabels: Record<string, { th: string; en: string }> = {
   staff_without_assignment: { th: 'ทีมงานยังไม่มี assignment', en: 'Staff without assignment' },
   orphan_staff_assignments: { th: 'staff assignment หลุด', en: 'Orphan staff assignments' },
   orphan_group_assignments: { th: 'group assignment หลุด', en: 'Orphan group assignments' },
+  assignment_without_staff_profile: { th: 'assignment ไม่มี staff profile', en: 'Assignment without staff profile' },
+  staff_missing_email_or_phone: { th: 'ทีมงานไม่มีอีเมล/เบอร์', en: 'Staff missing email/phone' },
+  invalid_staff_role: { th: 'system role ผิด', en: 'Invalid staff role' },
+  thai_duty_in_role: { th: 'หน้าที่ไทยอยู่ใน role', en: 'Thai duty stored in role' },
+  invalid_group_scope: { th: 'สี/กลุ่มย่อยผิด', en: 'Invalid group/subgroup' },
 };
 
 const repairActions = [
-  { key: 'normalize_majors', th: 'Normalize majors', en: 'Normalize majors' },
-  { key: 'clean_placeholders', th: 'Clean placeholders', en: 'Clean placeholders' },
-  { key: 'repair_staff_roles', th: 'Repair staff roles', en: 'Repair staff roles' },
-  { key: 'repair_orphans', th: 'Repair orphan assignments', en: 'Repair orphan assignments' },
-  { key: 'sync_staff_roster', th: 'Sync staff roster', en: 'Sync staff roster' },
+  { key: 'clean_placeholders', th: 'ล้าง placeholder', en: 'Clean placeholders' },
+  { key: 'normalize_majors', th: 'Normalize สาขา', en: 'Normalize majors' },
+  { key: 'repair_staff_roles', th: 'ซ่อม role ทีมงาน', en: 'Repair staff roles' },
+  { key: 'repair_orphans', th: 'ซ่อม orphan assignment', en: 'Repair orphan assignments' },
+  { key: 'sync_staff_roster', th: 'ซิงค์ทีมงาน', en: 'Sync staff roster' },
+  { key: 'rebuild_group_settings_mentors', th: 'สร้างรายชื่อพี่กลุ่มใหม่', en: 'Rebuild mentors' },
+  { key: 'major_only_repair', th: 'ซ่อมเฉพาะสาขา', en: 'Major-only repair' },
 ] as const;
 
 export function DataHealthPage() {
@@ -56,13 +63,25 @@ export function DataHealthPage() {
   async function runAction() {
     if (!confirmAction) return;
     try {
-      const result = await runDataHealthRepair(confirmAction.key);
+      const result = await runUnifiedDataHealthRepair(confirmAction.key as DataHealthRepairAction);
       setToast({ type: 'success', message: `${language === 'th' ? confirmAction.th : confirmAction.en}: ${JSON.stringify(result)}` });
       setConfirmAction(null);
       await state.reload();
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ซ่อมข้อมูลไม่สำเร็จ' : 'Repair failed') });
     }
+  }
+
+  function downloadIssueCsv() {
+    const headers = ['type', 'severity', 'count', 'message'];
+    const body = issueRows.map((row) => headers.map((key) => `"${String(row[key as keyof DataHealthIssue] ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([`\uFEFF${headers.join(',')}\n${body}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'tfbp-data-health-issues.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -72,7 +91,7 @@ export function DataHealthPage() {
         eyebrow="Data Health"
         title={language === 'th' ? 'ตรวจสุขภาพข้อมูล' : 'Data Health'}
         description={language === 'th' ? 'ตรวจข้อมูลนำเข้า สาขา placeholder ข้อมูลซ้ำ และ assignment ที่อาจผิดปกติ' : 'Check imports, majors, placeholders, duplicates, and assignment integrity.'}
-        meta={<Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>}
+        meta={<div className="form-actions"><Button variant="secondary" icon={<Download size={18} />} onClick={downloadIssueCsv}>{language === 'th' ? 'Download CSV' : 'Download CSV'}</Button><Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button></div>}
       />
 
       {state.loading ? <LoadingSkeleton /> : null}

@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { HeartPulse, Home, LogOut, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
+import { Bell, HeartPulse, Home, LogOut, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { RoleAwareBottomNav } from './mobile/RoleAwareBottomNav';
 import { useLanguage } from '../context/LanguageContext';
@@ -74,6 +74,7 @@ export function Layout() {
         </Link>
         <div className="nav-links">
           <NavLink to="/">{t.participants}</NavLink>
+          <NavLink to="/announcements">{language === 'th' ? 'ประกาศ' : 'Info'}</NavLink>
           <NavLink to="/edit">{t.edit}</NavLink>
           <details className={`nav-menu ${isAdmin ? 'nav-menu-wide' : ''}`}>
             <summary>
@@ -85,6 +86,7 @@ export function Layout() {
                 <>
                   <span className="nav-menu-label">{language === 'th' ? 'งานหลัก' : 'Core'}</span>
                   <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
+                  <NavLink to="/admin/announcements">{language === 'th' ? 'ประกาศ/ข้อมูลกิจกรรม' : 'Announcements'}</NavLink>
                   <NavLink to="/admin/groups">{t.groups}</NavLink>
                   <NavLink to="/admin/emergency">{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink>
                   <NavLink to="/admin/requests">{t.requests}</NavLink>
@@ -154,6 +156,10 @@ export function Layout() {
               <Search size={19} />
               <span>{language === 'th' ? 'ค้นหา' : 'Search'}</span>
             </Link>
+            <NavLink to="/announcements">
+              <Bell size={19} />
+              <span>{language === 'th' ? 'ประกาศ' : 'Info'}</span>
+            </NavLink>
           </>
         ) : null}
         {!isAdmin && !isStaff ? (
@@ -166,12 +172,6 @@ export function Layout() {
           <NavLink to="/admin">
             <Shield size={19} />
             <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
-          </NavLink>
-        ) : null}
-        {!user && !isAdmin && !isStaff ? (
-          <NavLink to="/staff/profile/verify">
-            <UserCheck size={19} />
-            <span>{language === 'th' ? 'โปรไฟล์' : 'Profile'}</span>
           </NavLink>
         ) : null}
         {isAdmin ? (

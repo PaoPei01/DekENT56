@@ -1,4 +1,5 @@
 import { cleanNullableText, normalizePhoneNumber } from '../lib/dataClean';
+import { cleanEmail } from '../lib/cleaners';
 import { supabase } from '../lib/supabase';
 import type { Json, MainGroup, StaffAssignment, StaffEditRequest, StaffManagementRow, StaffMedicalInfo, StaffProfile, StaffPublicProfile, Subgroup } from '../lib/types';
 
@@ -70,7 +71,7 @@ export async function fetchMyStaffProfile() {
 }
 
 export async function verifyStaffIdentity(email: string, phone: string) {
-  const { data, error } = await supabase.rpc('verify_staff_identity', { input_email: email, input_phone: phone });
+  const { data, error } = await supabase.rpc('verify_staff_identity', { input_email: cleanEmail(email), input_phone: normalizePhoneNumber(phone) });
   if (error) throw error;
   return data as VerifiedStaffProfileContext | null;
 }
@@ -96,8 +97,8 @@ export async function submitStaffEditRequest(input: { profile?: Record<string, u
 
 export async function updateStaffPublicProfileVerified(email: string, phone: string, input: StaffPublicProfileInput & { instagram?: string | null; facebook?: string | null }) {
   const { data, error } = await supabase.rpc('update_staff_public_profile_verified', {
-    input_email: email,
-    input_phone: phone,
+    input_email: cleanEmail(email),
+    input_phone: normalizePhoneNumber(phone),
     input_public_data: cleanInput(input as Record<string, unknown>),
   });
   if (error) throw error;
@@ -113,7 +114,7 @@ export async function submitStaffEditRequestVerified(email: string, phone: strin
   if (payload.profile && typeof payload.profile === 'object' && !Array.isArray(payload.profile) && 'phone' in payload.profile) {
     payload.profile.phone = normalizePhoneNumber(payload.profile.phone);
   }
-  const { data, error } = await supabase.rpc('submit_staff_edit_request_verified', { input_email: email, input_phone: phone, input_new_data: payload });
+  const { data, error } = await supabase.rpc('submit_staff_edit_request_verified', { input_email: cleanEmail(email), input_phone: normalizePhoneNumber(phone), input_new_data: payload });
   if (error) throw error;
   return data as Pick<StaffEditRequest, 'id' | 'status' | 'created_at'>;
 }
