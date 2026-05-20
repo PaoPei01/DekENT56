@@ -55,7 +55,6 @@ export function Layout() {
   const canAttend = Boolean(access?.can_mark_attendance);
   const canEmergency = Boolean(access?.can_view_emergency || access?.is_admin);
   const loginCopy = language === 'th' ? copy.th : copy.en;
-  const accountTarget = isAdmin ? '/admin/dashboard' : isStaff ? '/staff' : '/admin';
 
   return (
     <div>
@@ -102,9 +101,9 @@ export function Layout() {
               {!isAdmin && !isStaff ? <span className="nav-menu-empty">{language === 'th' ? 'เข้าสู่ระบบทีมงานเพื่อดูเครื่องมือเพิ่มเติม' : 'Sign in as staff to see more tools.'}</span> : null}
             </div>
           </details>
-          <NavLink className={`staff-login-link ${user ? 'staff-login-link-active' : ''}`} to={accountTarget}>
+          <NavLink className={`staff-login-link ${user ? 'staff-login-link-active' : ''}`} to="/admin">
             {user ? <UserCheck size={17} /> : <Shield size={17} />}
-            <span>{user ? loginCopy.staffAccount : loginCopy.staffLogin}</span>
+            <span>{user ? (language === 'th' ? 'บัญชี / ออกจากระบบ' : 'Account / Sign out') : loginCopy.staffLogin}</span>
           </NavLink>
           <button className="language-toggle" type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
             {language === 'th' ? 'EN' : 'TH'}
