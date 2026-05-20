@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { HeartPulse, Home, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
+import { FileText, HeartPulse, Home, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
@@ -79,6 +79,7 @@ export function Layout() {
                   <NavLink to="/admin/staff">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink>
                   <NavLink to="/admin/staff/operations">{language === 'th' ? 'โควตาทีมงาน' : 'Staff Ops'}</NavLink>
                   <NavLink to="/admin/staff/import">{language === 'th' ? 'นำเข้าสตาฟ' : 'Import Staff'}</NavLink>
+                  <NavLink to="/admin/documents">{language === 'th' ? 'ศูนย์เอกสาร' : 'Documents'}</NavLink>
                   <NavLink to="/admin/requests">{t.requests}</NavLink>
                   <NavLink to="/admin/logs">{t.logs}</NavLink>
                   <NavLink to="/admin/emergency">{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink>
@@ -140,6 +141,10 @@ export function Layout() {
             <NavLink to="/admin/staff">
               <UserCheck size={19} />
               <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+            </NavLink>
+            <NavLink to="/admin/documents">
+              <FileText size={19} />
+              <span>{language === 'th' ? 'เอกสาร' : 'Docs'}</span>
             </NavLink>
             <NavLink to="/admin/emergency">
               <HeartPulse size={19} />

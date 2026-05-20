@@ -12,6 +12,11 @@ const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage').then((module)
 const ChangeLogPage = lazy(() => import('./pages/ChangeLogPage').then((module) => ({ default: module.ChangeLogPage })));
 const EmergencyDashboardPage = lazy(() => import('./pages/EmergencyDashboardPage').then((module) => ({ default: module.EmergencyDashboardPage })));
 const GroupDashboardPage = lazy(() => import('./pages/GroupDashboardPage').then((module) => ({ default: module.GroupDashboardPage })));
+const DocumentCenterPage = lazy(() => import('./pages/DocumentCenterPage').then((module) => ({ default: module.DocumentCenterPage })));
+const DocumentGeneratePage = lazy(() => import('./pages/DocumentGeneratePage').then((module) => ({ default: module.DocumentGeneratePage })));
+const DocumentHistoryPage = lazy(() => import('./pages/DocumentHistoryPage').then((module) => ({ default: module.DocumentHistoryPage })));
+const DocumentSettingsPage = lazy(() => import('./pages/DocumentSettingsPage').then((module) => ({ default: module.DocumentSettingsPage })));
+const DocumentTemplatesPage = lazy(() => import('./pages/DocumentTemplatesPage').then((module) => ({ default: module.DocumentTemplatesPage })));
 const PendingRequestsPage = lazy(() => import('./pages/PendingRequestsPage').then((module) => ({ default: module.PendingRequestsPage })));
 const StaffAttendancePage = lazy(() => import('./pages/StaffAttendancePage').then((module) => ({ default: module.StaffAttendancePage })));
 const StaffDashboardPage = lazy(() => import('./pages/StaffDashboardPage').then((module) => ({ default: module.StaffDashboardPage })));
@@ -46,6 +51,11 @@ export function App() {
           <Route path="admin/staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffManagementPage /></Suspense>} />
           <Route path="admin/staff/import" element={<Suspense fallback={<LoadingSkeleton />}><StaffImportPage /></Suspense>} />
           <Route path="admin/staff/operations" element={<Suspense fallback={<LoadingSkeleton />}><StaffOperationsPage /></Suspense>} />
+          <Route path="admin/documents" element={<Suspense fallback={<LoadingSkeleton />}><DocumentCenterPage /></Suspense>} />
+          <Route path="admin/documents/settings" element={<Suspense fallback={<LoadingSkeleton />}><DocumentSettingsPage /></Suspense>} />
+          <Route path="admin/documents/templates" element={<Suspense fallback={<LoadingSkeleton />}><DocumentTemplatesPage /></Suspense>} />
+          <Route path="admin/documents/generate" element={<Suspense fallback={<LoadingSkeleton />}><DocumentGeneratePage /></Suspense>} />
+          <Route path="admin/documents/history" element={<Suspense fallback={<LoadingSkeleton />}><DocumentHistoryPage /></Suspense>} />
           <Route path="admin/requests" element={<Suspense fallback={<LoadingSkeleton />}><PendingRequestsPage /></Suspense>} />
           <Route path="admin/logs" element={<Suspense fallback={<LoadingSkeleton />}><ChangeLogPage /></Suspense>} />
         </Route>

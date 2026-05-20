@@ -1409,6 +1409,99 @@ th {
   accent-color: var(--accent);
 }
 
+.document-action-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.document-action-card {
+  min-height: 150px;
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.document-action-card:hover,
+.document-action-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(44, 111, 255, 0.32);
+}
+
+.document-action-card svg {
+  color: var(--accent);
+}
+
+.document-action-card span,
+.document-readiness span,
+.document-preview-card p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.document-edit-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.document-row-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr auto;
+  gap: 0.65rem;
+  align-items: end;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.document-readiness {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 54px;
+}
+
+.document-missing-card,
+.document-preview-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.document-preview {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.document-preview div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.document-preview span {
+  color: var(--muted);
+}
+
+.document-history-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.65rem;
+  box-shadow: none;
+}
+
 .import-stepper {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2621,6 +2714,15 @@ th {
     border: 0;
     background: transparent;
     box-shadow: none;
+  }
+
+  .document-action-grid,
+  .document-row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .document-row-grid {
+    border-radius: 20px;
   }
 }
 
