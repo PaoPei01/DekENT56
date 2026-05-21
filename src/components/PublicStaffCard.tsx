@@ -17,6 +17,9 @@ export function PublicStaffCard({ staff, internal = false }: PublicStaffCardProp
   const [avatarUrl, setAvatarUrl] = useState<string | null>(staff.avatar_url ?? null);
   const displayName = staffDisplayName(staff);
   const role = staff.primary_role || staff.position || (language === 'th' ? 'ทีมงาน' : 'Staff');
+  const scope = staff.base_number
+    ? `${language === 'th' ? 'ฐาน' : 'Base'} ${staff.base_number}`
+    : groupLabel(staff.main_group, staff.subgroup, language);
 
   useEffect(() => {
     let active = true;
@@ -34,7 +37,7 @@ export function PublicStaffCard({ staff, internal = false }: PublicStaffCardProp
       <div className="public-staff-body">
         <div>
           <strong>{displayName}</strong>
-          <span>{role} · {groupLabel(staff.main_group, staff.subgroup, language)}</span>
+          <span>{role} · {scope}</span>
         </div>
         {staff.bio ? <p>{staff.bio}</p> : null}
         {staff.interests?.length ? <small>{staff.interests.join(' · ')}</small> : null}

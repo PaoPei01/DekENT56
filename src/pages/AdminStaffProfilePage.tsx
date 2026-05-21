@@ -40,6 +40,7 @@ export function AdminStaffProfilePage() {
     primary_role: data.assignment?.primary_role ?? null,
     main_group: data.assignment?.main_group ?? null,
     subgroup: data.assignment?.subgroup ?? null,
+    base_number: data.assignment?.base_number ?? null,
     bio: mergedPublic.bio ?? null,
     interests: mergedPublic.interests ?? [],
     instagram: mergedPublic.show_instagram ? data.profile.instagram : null,

@@ -24,6 +24,7 @@ export type PublicStaffCardData = {
   primary_role: string | null;
   main_group: MainGroup | null;
   subgroup: Subgroup | null;
+  base_number?: number | null;
   bio: string | null;
   interests: string[] | null;
   instagram: string | null;
@@ -40,7 +41,7 @@ export type StaffDirectoryRow = PublicStaffCardData & {
 export type VerifiedStaffProfileContext = {
   profile: Pick<StaffProfile, 'id' | 'student_id' | 'email' | 'name_th' | 'name_en' | 'nickname' | 'nickname_th' | 'nickname_en' | 'major' | 'instagram' | 'facebook' | 'position'>;
   public_profile: StaffPublicProfile | null;
-  assignment: Pick<StaffAssignment, 'main_group' | 'subgroup' | 'primary_role' | 'secondary_roles'> | null;
+  assignment: Pick<StaffAssignment, 'main_group' | 'subgroup' | 'primary_role' | 'secondary_roles' | 'base_number'> | null;
   edit_requests: Array<Pick<StaffEditRequest, 'id' | 'status' | 'created_at' | 'admin_note'>>;
 };
 

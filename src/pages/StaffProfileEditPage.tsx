@@ -43,12 +43,13 @@ export function StaffProfileEditPage() {
     primary_role: state.data.assignment?.primary_role ?? null,
     main_group: state.data.assignment?.main_group ?? null,
     subgroup: state.data.assignment?.subgroup ?? null,
+    base_number: state.data.assignment?.base_number ?? null,
     bio: mergedForm.bio ?? null,
     interests: mergedForm.interests ?? [],
     instagram: mergedForm.show_instagram ? state.data.profile.instagram : null,
     line_id: mergedForm.show_line_id ? state.data.profile.line_id : null,
     facebook: mergedForm.show_facebook ? state.data.profile.facebook : null,
-    phone: mergedForm.show_phone_to_public ? state.data.profile.phone : null,
+    phone: null,
   } : null;
 
   useEffect(() => {
@@ -168,13 +169,16 @@ export function StaffProfileEditPage() {
               <Input label={language === 'th' ? 'ภูมิลำเนา' : 'Hometown'} value={mergedForm.hometown ?? ''} onChange={(event) => patch({ hometown: event.target.value })} />
               <Input label={language === 'th' ? 'ความสนใจ (คั่นด้วย comma)' : 'Interests (comma separated)'} value={(mergedForm.interests ?? []).join(', ')} onChange={(event) => patch({ interests: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} />
               <h3 className="full-span form-section-title">{language === 'th' ? 'การมองเห็นข้อมูล' : 'Visibility'}</h3>
+              <Card className="privacy-notice full-span" variant="soft">
+                <strong>{language === 'th' ? 'โปรไฟล์พื้นฐานแบบปลอดภัย' : 'Safe Public Lite profile'}</strong>
+                <span>{language === 'th' ? 'โปรไฟล์พื้นฐานของพี่อาจแสดงให้น้องเห็น เช่น ชื่อเล่นและหน้าที่ แต่ช่องทางติดต่อจะซ่อนไว้จนกว่าพี่จะเลือกเปิดเอง' : 'Your basic staff profile may be visible to participants, but contact channels stay hidden until you choose to show them.'}</span>
+              </Card>
               {[
-                ['public_profile_enabled', language === 'th' ? 'เปิดโปรไฟล์ให้น้องเห็น' : 'Enable public profile'],
-                ['show_instagram', 'Show Instagram'],
-                ['show_line_id', 'Show LINE'],
-                ['show_facebook', 'Show Facebook'],
-                ['show_phone_to_staff', language === 'th' ? 'ให้ทีมงานเห็นเบอร์โทร' : 'Show phone to staff'],
-                ['show_phone_to_public', language === 'th' ? 'ให้สาธารณะเห็นเบอร์โทร' : 'Show phone publicly'],
+                ['public_profile_enabled', language === 'th' ? 'เปิด/ปิดโปรไฟล์พื้นฐาน' : 'Basic profile on/off'],
+                ['show_instagram', language === 'th' ? 'แสดง Instagram' : 'Show Instagram'],
+                ['show_line_id', language === 'th' ? 'แสดง LINE' : 'Show LINE'],
+                ['show_facebook', language === 'th' ? 'แสดง Facebook' : 'Show Facebook'],
+                ['show_phone_to_staff', language === 'th' ? 'ให้ทีมงานที่มีสิทธิ์เห็นเบอร์โทร' : 'Show phone to authorized staff'],
               ].map(([key, label]) => (
                 <label className="check-field" key={key}>
                   <input type="checkbox" checked={Boolean(mergedForm[key as keyof StaffPublicProfileInput])} onChange={(event) => patch({ [key]: event.target.checked } as StaffPublicProfileInput)} />

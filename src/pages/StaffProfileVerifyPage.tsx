@@ -39,6 +39,7 @@ export function StaffProfileVerifyPage() {
     primary_role: data.assignment?.primary_role ?? null,
     main_group: data.assignment?.main_group ?? null,
     subgroup: data.assignment?.subgroup ?? null,
+    base_number: data.assignment?.base_number ?? null,
     bio: mergedForm.bio ?? null,
     interests: mergedForm.interests ?? [],
     instagram: mergedForm.show_instagram ? mergedForm.instagram ?? null : null,
@@ -68,8 +69,8 @@ export function StaffProfileVerifyPage() {
         bio: result.public_profile?.bio ?? '',
         hometown: result.public_profile?.hometown ?? '',
         interests: result.public_profile?.interests ?? [],
-        public_profile_enabled: result.public_profile?.public_profile_enabled ?? false,
-        show_instagram: result.public_profile?.show_instagram ?? true,
+        public_profile_enabled: result.public_profile?.public_profile_enabled ?? true,
+        show_instagram: result.public_profile?.show_instagram ?? false,
         show_facebook: result.public_profile?.show_facebook ?? false,
         show_line_id: result.public_profile?.show_line_id ?? false,
         show_phone_to_staff: result.public_profile?.show_phone_to_staff ?? true,
@@ -149,6 +150,10 @@ export function StaffProfileVerifyPage() {
             <Card>
               <form className="form-grid" onSubmit={savePublic}>
                 <Card className="privacy-notice full-span" variant="soft">
+                  <strong>{language === 'th' ? 'โปรไฟล์พื้นฐานแบบปลอดภัย' : 'Safe Public Lite profile'}</strong>
+                  <span>{language === 'th' ? 'โปรไฟล์พื้นฐานของพี่อาจแสดงให้น้องเห็น เช่น ชื่อเล่นและหน้าที่ แต่ช่องทางติดต่อจะซ่อนไว้จนกว่าพี่จะเลือกเปิดเอง' : 'Your basic staff profile may be visible to participants, but contact channels stay hidden until you choose to show them.'}</span>
+                </Card>
+                <Card className="privacy-notice full-span" variant="soft">
                   <strong>{language === 'th' ? 'การอัปโหลดรูป' : 'Profile photo upload'}</strong>
                   <span>{language === 'th' ? 'เพื่อความปลอดภัย การอัปโหลดไฟล์รูปทำได้หลังเข้าสู่ระบบทีมงาน หรือให้แอดมินอัปโหลดให้เท่านั้น หน้านี้ยังแก้ Bio/ความสนใจ/การมองเห็นได้ตามปกติ' : 'For security, image file upload is available after staff login or by admin. This verified page can still edit bio, interests, and visibility settings.'}</span>
                 </Card>
@@ -163,11 +168,10 @@ export function StaffProfileVerifyPage() {
                 <Input label="Facebook" value={mergedForm.facebook ?? ''} onChange={(event) => patch({ facebook: event.target.value })} />
                 <h3 className="full-span form-section-title">{language === 'th' ? 'การมองเห็นข้อมูล' : 'Visibility'}</h3>
                 {[
-                  ['public_profile_enabled', language === 'th' ? 'เปิดโปรไฟล์ให้น้องเห็น' : 'Enable public profile'],
-                  ['show_instagram', 'Show Instagram'],
-                  ['show_facebook', 'Show Facebook'],
-                  ['show_line_id', 'Show LINE'],
-                  ['show_phone_to_staff', language === 'th' ? 'ให้ทีมงานเห็นเบอร์โทร' : 'Show phone to staff'],
+                  ['public_profile_enabled', language === 'th' ? 'เปิด/ปิดโปรไฟล์พื้นฐาน' : 'Basic profile on/off'],
+                  ['show_instagram', language === 'th' ? 'แสดง Instagram' : 'Show Instagram'],
+                  ['show_line_id', language === 'th' ? 'แสดง LINE' : 'Show LINE'],
+                  ['show_facebook', language === 'th' ? 'แสดง Facebook' : 'Show Facebook'],
                 ].map(([key, label]) => (
                   <label className="check-field" key={key}>
                     <input type="checkbox" checked={Boolean(mergedForm[key as keyof typeof mergedForm])} onChange={(event) => patch({ [key]: event.target.checked } as StaffPublicProfileInput)} />
