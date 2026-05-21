@@ -7,9 +7,10 @@ import { StaffGuard } from './components/StaffGuard';
 import { PublicListPage } from './pages/PublicListPage';
 import { VerifyEditPage } from './pages/VerifyEditPage';
 
+// Auth, public, admin, and staff pages are grouped here to keep route ownership readable.
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then((module) => ({ default: module.AdminDashboardPage })));
 const AdminAnnouncementsPage = lazy(() => import('./pages/AdminAnnouncementsPage').then((module) => ({ default: module.AdminAnnouncementsPage })));
-const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage').then((module) => ({ default: module.AdminLoginPage })));
+const AuthLoginPage = lazy(() => import('./pages/AuthLoginPage').then((module) => ({ default: module.AuthLoginPage })));
 const AdminStaffProfilePage = lazy(() => import('./pages/AdminStaffProfilePage').then((module) => ({ default: module.AdminStaffProfilePage })));
 const AnnouncementDetailPage = lazy(() => import('./pages/AnnouncementDetailPage').then((module) => ({ default: module.AnnouncementDetailPage })));
 const AnnouncementEditPage = lazy(() => import('./pages/AnnouncementEditPage').then((module) => ({ default: module.AnnouncementEditPage })));
@@ -45,8 +46,8 @@ export function App() {
         <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
         <Route path="edit" element={<VerifyEditPage />} />
         <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
-        <Route path="login" element={<Suspense fallback={<LoadingSkeleton />}><AdminLoginPage /></Suspense>} />
-        <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AdminLoginPage /></Suspense>} />
+        <Route path="login" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
+        <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
         <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer', 'emergency_staff']} />}>
           <Route path="staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffDashboardPage /></Suspense>} />
           <Route path="staff/profile" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfilePage /></Suspense>} />

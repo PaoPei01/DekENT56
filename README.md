@@ -145,7 +145,8 @@ The frontend also includes the same helper in `src/lib/contactParser.ts` for imp
 
 - `/` - public participant list
 - `/edit` - verify identity and submit edit request
-- `/admin` - admin login
+- `/login` - unified staff/admin sign in
+- `/admin` - backward-compatible sign-in entry, renders the same unified login page
 - `/admin/dashboard` - admin dashboard
 - `/admin/groups` - smart group assignment dashboard
 - `/admin/staff` - staff management
@@ -172,6 +173,8 @@ The frontend also includes the same helper in `src/lib/contactParser.ts` for imp
 ## Document Center
 
 The Document Center is admin-only and uses Supabase RLS plus private Supabase Storage. It does not expose participant medical/contact data or the Supabase `service_role` key in the browser.
+
+Template uploads are stored in the private `document-templates` bucket before metadata is inserted. If metadata insertion fails, the app now attempts to remove the uploaded object so private Storage does not collect orphan templates. Generated document history uses the server-side `create_generated_document_record` RPC for the final version number; client-side version guesses must not be used as the source of truth.
 
 Apply these migrations before using it:
 
@@ -380,7 +383,7 @@ Avatar storage rules:
 - Supported original files: JPG, PNG, WEBP up to 5 MB.
 - Target output: WebP, longest side around 800px, usually under 300 KB.
 - Replacing a photo overwrites the same stable object path with `upsert: true`, preventing old avatar files from accumulating.
-- Removing a photo deletes/clears the stable object and sets `avatar_path` to null.
+- Removing a photo clears `avatar_path` through RPC first, then removes the stable Storage object as best effort, so a Storage cleanup failure does not leave a broken public profile reference.
 
 Storage access is restricted by policy:
 
@@ -419,7 +422,9 @@ TFBP is designed as a mobile-first event operations platform. Public pages shoul
 - Public participant search works by name, nickname, major, color group, and subgroup.
 - Participant edit request works, including `nickname_en` and consent fields.
 - Admin login rejects non-admin Supabase Auth users.
-- Staff login and staff profile verify are tested separately.
+- Unified `/login` sends admins to `/admin/dashboard`, staff accounts to `/staff`, and signs out accounts with no admin/staff access.
+- Staff login and no-auth staff profile verify are tested separately.
+- Mobile More menu closes on link/button selection, Escape, and backdrop click.
 - Data Health shows no critical errors before group announcement.
 - Document generation creates a DOCX, stores it in private Storage, and history download works.
 - Mobile safe-area spacing is tested on iPhone SE, iPhone 12/13/14, and Android Chrome.

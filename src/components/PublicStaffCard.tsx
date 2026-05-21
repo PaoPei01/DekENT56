@@ -1,11 +1,9 @@
 import { Facebook, Instagram, Phone } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { AvatarPlaceholder } from './ui/AvatarPlaceholder';
+import { StaffAvatar } from './StaffAvatar';
 import { groupLabel } from '../lib/grouping';
 import { useLanguage } from '../context/LanguageContext';
 import type { PublicStaffCardData } from '../services/staffProfiles';
 import { staffDisplayName } from '../services/staffProfiles';
-import { resolveStaffAvatarUrl } from '../services/staffAvatar';
 
 type PublicStaffCardProps = {
   staff: PublicStaffCardData;
@@ -14,26 +12,15 @@ type PublicStaffCardProps = {
 
 export function PublicStaffCard({ staff, internal = false }: PublicStaffCardProps) {
   const { language } = useLanguage();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(staff.avatar_url ?? null);
   const displayName = staffDisplayName(staff);
   const role = staff.primary_role || staff.position || (language === 'th' ? 'ทีมงาน' : 'Staff');
   const scope = staff.base_number
     ? `${language === 'th' ? 'ฐาน' : 'Base'} ${staff.base_number}`
     : groupLabel(staff.main_group, staff.subgroup, language);
 
-  useEffect(() => {
-    let active = true;
-    void resolveStaffAvatarUrl(staff).then((url) => {
-      if (active) setAvatarUrl(url);
-    });
-    return () => {
-      active = false;
-    };
-  }, [staff]);
-
   return (
     <article className="public-staff-card">
-      <AvatarPlaceholder src={avatarUrl} name={displayName} />
+      <StaffAvatar avatarPath={staff.avatar_path} avatarUrl={staff.avatar_url} name={displayName} />
       <div className="public-staff-body">
         <div>
           <strong>{displayName}</strong>

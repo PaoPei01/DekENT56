@@ -80,7 +80,11 @@ export async function uploadDocumentTemplate(input: {
     is_active: input.is_active,
     created_by: userId,
   }).select('*').single();
-  if (error) throw error;
+  if (error) {
+    const cleanup = await supabase.storage.from(templateBucket).remove([storagePath]);
+    if (cleanup.error) console.warn('Template metadata insert failed and Storage cleanup also failed:', cleanup.error.message);
+    throw error;
+  }
   return data as DocumentTemplate;
 }
 
@@ -103,12 +107,6 @@ export async function downloadTemplateBuffer(template: DocumentTemplate) {
     return bytes.buffer;
   }
   throw new Error('ไม่พบไฟล์ template ใน Storage');
-}
-
-export async function nextDocumentVersion(templateId: string, documentType: DocumentType) {
-  const { data, error } = await supabase.from('generated_documents').select('version').eq('template_id', templateId).eq('document_type', documentType).order('version', { ascending: false }).limit(1);
-  if (error) throw error;
-  return Number(data?.[0]?.version ?? 0) + 1;
 }
 
 export async function uploadGeneratedDocx(fileName: string, blob: Blob) {

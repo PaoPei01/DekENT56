@@ -149,7 +149,7 @@ export function Layout() {
               <span>{loginCopy.staffLogin}</span>
             </NavLink>
           )}
-          <button className="language-toggle" type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
+          <button className="language-toggle" type="button" aria-label={language === 'th' ? 'เปลี่ยนภาษาเป็นอังกฤษ' : 'Switch language to Thai'} onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
             {language === 'th' ? 'EN' : 'TH'}
           </button>
         </div>
@@ -207,7 +207,7 @@ export function Layout() {
               <HeartPulse size={19} />
               <span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span>
             </NavLink>
-            <button type="button" onClick={() => setMobileMoreOpen(true)}>
+            <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
               <span>{language === 'th' ? 'เพิ่มเติม' : 'More'}</span>
             </button>
@@ -237,7 +237,7 @@ export function Layout() {
                 <span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span>
               </NavLink>
             ) : null}
-            <button type="button" onClick={() => setMobileMoreOpen(true)}>
+            <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
               <span>{language === 'th' ? 'เพิ่มเติม' : 'More'}</span>
             </button>

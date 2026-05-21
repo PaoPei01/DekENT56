@@ -1,18 +1,16 @@
 import { LogIn, LogOut, UserCheck } from 'lucide-react';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { fetchStaffAccessContext } from '../services/staff';
+import { AuthAccessError, authErrorMessage, resolveUserAccess, signInAndResolveAccess, type AccessTarget } from '../services/authAccess';
 
-type AccessTarget = 'admin' | 'staff' | 'none';
-
-export function AdminLoginPage() {
+export function AuthLoginPage() {
   const { language } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,26 +21,8 @@ export function AdminLoginPage() {
   const [signingOut, setSigningOut] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const navigate = useNavigate();
-
-  const resolveAccess = useCallback(async (userId: string): Promise<AccessTarget> => {
-    const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin', { uid: userId });
-    if (adminError) throw adminError;
-    if (isAdmin) return 'admin';
-    const access = await fetchStaffAccessContext();
-    if (access.can_view_staff || access.can_mark_attendance || access.can_view_emergency || access.roles?.length) return 'staff';
-    return 'none';
-  }, []);
-
-  function authErrorMessage(err: unknown) {
-    const message = err instanceof Error ? err.message.toLowerCase() : '';
-    if (message.includes('invalid login') || message.includes('invalid credentials')) {
-      return language === 'th' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : 'Invalid email or password.';
-    }
-    if (message.includes('network') || message.includes('fetch')) {
-      return language === 'th' ? 'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่' : 'Could not connect. Please try again.';
-    }
-    return language === 'th' ? 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่' : 'Sign in failed. Please try again.';
-  }
+  const location = useLocation();
+  const routeMessage = (location.state as { message?: string } | null)?.message;
 
   useEffect(() => {
     let active = true;
@@ -66,7 +46,7 @@ export function AdminLoginPage() {
       active = false;
     };
     setCheckingAccess(true);
-    resolveAccess(user.id)
+    resolveUserAccess(user.id)
       .then((target) => {
         if (active) setAccessTarget(target);
       })
@@ -79,17 +59,14 @@ export function AdminLoginPage() {
     return () => {
       active = false;
     };
-  }, [resolveAccess, user]);
+  }, [user]);
 
   async function handleLogin(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setToast(null);
     try {
-      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      const signedInUser = signInData.user;
-      const target = await resolveAccess(signedInUser.id);
+      const { target, user: signedInUser } = await signInAndResolveAccess(email, password);
       setAccessTarget(target);
       if (target === 'admin') {
         setUser(signedInUser);
@@ -108,10 +85,15 @@ export function AdminLoginPage() {
       setAccessTarget(null);
       setToast({ type: 'error', message: language === 'th' ? 'บัญชีนี้ยังไม่มีสิทธิ์เข้าใช้งานระบบทีมงาน' : 'This account does not have staff access.' });
     } catch (err) {
-      await supabase.auth.signOut();
-      setUser(null);
+      if (!(err instanceof AuthAccessError && err.code === 'access_check_failed')) {
+        await supabase.auth.signOut();
+        setUser(null);
+      } else {
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user ?? null);
+      }
       setAccessTarget(null);
-      setToast({ type: 'error', message: authErrorMessage(err) });
+      setToast({ type: 'error', message: authErrorMessage(err, language) });
     } finally {
       setLoading(false);
     }
@@ -135,6 +117,16 @@ export function AdminLoginPage() {
         <h1>{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff Sign In'}</h1>
         <p>{language === 'th' ? 'ใช้บัญชีที่ได้รับสิทธิ์ทีมงานหรือผู้ดูแลระบบ' : 'Use an account with staff or admin access.'}</p>
       </div>
+      {routeMessage ? (
+        <Card className="privacy-notice" variant="warning">
+          <strong>{language === 'th' ? 'ต้องเข้าสู่ระบบก่อน' : 'Sign in required'}</strong>
+          <span>
+            {routeMessage === 'admin_required'
+              ? (language === 'th' ? 'หน้านี้สำหรับผู้ดูแลระบบเท่านั้น' : 'This page is for admins only.')
+              : (language === 'th' ? 'กรุณาเข้าสู่ระบบด้วยบัญชีทีมงานที่ได้รับสิทธิ์' : 'Please sign in with an authorized staff account.')}
+          </span>
+        </Card>
+      ) : null}
       {user ? (
         <Card className="auth-account-card">
           <div>

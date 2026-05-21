@@ -131,11 +131,11 @@ export async function uploadStaffAvatar(staffProfileId: string, file: File) {
 export async function removeStaffAvatar(staffProfileId: string, avatarPath?: string | null) {
   if (!staffProfileId) throw new Error('ไม่พบรหัสโปรไฟล์ทีมงาน');
   const path = avatarPath ?? staffAvatarPath(staffProfileId);
-  const { error: removeError } = await supabase.storage.from(AVATAR_BUCKET).remove([path]);
-  if (removeError) throw removeError;
   const { data, error } = await supabase.rpc('clear_staff_avatar_path', {
     input_staff_profile_id: staffProfileId,
   });
   if (error) throw error;
+  const { error: removeError } = await supabase.storage.from(AVATAR_BUCKET).remove([path]);
+  if (removeError) console.warn('Avatar path was cleared, but Storage cleanup failed:', removeError.message);
   return data as StaffPublicProfile;
 }
