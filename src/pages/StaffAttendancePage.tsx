@@ -1,5 +1,5 @@
 import { Camera, CheckCircle2, Clock, Copy, History, Home, Link2, ShieldCheck } from 'lucide-react';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
@@ -10,7 +10,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
-import { useAsync } from '../hooks/useAsync';
+import type { MyStaffAttendanceData } from '../lib/attendanceTypes';
+import { supabase } from '../lib/supabase';
 import { fetchMyStaffAttendance, scanStaffAttendanceSessionQr } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
 
@@ -48,12 +49,14 @@ function tokenFromInput(value: string) {
 
 export function StaffAttendancePage() {
   const { language } = useLanguage();
-  const state = useAsync(fetchMyStaffAttendance, []);
+  const [data, setData] = useState<MyStaffAttendanceData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const [checking, setChecking] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const navigate = useNavigate();
-  const data = state.data;
   const activeSessions = useMemo(() => data?.active_sessions ?? [], [data?.active_sessions]);
   const records = useMemo(() => data?.records ?? [], [data?.records]);
   const latest = data?.latest_record;
@@ -62,6 +65,28 @@ export function StaffAttendancePage() {
     checked: activeSessions.filter((session) => session.record).length,
     late: records.filter((record) => record.status === 'late').length,
   }), [activeSessions, records]);
+
+  const loadAttendance = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      setIsAuthenticated(Boolean(userData.user));
+      if (!userData.user) {
+        setData(null);
+        return;
+      }
+      setData(await fetchMyStaffAttendance());
+    } catch (err) {
+      setError(errorMessage(err, language === 'th' ? 'โหลดข้อมูลเช็กชื่อไม่สำเร็จ' : 'Could not load attendance'));
+    } finally {
+      setLoading(false);
+    }
+  }, [language]);
+
+  useEffect(() => {
+    void loadAttendance();
+  }, [loadAttendance]);
 
   async function pasteTokenCheckIn(event: FormEvent) {
     event.preventDefault();
@@ -72,9 +97,17 @@ export function StaffAttendancePage() {
     }
     try {
       setChecking(true);
+      if (!isAuthenticated) {
+        navigate(`/staff/attendance/scan?token=${encodeURIComponent(token)}`);
+        return;
+      }
       const result = await scanStaffAttendanceSessionQr(token, { source: 'staff_attendance_page', userAgent: navigator.userAgent });
+      if (result.code === 'staff_not_found') {
+        navigate(`/staff/attendance/scan?token=${encodeURIComponent(token)}`);
+        return;
+      }
       setToast({ type: result.success ? 'success' : 'error', message: resultMessage(result.code, language) });
-      await state.reload();
+      await loadAttendance();
       setTokenInput('');
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'เช็กชื่อไม่สำเร็จ' : 'Check-in failed') });
@@ -83,8 +116,8 @@ export function StaffAttendancePage() {
     }
   }
 
-  if (state.loading) return <LoadingSkeleton />;
-  if (state.error) return <div className="error-state">{state.error}</div>;
+  if (loading) return <LoadingSkeleton />;
+  if (error) return <div className="error-state">{error}</div>;
 
   return (
     <section className="page-stack staff-page staff-attendance-home">
@@ -92,23 +125,23 @@ export function StaffAttendancePage() {
       <PageHeader
         eyebrow="Staff Attendance"
         title={language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}
-        description={language === 'th' ? 'สแกน QR Code ของรอบเช็กชื่อด้วยกล้องมือถือ หรือวางลิงก์สำรองเพื่อเช็กชื่อด้วยบัญชีของตัวเอง' : 'Scan the attendance QR code with your phone camera, or paste the fallback link here.'}
-        actions={<Link className="btn btn-secondary" to="/staff"><Home size={18} />{language === 'th' ? 'หน้าสตาฟ' : 'Staff Home'}</Link>}
+        description={language === 'th' ? 'สแกน QR Code ของรอบเช็กชื่อด้วยกล้องมือถือ หรือเปิดลิงก์ที่ได้รับ' : 'Scan the attendance QR code with your phone camera, or open the link you received.'}
+        actions={isAuthenticated ? <Link className="btn btn-secondary" to="/staff"><Home size={18} />{language === 'th' ? 'หน้าสตาฟ' : 'Staff Home'}</Link> : <Link className="btn btn-secondary" to="/login">{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff Login'}</Link>}
       />
 
-      <div className="stats-grid">
+      {isAuthenticated ? <div className="stats-grid">
         <DashboardStatCard label={language === 'th' ? 'ชื่อทีมงาน' : 'Staff'} value={displayName(data?.staff_profile)} icon={<ShieldCheck size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'รอบที่เปิดอยู่' : 'Active sessions'} value={counts.active} icon={<Clock size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'เช็กแล้ว' : 'Checked'} value={counts.checked} icon={<CheckCircle2 size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'ประวัติ' : 'History'} value={records.length} icon={<History size={20} />} />
-      </div>
+      </div> : null}
 
       <Card className="staff-attendance-primary" variant="soft">
         <div className="attendance-camera-icon"><Camera size={28} /></div>
         <div>
           <p className="eyebrow">{language === 'th' ? 'วิธีหลัก' : 'Primary flow'}</p>
           <h2>{language === 'th' ? 'สแกน QR Code ของรอบเช็กชื่อ' : 'Scan the attendance QR code'}</h2>
-          <p>{language === 'th' ? 'เปิดกล้องมือถือแล้วสแกน QR ที่แอดมินแสดงไว้ ระบบจะเช็กชื่อให้บัญชีทีมงานที่กำลังเข้าสู่ระบบอยู่เท่านั้น' : 'Use your phone camera to scan the QR shown by admins. The system checks in only the signed-in staff account.'}</p>
+          <p>{language === 'th' ? 'เปิดกล้องมือถือแล้วสแกน QR ที่แอดมินแสดงไว้ หากไม่ได้เข้าสู่ระบบ ระบบจะให้ยืนยันด้วยอีเมลและเบอร์โทรที่ลงทะเบียนทีมงาน' : 'Use your phone camera to scan the QR shown by admins. If you are not signed in, you can verify with your staff email and phone.'}</p>
         </div>
       </Card>
 
@@ -121,15 +154,15 @@ export function StaffAttendancePage() {
             placeholder={language === 'th' ? 'วางลิงก์จาก QR หากกล้องเปิดไม่ได้' : 'Paste the QR link if camera scan is not available'}
             hint={language === 'th' ? 'ใช้เฉพาะกรณีสแกนด้วยกล้องไม่ได้' : 'Use only if camera scanning is not available.'}
           />
-          <Button type="submit" loading={checking} icon={<Link2 size={18} />}>{language === 'th' ? 'เช็กชื่อด้วยลิงก์' : 'Check in with link'}</Button>
+          <Button type="submit" loading={checking} icon={<Link2 size={18} />}>{language === 'th' ? 'เช็กชื่อ' : 'Check in'}</Button>
         </form>
       </Card>
 
-      <div className="staff-section-head">
+      {isAuthenticated ? <div className="staff-section-head">
         <h2>{language === 'th' ? 'รอบเช็กชื่อที่เปิดอยู่' : 'Active attendance sessions'}</h2>
         <span>{activeSessions.length} {language === 'th' ? 'รอบ' : 'sessions'}</span>
-      </div>
-      <div className="attendance-session-grid">
+      </div> : null}
+      {isAuthenticated ? <div className="attendance-session-grid">
         {activeSessions.length ? activeSessions.map((session) => (
           <Card key={session.id} className="attendance-session-card">
             <div>
@@ -147,7 +180,12 @@ export function StaffAttendancePage() {
         )) : (
           <Card className="empty-state">{language === 'th' ? 'ยังไม่มีรอบเช็กชื่อที่เปิดอยู่สำหรับบัญชีนี้' : 'No active attendance sessions for this account right now.'}</Card>
         )}
-      </div>
+      </div> : (
+        <Card className="privacy-notice" variant="soft">
+          <strong>{language === 'th' ? 'ไม่จำเป็นต้องมีบัญชีเข้าสู่ระบบ' : 'No login required'}</strong>
+          <span>{language === 'th' ? 'ถ้าไม่มีบัญชีทีมงาน ให้สแกน QR หรือวางลิงก์ ระบบจะให้กรอกอีเมลและเบอร์โทรเพื่อยืนยันตัวตนก่อนเช็กชื่อ' : 'If you do not have a staff login, scan the QR or paste the link and verify with email and phone.'}</span>
+        </Card>
+      )}
 
       {latest ? (
         <Card className="privacy-notice" variant="success">
@@ -156,7 +194,7 @@ export function StaffAttendancePage() {
         </Card>
       ) : null}
 
-      <ResponsiveDataTable
+      {isAuthenticated ? <ResponsiveDataTable
         rows={records}
         getKey={(row) => row.id}
         emptyText={language === 'th' ? 'ยังไม่มีประวัติการเช็กชื่อ' : 'No attendance history yet'}
@@ -169,7 +207,7 @@ export function StaffAttendancePage() {
           { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatDateTime(row.scanned_at ?? row.updated_at, language) },
           { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => row.method },
         ]}
-      />
+      /> : null}
     </section>
   );
 }
@@ -186,6 +224,7 @@ function resultMessage(code: string, language: 'th' | 'en') {
     session_closed: { th: 'รอบเช็กชื่อนี้ปิดแล้ว', en: 'This session is closed' },
     qr_expired: { th: 'QR หมดอายุแล้ว', en: 'QR has expired' },
     staff_not_found: { th: 'ไม่พบข้อมูลทีมงานของบัญชีนี้', en: 'Staff profile not found' },
+    identity_verification_failed: { th: 'ไม่พบข้อมูลทีมงานจากอีเมลและเบอร์โทรนี้', en: 'No staff profile found for this email and phone' },
     not_in_target_scope: { th: 'บัญชีนี้ไม่มีสิทธิ์เช็กชื่อรอบนี้', en: 'This account is not allowed for this session' },
   };
   return messages[code]?.[language] ?? (language === 'th' ? 'ดำเนินการแล้ว' : 'Done');

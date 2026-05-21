@@ -1,3 +1,5 @@
+create extension if not exists pgcrypto with schema extensions;
+
 create table if not exists public.staff_public_profiles (
   staff_profile_id uuid primary key references public.staff_profiles(id) on delete cascade,
   avatar_url text,
@@ -11,7 +13,7 @@ create table if not exists public.staff_public_profiles (
   show_phone_to_staff boolean default true,
   show_phone_to_public boolean default false,
   staff_badges text[] default '{}'::text[],
-  qr_token text unique default encode(gen_random_bytes(16), 'hex'),
+  qr_token text unique default encode(extensions.gen_random_bytes(16), 'hex'),
   profile_completed_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()

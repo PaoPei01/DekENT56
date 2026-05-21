@@ -1,3 +1,5 @@
+create extension if not exists pgcrypto with schema extensions;
+
 create table if not exists public.staff_attendance_sessions (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -72,7 +74,7 @@ begin
   if not exists (select 1 from pg_constraint where conname = 'staff_attendance_records_method_check' and conrelid = 'public.staff_attendance_records'::regclass) then
     alter table public.staff_attendance_records
       add constraint staff_attendance_records_method_check
-      check (method in ('session_qr', 'manual', 'admin_scan_staff_qr', 'import', 'system'));
+      check (method in ('session_qr', 'verified_qr', 'manual', 'admin_scan_staff_qr', 'import', 'system'));
   end if;
 end;
 $$;
@@ -97,7 +99,7 @@ returns text
 language sql
 volatile
 as $$
-  select encode(gen_random_bytes(24), 'hex');
+  select encode(extensions.gen_random_bytes(32), 'hex');
 $$;
 
 create or replace function public.staff_attendance_current_staff_profile_id()

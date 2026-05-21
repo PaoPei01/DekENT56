@@ -12,7 +12,7 @@ export type StaffAttendanceSessionType =
 export type StaffAttendanceSessionStatus = 'draft' | 'active' | 'closed' | 'archived';
 export type StaffAttendanceTargetScope = 'all' | 'main_group' | 'subgroup' | 'role' | 'emergency_staff';
 export type StaffAttendanceStatus = 'present' | 'late' | 'absent' | 'excused' | 'checked_out' | 'cancelled';
-export type StaffAttendanceMethod = 'session_qr' | 'manual' | 'admin_scan_staff_qr' | 'import' | 'system';
+export type StaffAttendanceMethod = 'session_qr' | 'verified_qr' | 'manual' | 'admin_scan_staff_qr' | 'import' | 'system';
 
 export type StaffAttendanceSummary = {
   total_targeted: number;
@@ -131,6 +131,7 @@ export type StaffAttendanceScanCode =
   | 'session_closed'
   | 'qr_expired'
   | 'staff_not_found'
+  | 'identity_verification_failed'
   | 'not_in_target_scope';
 
 export type StaffAttendanceScanResult = {
@@ -139,4 +140,11 @@ export type StaffAttendanceScanResult = {
   message: string;
   session?: StaffAttendanceSession;
   record?: StaffAttendanceRecord;
+  staff?: {
+    staff_profile_id: string;
+    display_name: string;
+    main_group: MainGroup | null;
+    subgroup: Subgroup | null;
+    primary_role: string | null;
+  } | null;
 };

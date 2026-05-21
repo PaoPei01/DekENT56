@@ -132,7 +132,6 @@ export function AdminStaffAttendancePage() {
       <Modal open={creating} title={language === 'th' ? 'สร้างรอบเช็กชื่อ' : 'Create attendance session'} onClose={() => setCreating(false)}>
         <form className="form-grid" onSubmit={submit}>
           <Input label={language === 'th' ? 'ชื่อรอบ' : 'Title'} value={form.title ?? ''} onChange={(event) => setForm({ ...form, title: event.target.value })} required />
-          <Input label={language === 'th' ? 'คำอธิบาย' : 'Description'} value={form.description ?? ''} onChange={(event) => setForm({ ...form, description: event.target.value })} />
           <Select label={language === 'th' ? 'ประเภท' : 'Type'} value={form.session_type ?? 'check_in'} onChange={(event) => setForm({ ...form, session_type: event.target.value as StaffAttendanceSessionInput['session_type'] })} options={sessionTypes} />
           <Select label={language === 'th' ? 'กลุ่มเป้าหมาย' : 'Target'} value={form.target_scope ?? 'all'} onChange={(event) => setForm({ ...form, target_scope: event.target.value as StaffAttendanceSessionInput['target_scope'] })} options={targetScopes} />
           {form.target_scope === 'main_group' || form.target_scope === 'subgroup' ? (
@@ -148,6 +147,13 @@ export function AdminStaffAttendancePage() {
           <Input label={language === 'th' ? 'นับว่าสายหลัง' : 'Late after'} type="datetime-local" value={form.late_after ?? ''} onChange={(event) => setForm({ ...form, late_after: event.target.value })} />
           <Input label={language === 'th' ? 'สิ้นสุด' : 'Ends'} type="datetime-local" value={form.ends_at ?? ''} onChange={(event) => setForm({ ...form, ends_at: event.target.value })} />
           <Select label={language === 'th' ? 'สถานะ' : 'Status'} value={form.status ?? 'draft'} onChange={(event) => setForm({ ...form, status: event.target.value as StaffAttendanceSessionInput['status'] })} options={['draft', 'active']} />
+          <details className="filter-disclosure">
+            <summary>{language === 'th' ? 'ตัวเลือกขั้นสูง' : 'Advanced options'}</summary>
+            <div className="form-grid">
+              <Input label={language === 'th' ? 'คำอธิบาย' : 'Description'} value={form.description ?? ''} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+              <Input label={language === 'th' ? 'QR หมดอายุ' : 'QR expires at'} type="datetime-local" value={form.qr_expires_at ?? ''} onChange={(event) => setForm({ ...form, qr_expires_at: event.target.value })} />
+            </div>
+          </details>
           <div className="form-actions">
             <Button type="button" variant="secondary" onClick={() => setCreating(false)}>{language === 'th' ? 'ยกเลิก' : 'Cancel'}</Button>
             <Button type="submit" loading={saving}>{language === 'th' ? 'สร้างรอบ' : 'Create session'}</Button>

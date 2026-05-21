@@ -49,6 +49,8 @@ export function App() {
         <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
         <Route path="edit" element={<VerifyEditPage />} />
         <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
+        <Route path="staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendancePage /></Suspense>} />
+        <Route path="staff/attendance/scan" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendanceScanPage /></Suspense>} />
         <Route path="login" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
         <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
         <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer', 'emergency_staff']} />}>
@@ -59,10 +61,6 @@ export function App() {
         </Route>
         <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer']} />}>
           <Route path="staff/my-group" element={<Suspense fallback={<LoadingSkeleton />}><StaffMobilePage /></Suspense>} />
-        </Route>
-        <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer', 'emergency_staff']} />}>
-          <Route path="staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendancePage /></Suspense>} />
-          <Route path="staff/attendance/scan" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendanceScanPage /></Suspense>} />
         </Route>
         <Route element={<StaffGuard requireEmergency />}>
           <Route path="staff/emergency" element={<Suspense fallback={<LoadingSkeleton />}><EmergencyDashboardPage /></Suspense>} />

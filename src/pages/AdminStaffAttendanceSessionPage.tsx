@@ -196,7 +196,10 @@ export function AdminStaffAttendanceSessionPage() {
             <h2>{language === 'th' ? 'สำรองสำหรับหน้างาน' : 'Fallback for operations'}</h2>
             <p>{language === 'th' ? 'ใช้เมื่อทีมงานสแกนไม่ได้หรือแอดมินต้องแก้สถานะให้ทันที' : 'Use when staff cannot scan or admins need to fix a status quickly.'}</p>
           </div>
-          <Input label={language === 'th' ? 'หมายเหตุ' : 'Note'} value={note} onChange={(event) => setNote(event.target.value)} placeholder={language === 'th' ? 'เช่น มาลงทะเบียนกับแอดมิน' : 'e.g. checked in by admin'} />
+          <details className="filter-disclosure">
+            <summary>{language === 'th' ? 'เพิ่มหมายเหตุ' : 'Add note'}</summary>
+            <Input label={language === 'th' ? 'หมายเหตุ' : 'Note'} value={note} onChange={(event) => setNote(event.target.value)} placeholder={language === 'th' ? 'เช่น มาลงทะเบียนกับแอดมิน' : 'e.g. checked in by admin'} />
+          </details>
         </Card>
       </div>
 

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { cleanEmail, cleanPhone } from '../lib/cleaners';
 import type {
   StaffAttendanceAdminData,
   StaffAttendanceRecord,
@@ -49,6 +50,17 @@ export async function fetchMyStaffAttendance(): Promise<MyStaffAttendanceData> {
 export async function scanStaffAttendanceSessionQr(token: string, deviceInfo: Record<string, unknown> = {}): Promise<StaffAttendanceScanResult> {
   const { data, error } = await supabase.rpc('scan_staff_attendance_session_qr', {
     input_token: token,
+    input_device_info: deviceInfo,
+  });
+  if (error) throw error;
+  return data as StaffAttendanceScanResult;
+}
+
+export async function scanStaffAttendanceSessionQrVerified(token: string, email: string, phone: string, deviceInfo: Record<string, unknown> = {}): Promise<StaffAttendanceScanResult> {
+  const { data, error } = await supabase.rpc('scan_staff_attendance_session_qr_verified', {
+    input_token: token,
+    input_email: cleanEmail(email),
+    input_phone: cleanPhone(phone),
     input_device_info: deviceInfo,
   });
   if (error) throw error;

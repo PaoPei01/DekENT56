@@ -4128,9 +4128,15 @@ th {
 .attendance-qr-card,
 .attendance-manual-panel,
 .staff-attendance-primary,
+.scan-verify-card,
 .scan-result-card {
   display: grid;
   gap: 1rem;
+}
+
+.scan-verify-card {
+  max-width: 560px;
+  margin-inline: auto;
 }
 
 .attendance-qr-image {

@@ -402,6 +402,12 @@ The production staff attendance system uses session QR check-in as the primary f
 supabase/migrations/202605210004_staff_attendance_hybrid_qr.sql
 ```
 
+If the database already has the first attendance migration, also apply the follow-up hardening migration:
+
+```text
+supabase/migrations/202605210005_staff_attendance_verified_qr_fix.sql
+```
+
 Routes:
 
 - Admin dashboard: `/admin/staff/attendance`
@@ -413,9 +419,11 @@ Security model:
 
 - Staff must be authenticated to check in from a session QR.
 - Staff QR check-in records only the currently signed-in staff member.
+- Staff without Supabase Auth accounts can scan the same session QR and verify with the email + phone stored in `staff_profiles`.
 - Admin manual check-in uses `manual_staff_attendance_update` and requires `public.is_admin(auth.uid())`.
 - The session QR token identifies only the attendance session, not staff personal data.
 - Attendance records store `method`, `checked_by`, `scanned_at`, and optional `note`.
+- Token generation uses `extensions.gen_random_bytes(...)` through a helper, so it does not rely on `search_path`.
 - New tables have RLS enabled; writes happen through admin/staff RPCs, not through frontend service-role access.
 - Staff personal QR token storage/RPCs are included for admin-assisted check-in (`staff_attendance_identity_tokens`, `admin_scan_staff_personal_qr`), but the MVP UI keeps session QR and manual check-in as the primary operational flows.
 
