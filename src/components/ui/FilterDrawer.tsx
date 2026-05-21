@@ -5,11 +5,12 @@ type FilterDrawerProps = {
   children: ReactNode;
   open?: boolean;
   actions?: ReactNode;
+  className?: string;
 };
 
-export function FilterDrawer({ title, children, open = false, actions }: FilterDrawerProps) {
+export function FilterDrawer({ title, children, open = false, actions, className = '' }: FilterDrawerProps) {
   return (
-    <details className="filter-drawer" open={open}>
+    <details className={`filter-drawer ${className}`} open={open}>
       <summary>{title}</summary>
       <div className="filter-drawer-body">
         {children}

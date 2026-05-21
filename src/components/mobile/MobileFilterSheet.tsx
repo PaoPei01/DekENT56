@@ -1,0 +1,46 @@
+import { SlidersHorizontal, X } from 'lucide-react';
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { Button } from '../ui/Button';
+
+type MobileFilterSheetProps = {
+  open: boolean;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  primaryLabel?: string;
+  clearLabel?: string;
+  onClose: () => void;
+  onClear?: () => void;
+};
+
+export function MobileFilterSheet({ open, title, description, children, primaryLabel = 'Apply', clearLabel = 'Clear', onClose, onClear }: MobileFilterSheetProps) {
+  useEffect(() => {
+    if (!open) return undefined;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, open]);
+
+  if (!open) return null;
+  return (
+    <div className="mobile-filter-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="mobile-filter-head">
+          <div>
+            <span><SlidersHorizontal size={17} /> {title}</span>
+            {description ? <small>{description}</small> : null}
+          </div>
+          <Button variant="ghost" size="sm" aria-label="Close filters" icon={<X size={18} />} onClick={onClose} />
+        </div>
+        <div className="mobile-filter-body">{children}</div>
+        <div className="mobile-filter-actions">
+          {onClear ? <Button type="button" variant="ghost" onClick={onClear}>{clearLabel}</Button> : null}
+          <Button type="button" onClick={onClose}>{primaryLabel}</Button>
+        </div>
+      </section>
+    </div>
+  );
+}

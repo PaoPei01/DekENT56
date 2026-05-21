@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 
 type MobileSearchHeaderProps = {
   label: string;
@@ -9,10 +9,12 @@ type MobileSearchHeaderProps = {
   placeholder?: string;
   resultText?: string;
   children?: ReactNode;
+  trailing?: ReactNode;
+  inputRef?: RefObject<HTMLInputElement | null>;
   delay?: number;
 };
 
-export function MobileSearchHeader({ label, value, onChange, placeholder, resultText, children, delay = 180 }: MobileSearchHeaderProps) {
+export function MobileSearchHeader({ label, value, onChange, placeholder, resultText, children, trailing, inputRef, delay = 180 }: MobileSearchHeaderProps) {
   const [draft, setDraft] = useState(value);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function MobileSearchHeader({ label, value, onChange, placeholder, result
       <label className="mobile-search-field">
         <span>{label}</span>
         <Search size={19} aria-hidden="true" />
-        <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={placeholder} />
+        <input ref={inputRef} value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={placeholder} />
         {draft ? (
           <button type="button" aria-label="Clear search" onClick={() => setDraft('')}>
             <X size={17} />
@@ -39,9 +41,10 @@ export function MobileSearchHeader({ label, value, onChange, placeholder, result
       {resultText || children ? (
         <div className="mobile-search-meta">
           {resultText ? <strong>{resultText}</strong> : null}
-          {children}
+          <span className="mobile-search-actions">{children}</span>
         </div>
       ) : null}
+      {trailing ? <div className="mobile-search-trailing">{trailing}</div> : null}
     </div>
   );
 }

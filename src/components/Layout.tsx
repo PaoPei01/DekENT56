@@ -1,5 +1,5 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Bell, FileText, HeartPulse, Home, LogOut, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, FileText, HeartPulse, Home, Languages, LogOut, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { MobileMoreMenu } from './mobile/MobileMoreMenu';
 import { RoleAwareBottomNav } from './mobile/RoleAwareBottomNav';
@@ -20,6 +20,7 @@ export function Layout() {
   const [access, setAccess] = useState<StaffAccessContext | null>(null);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let active = true;
@@ -64,6 +65,15 @@ export function Layout() {
     setUser(null);
     setAccess(null);
     navigate('/');
+  }
+
+  function openPublicSearch() {
+    if (location.pathname !== '/') {
+      navigate('/');
+      window.setTimeout(() => window.dispatchEvent(new Event('tfbp:focus-public-search')), 80);
+      return;
+    }
+    window.dispatchEvent(new Event('tfbp:focus-public-search'));
   }
 
   return (
@@ -143,6 +153,9 @@ export function Layout() {
             {language === 'th' ? 'EN' : 'TH'}
           </button>
         </div>
+        <button className="mobile-top-menu-button" type="button" aria-label={language === 'th' ? 'เปิดเมนู' : 'Open menu'} onClick={() => setMobileMoreOpen(true)}>
+          <Menu size={22} />
+        </button>
       </nav>
       <main className="page-shell">
         <Outlet />
@@ -154,10 +167,10 @@ export function Layout() {
               <Home size={19} />
               <span>{language === 'th' ? 'หน้าหลัก' : 'Home'}</span>
             </NavLink>
-            <Link to="/">
+            <button type="button" onClick={openPublicSearch}>
               <Search size={19} />
               <span>{language === 'th' ? 'ค้นหา' : 'Search'}</span>
-            </Link>
+            </button>
             <NavLink to="/announcements">
               <Bell size={19} />
               <span>{language === 'th' ? 'ประกาศ' : 'Info'}</span>
@@ -244,6 +257,8 @@ export function Layout() {
             <NavLink to="/admin/documents"><FileText size={18} />{language === 'th' ? 'ศูนย์เอกสาร' : 'Documents'}</NavLink>
             <NavLink to="/admin/data-health"><ShieldCheck size={18} />{language === 'th' ? 'ตรวจสุขภาพข้อมูล' : 'Data Health'}</NavLink>
             <NavLink to="/admin/logs"><Search size={18} />{language === 'th' ? 'ประวัติ' : 'Logs'}</NavLink>
+            <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
+            {user ? <button type="button" onClick={() => void signOut()}><LogOut size={18} />{language === 'th' ? 'ออกจากระบบ' : 'Sign out'}</button> : null}
           </>
         ) : isStaff ? (
           <>
@@ -253,6 +268,8 @@ export function Layout() {
             {access?.can_view_staff ? <NavLink to="/staff/my-group"><UsersRound size={18} />{language === 'th' ? 'กลุ่มของฉัน' : 'My Group'}</NavLink> : null}
             {canAttend ? <NavLink to="/staff/attendance"><UserCheck size={18} />{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</NavLink> : null}
             {canEmergency ? <NavLink to="/staff/emergency"><HeartPulse size={18} />{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink> : null}
+            <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
+            {user ? <button type="button" onClick={() => void signOut()}><LogOut size={18} />{language === 'th' ? 'ออกจากระบบ' : 'Sign out'}</button> : null}
           </>
         ) : (
           <>
@@ -261,6 +278,7 @@ export function Layout() {
             <NavLink to="/edit"><Pencil size={18} />{language === 'th' ? 'แก้ไขข้อมูล' : 'Edit Info'}</NavLink>
             <NavLink to="/staff/profile/verify"><UserCheck size={18} />{language === 'th' ? 'แก้โปรไฟล์ทีมงาน' : 'Staff Profile Verify'}</NavLink>
             <NavLink to="/admin"><Shield size={18} />{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff/Admin Login'}</NavLink>
+            <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
           </>
         )}
       </MobileMoreMenu>

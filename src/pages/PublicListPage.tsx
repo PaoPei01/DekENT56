@@ -1,9 +1,10 @@
-import { Eye, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Eye, Search, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
+import { MobileFilterSheet } from '../components/mobile/MobileFilterSheet';
 import { MobileSafeAreaSpacer } from '../components/mobile/MobileSafeAreaSpacer';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -30,6 +31,8 @@ export function PublicListPage() {
   const [mainGroup, setMainGroup] = useState('');
   const [subgroup, setSubgroup] = useState('');
   const [selected, setSelected] = useState<PublicProfile | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const { data: majors } = useAsync(fetchPublicMajors, []);
   const { data, loading, error } = useAsync(() => fetchPublicProfiles({ search, major, mainGroup, subgroup }), [search, major, mainGroup, subgroup]);
   const participants = data ?? [];
@@ -48,19 +51,28 @@ export function PublicListPage() {
     setSubgroup('');
   }
 
+  useEffect(() => {
+    function focusSearch() {
+      searchInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.setTimeout(() => searchInputRef.current?.focus(), 180);
+    }
+    window.addEventListener('tfbp:focus-public-search', focusSearch);
+    return () => window.removeEventListener('tfbp:focus-public-search', focusSearch);
+  }, []);
+
   return (
-    <section className="page-stack">
+    <section className="page-stack public-list-page">
       <PageHeader
         compact
         eyebrow={t.participants}
-        title={t.searchTitle}
-        description={language === 'th' ? 'ค้นหารายชื่อและกลุ่มของตัวเองได้อย่างปลอดภัย หน้านี้ไม่แสดงข้อมูลติดต่อหรือข้อมูลสุขภาพ' : 'Search participant names and group assignments safely. Contact and medical details are never shown here.'}
-        meta={<strong>{resultText}</strong>}
+        title={language === 'th' ? 'ค้นหารายชื่อ' : 'Search participants'}
+        description={language === 'th' ? 'ค้นหารายชื่อและกลุ่มได้อย่างปลอดภัย' : 'Search names and group assignments safely.'}
+        meta={<strong className="count-badge">{resultText}</strong>}
       />
 
-      <Card className="privacy-notice">
+      <Card className="privacy-notice public-privacy-notice">
         <strong>{language === 'th' ? 'ประกาศความเป็นส่วนตัว' : 'Privacy notice'}</strong>
-        <span>{language === 'th' ? 'แสดงเฉพาะชื่อ ชื่อเล่น สาขา และกลุ่มเท่านั้น ข้อมูลติดต่อและข้อมูลสุขภาพถูกซ่อนไว้เพื่อความเป็นส่วนตัว' : 'Only name, nickname, major, and group are visible. Contact and medical data stay private.'}</span>
+        <span>{language === 'th' ? 'แสดงเฉพาะชื่อ สาขา และกลุ่ม ข้อมูลติดต่อและสุขภาพถูกซ่อนไว้' : 'Only name, major, and group are visible. Contact and medical data stay private.'}</span>
         <Button variant="secondary" onClick={() => navigate('/edit')}>{language === 'th' ? 'ตรวจสอบ/แก้ไขข้อมูลของฉัน' : 'Check/edit my information'}</Button>
       </Card>
 
@@ -70,6 +82,12 @@ export function PublicListPage() {
         onChange={setSearch}
         placeholder={language === 'th' ? 'ค้นหาชื่อ ชื่อเล่น สาขา' : 'Search name, nickname, major'}
         resultText={resultText}
+        inputRef={searchInputRef}
+        trailing={(
+          <Button type="button" variant="secondary" icon={<SlidersHorizontal size={17} />} onClick={() => setFiltersOpen(true)}>
+            {language === 'th' ? 'ตัวกรอง' : 'Filters'}
+          </Button>
+        )}
       >
         <button type="button" onClick={clearFilters}>
           {language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}
@@ -77,6 +95,7 @@ export function PublicListPage() {
       </MobileSearchHeader>
 
       <FilterDrawer
+        className="desktop-filter-panel"
         title={language === 'th' ? 'ตัวกรองรายชื่อ' : 'Participant filters'}
         open
         actions={hasFilters ? <Button variant="ghost" onClick={clearFilters}>{language === 'th' ? copy.th.clearFilters : copy.en.clearFilters}</Button> : null}
@@ -91,6 +110,20 @@ export function PublicListPage() {
           <Select label={t.filterSubgroup} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} placeholder={t.all} />
         </div>
       </FilterDrawer>
+
+      <MobileFilterSheet
+        open={filtersOpen}
+        title={language === 'th' ? 'ตัวกรองรายชื่อ' : 'Participant filters'}
+        description={language === 'th' ? 'เลือกสาขา สี หรือกลุ่มย่อย' : 'Choose major, color, or subgroup'}
+        primaryLabel={language === 'th' ? 'แสดงผล' : 'Apply'}
+        clearLabel={language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}
+        onClose={() => setFiltersOpen(false)}
+        onClear={clearFilters}
+      >
+        <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={(majors ?? []).map((code) => ({ value: code, label: majorLabel(`(${code})`, language) }))} placeholder={t.all} />
+        <Select label={t.filterGroup} value={mainGroup} onChange={(event) => setMainGroup(event.target.value)} options={mainGroups.map((group) => ({ value: group, label: language === 'th' ? groupMeta[group].th : groupMeta[group].en }))} placeholder={t.all} />
+        <Select label={t.filterSubgroup} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} placeholder={t.all} />
+      </MobileFilterSheet>
 
       {activeFilters.length ? (
         <div className="filter-chip-row">
