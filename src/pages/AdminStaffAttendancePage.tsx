@@ -15,6 +15,7 @@ import { useAsync } from '../hooks/useAsync';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { staffOperationalRoles } from '../lib/staffRoles';
 import type { StaffAttendanceSessionInput } from '../lib/attendanceTypes';
+import { formatBangkokDateTime, isoToDatetimeLocal } from '../lib/dateTime';
 import { createStaffAttendanceSession, fetchAdminStaffAttendance } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
 
@@ -22,14 +23,7 @@ const sessionTypes = ['check_in', 'check_out', 'shift_start', 'shift_end', 'roll
 const targetScopes = ['all', 'main_group', 'subgroup', 'role', 'emergency_staff'];
 
 function localDatetimeValue(offsetMinutes = 0) {
-  const date = new Date(Date.now() + offsetMinutes * 60_000);
-  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-  return date.toISOString().slice(0, 16);
-}
-
-function formatDateTime(value: string | null, language: 'th' | 'en') {
-  if (!value) return '-';
-  return new Date(value).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  return isoToDatetimeLocal(new Date(Date.now() + offsetMinutes * 60_000).toISOString());
 }
 
 function statusLabel(status: string, language: 'th' | 'en') {
@@ -116,14 +110,14 @@ export function AdminStaffAttendancePage() {
         getKey={(row) => row.id}
         emptyText={language === 'th' ? 'ยังไม่มีรอบเช็กชื่อ' : 'No attendance sessions yet'}
         mobileTitle={(row) => row.title}
-        mobileSubtitle={(row) => `${statusLabel(row.status, language)} · ${formatDateTime(row.starts_at, language)}`}
+        mobileSubtitle={(row) => `${statusLabel(row.status, language)} · ${formatBangkokDateTime(row.starts_at, language)}`}
         mobileMeta={(row) => `${language === 'th' ? 'มาแล้ว' : 'Present'} ${row.summary?.present ?? 0} · ${language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} ${row.summary?.missing ?? 0}`}
         mobileActions={(row) => <Link className="btn btn-primary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'เปิดรายละเอียด' : 'Open detail'}</Link>}
         columns={[
           { key: 'title', header: language === 'th' ? 'รอบเช็กชื่อ' : 'Session', render: (row) => <strong>{row.title}</strong> },
           { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
           { key: 'type', header: language === 'th' ? 'ประเภท' : 'Type', render: (row) => row.session_type },
-          { key: 'time', header: language === 'th' ? 'เวลาเริ่ม' : 'Starts', render: (row) => formatDateTime(row.starts_at, language) },
+          { key: 'time', header: language === 'th' ? 'เวลาเริ่ม' : 'Starts', render: (row) => formatBangkokDateTime(row.starts_at, language) },
           { key: 'summary', header: language === 'th' ? 'สรุป' : 'Summary', render: (row) => `${row.summary?.present ?? 0}/${row.summary?.total_targeted ?? 0} · late ${row.summary?.late ?? 0}` },
           { key: 'action', header: '', render: (row) => <Link className="btn btn-secondary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'รายละเอียด' : 'Detail'}</Link>, align: 'right' },
         ]}

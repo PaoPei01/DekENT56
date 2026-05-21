@@ -4128,6 +4128,7 @@ th {
 .attendance-qr-card,
 .attendance-manual-panel,
 .staff-attendance-primary,
+.staff-personal-qr-card,
 .scan-verify-card,
 .scan-result-card {
   display: grid;
@@ -4168,6 +4169,42 @@ th {
   background: rgba(15, 23, 42, 0.06);
   color: #1f2d44;
   font-size: 0.83rem;
+}
+
+.attendance-personal-qr-tool {
+  border-color: rgba(40, 104, 232, 0.18);
+  background: rgba(40, 104, 232, 0.045);
+}
+
+.staff-personal-qr-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.staff-personal-qr-head > svg {
+  flex: 0 0 auto;
+  color: var(--accent-strong);
+}
+
+.staff-personal-qr-head h2 {
+  margin: 0;
+}
+
+.staff-personal-qr-head span {
+  color: var(--text-soft);
+  font-weight: 800;
+}
+
+.staff-personal-qr-card {
+  justify-items: center;
+}
+
+.staff-personal-qr-card .staff-personal-qr-head,
+.staff-personal-qr-card .attendance-scan-url,
+.staff-personal-qr-card .form-hint,
+.staff-personal-qr-card .form-actions {
+  width: min(100%, 520px);
 }
 
 .attendance-row-actions,
@@ -4307,8 +4344,13 @@ th {
 
   .attendance-qr-card .form-actions,
   .staff-attendance-home .form-actions,
-  .staff-attendance-scan-page .form-actions {
+  .staff-attendance-scan-page .form-actions,
+  .staff-personal-qr-page .form-actions {
     grid-template-columns: 1fr;
+  }
+
+  .staff-personal-qr-head {
+    align-items: flex-start;
   }
 
   .attendance-session-card {

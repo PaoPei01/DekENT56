@@ -408,20 +408,30 @@ If the database already has the first attendance migration, also apply the follo
 supabase/migrations/202605210005_staff_attendance_verified_qr_fix.sql
 ```
 
+For timezone-safe session creation and non-Auth staff personal QR support, also apply:
+
+```text
+supabase/migrations/202605220001_staff_attendance_timezone_personal_qr.sql
+```
+
 Routes:
 
 - Admin dashboard: `/admin/staff/attendance`
 - Admin session detail and manual roster: `/admin/staff/attendance/:sessionId`
 - Staff attendance home: `/staff/attendance`
 - Staff QR scan route: `/staff/attendance/scan?token=...`
+- Staff personal QR by email + phone verification: `/staff/profile/qr`
 
 Security model:
 
 - Staff must be authenticated to check in from a session QR.
 - Staff QR check-in records only the currently signed-in staff member.
 - Staff without Supabase Auth accounts can scan the same session QR and verify with the email + phone stored in `staff_profiles`.
+- Staff without Supabase Auth accounts can also generate a personal QR after email + phone verification. This QR contains only a random token and is for admin-assisted check-in only.
+- Admin-assisted personal QR check-in uses `admin_scan_staff_personal_qr` and requires `public.is_admin(auth.uid())`.
 - Admin manual check-in uses `manual_staff_attendance_update` and requires `public.is_admin(auth.uid())`.
 - The session QR token identifies only the attendance session, not staff personal data.
+- Personal QR tokens identify only a staff profile through `staff_attendance_identity_tokens`; they do not contain email, phone, student ID, or medical data.
 - Attendance records store `method`, `checked_by`, `scanned_at`, and optional `note`.
 - Token generation uses `extensions.gen_random_bytes(...)` through a helper, so it does not rely on `search_path`.
 - New tables have RLS enabled; writes happen through admin/staff RPCs, not through frontend service-role access.
@@ -433,6 +443,13 @@ QR deployment note:
   `/#/staff/attendance/scan?token=...`
 - Staff can scan using their phone camera. No in-app camera scanner is required for the MVP.
 - Admins can regenerate a session QR; the old QR token stops working immediately.
+- Admins can paste a personal QR token or `staff_identity:<token>` text in the attendance session detail page as a faster manual fallback.
+
+Timezone note:
+
+- Attendance form fields use browser-local `datetime-local` values and convert them to ISO before sending to Supabase.
+- Attendance timestamps are stored as `timestamptz` and displayed with the `Asia/Bangkok` timezone helper.
+- Do not append `Z` to raw `datetime-local` values and do not manually add/subtract seven hours.
 
 ## Build
 

@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import { CheckCircle2, Clock, Copy, Download, RefreshCw, Search, ShieldCheck, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Copy, Download, QrCode, RefreshCw, Search, ShieldCheck, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -15,13 +15,16 @@ import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import type { StaffAttendanceAdminRow, StaffAttendanceStatus } from '../lib/attendanceTypes';
+import { formatBangkokDateTime } from '../lib/dateTime';
 import { groupLabel } from '../lib/grouping';
 import {
+  adminScanStaffPersonalQr,
   buildStaffAttendanceScanUrl,
   closeStaffAttendanceSession,
   exportStaffAttendanceCsv,
   fetchAdminStaffAttendance,
   manualStaffAttendanceUpdate,
+  parseStaffPersonalQrToken,
   regenerateStaffAttendanceQr,
   staffAttendanceDisplayName,
 } from '../services/staffAttendance';
@@ -34,11 +37,6 @@ const manualStatuses: Array<{ value: StaffAttendanceStatus; th: string; en: stri
   { value: 'excused', th: 'ขออนุญาต', en: 'Excused' },
   { value: 'checked_out', th: 'เช็กออก', en: 'Checked out' },
 ];
-
-function formatDateTime(value: string | null, language: 'th' | 'en') {
-  if (!value) return '-';
-  return new Date(value).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' });
-}
 
 function statusText(status: string | undefined | null, language: 'th' | 'en') {
   const found = manualStatuses.find((item) => item.value === status);
@@ -55,6 +53,8 @@ export function AdminStaffAttendanceSessionPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [note, setNote] = useState('');
+  const [staffQrInput, setStaffQrInput] = useState('');
+  const [scanWorking, setScanWorking] = useState(false);
   const [workingId, setWorkingId] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
 
@@ -145,6 +145,28 @@ export function AdminStaffAttendanceSessionPage() {
     }
   }
 
+  async function scanPersonalQr() {
+    if (!session) return;
+    const token = parseStaffPersonalQrToken(staffQrInput);
+    if (!token) {
+      setToast({ type: 'error', message: language === 'th' ? 'กรุณาวาง token หรือข้อความจาก QR ส่วนตัว' : 'Paste a staff personal QR token first.' });
+      return;
+    }
+    try {
+      setScanWorking(true);
+      const result = await adminScanStaffPersonalQr(session.id, token, null, note);
+      setToast({ type: result.success ? 'success' : 'error', message: attendanceScanMessage(result.code, language) });
+      if (result.success) {
+        setStaffQrInput('');
+        await state.reload();
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'เช็กชื่อจาก QR ส่วนตัวไม่สำเร็จ' : 'Could not check in from personal QR') });
+    } finally {
+      setScanWorking(false);
+    }
+  }
+
   if (state.loading) return <LoadingSkeleton />;
   if (state.error) return <div className="error-state">{state.error}</div>;
   if (!session) return <div className="empty-state">{language === 'th' ? 'ไม่พบรอบเช็กชื่อ' : 'Attendance session not found'}</div>;
@@ -157,7 +179,7 @@ export function AdminStaffAttendanceSessionPage() {
       <PageHeader
         eyebrow="Attendance Session"
         title={session.title}
-        description={`${formatDateTime(session.starts_at, language)} · ${session.status}`}
+        description={`${formatBangkokDateTime(session.starts_at, language)} · ${session.status}`}
         actions={(
           <>
             <Link className="btn btn-secondary" to="/admin/staff/attendance">{language === 'th' ? 'ทุกรอบ' : 'All sessions'}</Link>
@@ -192,13 +214,28 @@ export function AdminStaffAttendanceSessionPage() {
 
         <Card className="attendance-manual-panel">
           <div>
-            <p className="eyebrow">{language === 'th' ? 'เช็กชื่อแบบ Manual' : 'Manual check-in'}</p>
-            <h2>{language === 'th' ? 'สำรองสำหรับหน้างาน' : 'Fallback for operations'}</h2>
-            <p>{language === 'th' ? 'ใช้เมื่อทีมงานสแกนไม่ได้หรือแอดมินต้องแก้สถานะให้ทันที' : 'Use when staff cannot scan or admins need to fix a status quickly.'}</p>
+            <p className="eyebrow">{language === 'th' ? 'เครื่องมือเช็กชื่อ' : 'Check-in tools'}</p>
+            <h2>{language === 'th' ? 'Manual และ QR ส่วนตัวทีมงาน' : 'Manual and staff personal QR'}</h2>
+            <p>{language === 'th' ? 'ใช้เมื่อทีมงานสแกนเองไม่ได้ หรือใช้ QR ส่วนตัวเพื่อเช็กชื่อแทนอย่างรวดเร็ว' : 'Use manual controls or a staff personal QR when staff cannot self check-in.'}</p>
           </div>
           <details className="filter-disclosure">
             <summary>{language === 'th' ? 'เพิ่มหมายเหตุ' : 'Add note'}</summary>
             <Input label={language === 'th' ? 'หมายเหตุ' : 'Note'} value={note} onChange={(event) => setNote(event.target.value)} placeholder={language === 'th' ? 'เช่น มาลงทะเบียนกับแอดมิน' : 'e.g. checked in by admin'} />
+          </details>
+          <details className="filter-disclosure attendance-personal-qr-tool">
+            <summary>{language === 'th' ? 'สแกน QR ส่วนตัวทีมงาน' : 'Scan staff personal QR'}</summary>
+            <div className="form-grid">
+              <Input
+                label={language === 'th' ? 'Token หรือข้อความจาก QR' : 'Token or QR text'}
+                value={staffQrInput}
+                onChange={(event) => setStaffQrInput(event.target.value)}
+                placeholder="staff_identity:..."
+                hint={language === 'th' ? 'รองรับ raw token, staff_identity:<token> หรือ URL ที่มี ?token=' : 'Supports raw token, staff_identity:<token>, or a URL with ?token='}
+              />
+              <Button type="button" icon={<QrCode size={18} />} loading={scanWorking} onClick={scanPersonalQr}>
+                {language === 'th' ? 'เช็กชื่อจาก QR ส่วนตัว' : 'Check in from personal QR'}
+              </Button>
+            </div>
           </details>
         </Card>
       </div>
@@ -241,7 +278,7 @@ export function AdminStaffAttendanceSessionPage() {
           { key: 'role', header: language === 'th' ? 'หน้าที่' : 'Role', render: (row) => row.primary_role || row.position || '-' },
           { key: 'group', header: language === 'th' ? 'กลุ่ม' : 'Group', render: (row) => groupLabel(row.main_group, row.subgroup, language) },
           { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.record?.status ?? 'missing'}`}>{statusText(row.record?.status, language)}</span> },
-          { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatDateTime(row.record?.scanned_at ?? null, language) },
+          { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatBangkokDateTime(row.record?.scanned_at ?? null, language) },
           { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => row.record?.method ?? '-' },
           { key: 'actions', header: language === 'th' ? 'Manual' : 'Manual', render: (row) => (
             <div className="attendance-row-actions">
@@ -256,4 +293,23 @@ export function AdminStaffAttendanceSessionPage() {
       />
     </section>
   );
+}
+
+function attendanceScanMessage(code: string, language: 'th' | 'en') {
+  const messages: Record<string, { th: string; en: string }> = {
+    checked_in: { th: 'เช็กชื่อสำเร็จ', en: 'Check-in successful' },
+    late: { th: 'บันทึกเป็นมาสายแล้ว', en: 'Recorded as late' },
+    checked_out: { th: 'เช็กออกแล้ว', en: 'Checked out' },
+    already_checked: { th: 'ทีมงานคนนี้เช็กชื่อแล้วก่อนหน้า', en: 'This staff member was already checked.' },
+    invalid_token: { th: 'QR ส่วนตัวไม่ถูกต้อง', en: 'Invalid staff personal QR' },
+    invalid_status: { th: 'สถานะเช็กชื่อไม่ถูกต้อง', en: 'Invalid attendance status' },
+    session_not_found: { th: 'ไม่พบรอบเช็กชื่อ', en: 'Session not found' },
+    session_not_active: { th: 'รอบนี้ยังไม่เปิดใช้งาน', en: 'Session is not active' },
+    session_not_started: { th: 'รอบนี้ยังไม่เริ่ม', en: 'Session has not started' },
+    session_closed: { th: 'รอบนี้ปิดแล้ว', en: 'Session is closed' },
+    qr_expired: { th: 'QR รอบเช็กชื่อหมดอายุแล้ว', en: 'Session QR has expired' },
+    not_in_target_scope: { th: 'ทีมงานคนนี้ไม่อยู่ในกลุ่มเป้าหมาย', en: 'This staff member is not in the target scope' },
+    admin_required: { th: 'ต้องเป็นแอดมินเท่านั้น', en: 'Admin access required' },
+  };
+  return messages[code]?.[language] ?? (language === 'th' ? 'ดำเนินการแล้ว' : 'Done');
 }

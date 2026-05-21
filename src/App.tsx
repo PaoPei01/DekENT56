@@ -39,6 +39,7 @@ const StaffOperationsPage = lazy(() => import('./pages/StaffOperationsPage').the
 const StaffProfileEditPage = lazy(() => import('./pages/StaffProfileEditPage').then((module) => ({ default: module.StaffProfileEditPage })));
 const StaffProfilePage = lazy(() => import('./pages/StaffProfilePage').then((module) => ({ default: module.StaffProfilePage })));
 const StaffProfileVerifyPage = lazy(() => import('./pages/StaffProfileVerifyPage').then((module) => ({ default: module.StaffProfileVerifyPage })));
+const StaffPersonalQrPage = lazy(() => import('./pages/StaffPersonalQrPage').then((module) => ({ default: module.StaffPersonalQrPage })));
 
 export function App() {
   return (
@@ -49,6 +50,7 @@ export function App() {
         <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
         <Route path="edit" element={<VerifyEditPage />} />
         <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
+        <Route path="staff/profile/qr" element={<Suspense fallback={<LoadingSkeleton />}><StaffPersonalQrPage /></Suspense>} />
         <Route path="staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendancePage /></Suspense>} />
         <Route path="staff/attendance/scan" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendanceScanPage /></Suspense>} />
         <Route path="login" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />

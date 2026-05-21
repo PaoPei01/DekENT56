@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { cleanEmail, cleanPhone } from '../lib/cleaners';
+import { datetimeLocalToIso, formatBangkokDateTime } from '../lib/dateTime';
 import type {
   StaffAttendanceAdminData,
   StaffAttendanceRecord,
@@ -9,7 +10,20 @@ import type {
   StaffAttendanceStatus,
   MyStaffAttendanceData,
   StaffAttendanceAdminRow,
+  StaffPersonalQrResult,
 } from '../lib/attendanceTypes';
+
+const sessionTimeKeys = ['starts_at', 'ends_at', 'late_after', 'qr_expires_at'] as const;
+
+function normalizeSessionInput(input: StaffAttendanceSessionInput): StaffAttendanceSessionInput {
+  const normalized: Record<string, unknown> = { ...input };
+  for (const key of sessionTimeKeys) {
+    if (typeof normalized[key] === 'string') {
+      normalized[key] = datetimeLocalToIso(normalized[key] ?? '') ?? null;
+    }
+  }
+  return normalized as StaffAttendanceSessionInput;
+}
 
 export async function fetchAdminStaffAttendance(sessionId?: string | null): Promise<StaffAttendanceAdminData> {
   const { data, error } = await supabase.rpc('get_staff_attendance_admin', { input_session_id: sessionId ?? null });
@@ -18,13 +32,13 @@ export async function fetchAdminStaffAttendance(sessionId?: string | null): Prom
 }
 
 export async function createStaffAttendanceSession(input: StaffAttendanceSessionInput): Promise<StaffAttendanceSession> {
-  const { data, error } = await supabase.rpc('create_staff_attendance_session', { input_data: input });
+  const { data, error } = await supabase.rpc('create_staff_attendance_session', { input_data: normalizeSessionInput(input) });
   if (error) throw error;
   return data as StaffAttendanceSession;
 }
 
 export async function updateStaffAttendanceSession(id: string, input: StaffAttendanceSessionInput): Promise<StaffAttendanceSession> {
-  const { data, error } = await supabase.rpc('update_staff_attendance_session', { input_session_id: id, input_data: input });
+  const { data, error } = await supabase.rpc('update_staff_attendance_session', { input_session_id: id, input_data: normalizeSessionInput(input) });
   if (error) throw error;
   return data as StaffAttendanceSession;
 }
@@ -78,15 +92,33 @@ export async function manualStaffAttendanceUpdate(sessionId: string, staffProfil
   return data as StaffAttendanceRecord;
 }
 
-export async function adminScanStaffPersonalQr(sessionId: string, token: string, status?: StaffAttendanceStatus | null, note?: string | null): Promise<StaffAttendanceRecord> {
+export async function adminScanStaffPersonalQr(sessionId: string, token: string, status?: StaffAttendanceStatus | null, note?: string | null): Promise<StaffAttendanceScanResult> {
   const { data, error } = await supabase.rpc('admin_scan_staff_personal_qr', {
     input_session_id: sessionId,
-    input_staff_token: token,
+    input_staff_token: parseStaffPersonalQrToken(token),
     input_status: status ?? null,
     input_note: note ?? null,
   });
   if (error) throw error;
-  return data as StaffAttendanceRecord;
+  return data as StaffAttendanceScanResult;
+}
+
+export async function getStaffPersonalQrVerified(email: string, phone: string): Promise<StaffPersonalQrResult> {
+  const { data, error } = await supabase.rpc('get_staff_personal_qr_verified', {
+    input_email: cleanEmail(email),
+    input_phone: cleanPhone(phone),
+  });
+  if (error) throw error;
+  return data as StaffPersonalQrResult;
+}
+
+export async function regenerateStaffPersonalQrVerified(email: string, phone: string): Promise<StaffPersonalQrResult> {
+  const { data, error } = await supabase.rpc('regenerate_staff_personal_qr_verified', {
+    input_email: cleanEmail(email),
+    input_phone: cleanPhone(phone),
+  });
+  if (error) throw error;
+  return data as StaffPersonalQrResult;
 }
 
 export function staffAttendanceDisplayName(row: StaffAttendanceAdminRow) {
@@ -96,6 +128,21 @@ export function staffAttendanceDisplayName(row: StaffAttendanceAdminRow) {
 export function buildStaffAttendanceScanUrl(token: string) {
   const base = `${window.location.origin}${import.meta.env.BASE_URL ?? '/'}`.replace(/\/$/, '');
   return `${base}/#/staff/attendance/scan?token=${encodeURIComponent(token)}`;
+}
+
+export function parseStaffPersonalQrToken(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('staff_identity:')) {
+    return trimmed.slice('staff_identity:'.length).trim();
+  }
+  try {
+    const url = new URL(trimmed);
+    return url.searchParams.get('token') ?? trimmed;
+  } catch {
+    const tokenMatch = trimmed.match(/[?&]token=([^&\s]+)/);
+    return tokenMatch ? decodeURIComponent(tokenMatch[1]) : trimmed;
+  }
 }
 
 export function exportStaffAttendanceCsv(rows: StaffAttendanceAdminRow[], filename = 'staff-attendance.csv') {
@@ -127,7 +174,7 @@ export function exportStaffAttendanceCsv(rows: StaffAttendanceAdminRow[], filena
       row.primary_role,
       record?.status,
       record?.method,
-      record?.scanned_at,
+      formatBangkokDateTime(record?.scanned_at, 'th'),
       record?.checked_by,
       record?.note,
     ];

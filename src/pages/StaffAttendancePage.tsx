@@ -11,17 +11,13 @@ import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import type { MyStaffAttendanceData } from '../lib/attendanceTypes';
+import { formatBangkokDateTime } from '../lib/dateTime';
 import { supabase } from '../lib/supabase';
 import { fetchMyStaffAttendance, scanStaffAttendanceSessionQr } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
 
 function displayName(profile: { nickname_th?: string | null; nickname?: string | null; nickname_en?: string | null; name_th?: string | null; name_en?: string | null; email?: string | null } | null | undefined) {
   return profile?.nickname_th || profile?.nickname || profile?.nickname_en || profile?.name_th || profile?.name_en || profile?.email || '-';
-}
-
-function formatDateTime(value: string | null | undefined, language: 'th' | 'en') {
-  if (!value) return '-';
-  return new Date(value).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function statusLabel(status: string | null | undefined, language: 'th' | 'en') {
@@ -145,6 +141,12 @@ export function StaffAttendancePage() {
         </div>
       </Card>
 
+      <Card className="privacy-notice" variant="soft">
+        <strong>{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff personal QR'}</strong>
+        <span>{language === 'th' ? 'สำหรับให้แอดมินสแกนเช็กชื่อแทนเท่านั้น ไม่ใช่ QR เช็กชื่อด้วยตัวเอง' : 'For admin-assisted check-in only. This is not a self check-in QR.'}</span>
+        <Link className="btn btn-secondary" to="/staff/profile/qr">{language === 'th' ? 'แสดง QR ส่วนตัว' : 'Show personal QR'}</Link>
+      </Card>
+
       <Card>
         <form className="form-grid" onSubmit={pasteTokenCheckIn}>
           <Input
@@ -167,7 +169,7 @@ export function StaffAttendancePage() {
           <Card key={session.id} className="attendance-session-card">
             <div>
               <strong>{session.title}</strong>
-              <span>{formatDateTime(session.starts_at, language)} · {statusLabel(session.record?.status, language)}</span>
+              <span>{formatBangkokDateTime(session.starts_at, language)} · {statusLabel(session.record?.status, language)}</span>
             </div>
             {session.record ? (
               <span className={`status-pill status-${session.record.status}`}>{statusLabel(session.record.status, language)}</span>
@@ -190,7 +192,7 @@ export function StaffAttendancePage() {
       {latest ? (
         <Card className="privacy-notice" variant="success">
           <strong>{language === 'th' ? 'สถานะล่าสุด' : 'Latest status'}</strong>
-          <span>{latest.session?.title ?? '-'} · {statusLabel(latest.status, language)} · {formatDateTime(latest.scanned_at ?? latest.updated_at, language)}</span>
+          <span>{latest.session?.title ?? '-'} · {statusLabel(latest.status, language)} · {formatBangkokDateTime(latest.scanned_at ?? latest.updated_at, language)}</span>
         </Card>
       ) : null}
 
@@ -200,11 +202,11 @@ export function StaffAttendancePage() {
         emptyText={language === 'th' ? 'ยังไม่มีประวัติการเช็กชื่อ' : 'No attendance history yet'}
         mobileTitle={(row) => row.session?.title ?? '-'}
         mobileSubtitle={(row) => statusLabel(row.status, language)}
-        mobileMeta={(row) => formatDateTime(row.scanned_at ?? row.updated_at, language)}
+        mobileMeta={(row) => formatBangkokDateTime(row.scanned_at ?? row.updated_at, language)}
         columns={[
           { key: 'session', header: language === 'th' ? 'รอบ' : 'Session', render: (row) => row.session?.title ?? '-' },
           { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
-          { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatDateTime(row.scanned_at ?? row.updated_at, language) },
+          { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatBangkokDateTime(row.scanned_at ?? row.updated_at, language) },
           { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => row.method },
         ]}
       /> : null}

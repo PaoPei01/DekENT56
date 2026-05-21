@@ -122,12 +122,14 @@ export function Layout() {
                   <NavLink to="/staff/directory">{language === 'th' ? 'ไดเรกทอรีทีมงาน' : 'Staff Directory'}</NavLink>
                   {access?.can_view_staff ? <NavLink to="/staff/my-group">{language === 'th' ? 'กลุ่มของฉัน' : 'My Group'}</NavLink> : null}
                   {canAttend ? <NavLink to="/staff/attendance">{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</NavLink> : null}
+                  <NavLink to="/staff/profile/qr">{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff Personal QR'}</NavLink>
                   {canEmergency ? <NavLink to="/staff/emergency">{language === 'th' ? 'สุขภาพฉุกเฉิน' : 'Staff Emergency'}</NavLink> : null}
                 </>
               ) : null}
               {!isAdmin && !isStaff ? (
                 <>
                   <NavLink to="/staff/profile/verify">{language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit Staff Profile'}</NavLink>
+                  <NavLink to="/staff/profile/qr">{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff Personal QR'}</NavLink>
                   <span className="nav-menu-empty">{language === 'th' ? 'เข้าสู่ระบบทีมงานเพื่อดูเครื่องมือเพิ่มเติม' : 'Sign in as staff to see more tools.'}</span>
                 </>
               ) : null}
@@ -269,6 +271,7 @@ export function Layout() {
             <NavLink to="/staff/directory"><UsersRound size={18} />{language === 'th' ? 'ไดเรกทอรีทีมงาน' : 'Staff Directory'}</NavLink>
             {access?.can_view_staff ? <NavLink to="/staff/my-group"><UsersRound size={18} />{language === 'th' ? 'กลุ่มของฉัน' : 'My Group'}</NavLink> : null}
             {canAttend ? <NavLink to="/staff/attendance"><UserCheck size={18} />{language === 'th' ? 'เช็กชื่อ' : 'Attendance'}</NavLink> : null}
+            <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff Personal QR'}</NavLink>
             {canEmergency ? <NavLink to="/staff/emergency"><HeartPulse size={18} />{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</NavLink> : null}
             <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
             {user ? <button type="button" onClick={() => void signOut()}><LogOut size={18} />{language === 'th' ? 'ออกจากระบบ' : 'Sign out'}</button> : null}
@@ -279,6 +282,7 @@ export function Layout() {
             <NavLink to="/announcements"><Bell size={18} />{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
             <NavLink to="/edit"><Pencil size={18} />{language === 'th' ? 'แก้ไขข้อมูล' : 'Edit Info'}</NavLink>
             <NavLink to="/staff/profile/verify"><UserCheck size={18} />{language === 'th' ? 'แก้โปรไฟล์ทีมงาน' : 'Staff Profile Verify'}</NavLink>
+            <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff Personal QR'}</NavLink>
             <NavLink to="/login"><Shield size={18} />{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff/Admin Login'}</NavLink>
             <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
           </>

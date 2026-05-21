@@ -125,6 +125,9 @@ export type StaffAttendanceScanCode =
   | 'late'
   | 'checked_out'
   | 'already_checked'
+  | 'ok'
+  | 'invalid_token'
+  | 'invalid_status'
   | 'session_not_found'
   | 'session_not_active'
   | 'session_not_started'
@@ -132,7 +135,8 @@ export type StaffAttendanceScanCode =
   | 'qr_expired'
   | 'staff_not_found'
   | 'identity_verification_failed'
-  | 'not_in_target_scope';
+  | 'not_in_target_scope'
+  | 'admin_required';
 
 export type StaffAttendanceScanResult = {
   success: boolean;
@@ -143,6 +147,22 @@ export type StaffAttendanceScanResult = {
   staff?: {
     staff_profile_id: string;
     display_name: string;
+    main_group: MainGroup | null;
+    subgroup: Subgroup | null;
+    primary_role: string | null;
+  } | null;
+};
+
+export type StaffPersonalQrResult = {
+  success: boolean;
+  code: StaffAttendanceScanCode;
+  message: string;
+  token?: string;
+  qr_payload?: string;
+  staff?: {
+    staff_profile_id: string;
+    display_name: string;
+    nickname: string | null;
     main_group: MainGroup | null;
     subgroup: Subgroup | null;
     primary_role: string | null;

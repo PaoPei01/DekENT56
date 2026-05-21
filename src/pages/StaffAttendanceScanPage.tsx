@@ -9,14 +9,10 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import type { StaffAttendanceScanResult } from '../lib/attendanceTypes';
+import { formatBangkokDateTime } from '../lib/dateTime';
 import { supabase } from '../lib/supabase';
 import { scanStaffAttendanceSessionQr, scanStaffAttendanceSessionQrVerified } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
-
-function formatDateTime(value: string | null | undefined, language: 'th' | 'en') {
-  if (!value) return '-';
-  return new Date(value).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' });
-}
 
 function resultCopy(code: string, language: 'th' | 'en') {
   const messages: Record<string, { titleTh: string; titleEn: string; bodyTh: string; bodyEn: string }> = {
@@ -24,6 +20,7 @@ function resultCopy(code: string, language: 'th' | 'en') {
     late: { titleTh: 'เช็กชื่อสำเร็จ', titleEn: 'Checked in', bodyTh: 'ระบบบันทึกเป็นมาสายตามเวลาที่กำหนด', bodyEn: 'You were recorded as late based on the session time.' },
     checked_out: { titleTh: 'เช็กออกสำเร็จ', titleEn: 'Checked out', bodyTh: 'ระบบบันทึกเวลาเช็กออกแล้ว', bodyEn: 'Your check-out has been recorded.' },
     already_checked: { titleTh: 'คุณเช็กชื่อรอบนี้แล้ว', titleEn: 'Already checked', bodyTh: 'ไม่ต้องสแกนซ้ำ ระบบมีข้อมูลของคุณแล้ว', bodyEn: 'No need to scan again. Your record already exists.' },
+    invalid_token: { titleTh: 'QR ไม่ถูกต้อง', titleEn: 'Invalid QR', bodyTh: 'QR นี้อาจไม่ใช่ QR รอบเช็กชื่อ', bodyEn: 'This may not be a session attendance QR.' },
     session_not_found: { titleTh: 'ไม่พบรอบเช็กชื่อ', titleEn: 'Session not found', bodyTh: 'QR นี้อาจไม่ถูกต้องหรือถูกสร้างใหม่แล้ว', bodyEn: 'This QR may be invalid or has been regenerated.' },
     session_not_active: { titleTh: 'รอบยังไม่เปิดใช้งาน', titleEn: 'Session not active', bodyTh: 'กรุณาติดต่อแอดมินหน้างาน', bodyEn: 'Please contact an admin at the event.' },
     session_not_started: { titleTh: 'รอบยังไม่เริ่ม', titleEn: 'Session has not started', bodyTh: 'ลองสแกนอีกครั้งเมื่อถึงเวลา', bodyEn: 'Try scanning again when the session starts.' },
@@ -114,7 +111,7 @@ export function StaffAttendanceScanPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="Staff Attendance"
-        title={language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}
+        title={language === 'th' ? 'เช็กชื่อด้วย QR รอบกิจกรรม' : 'Session QR Check-in'}
         description={language === 'th' ? 'กรอกอีเมลและเบอร์โทรที่ใช้ลงทะเบียนทีมงาน หากไม่ได้เข้าสู่ระบบ' : 'Enter the email and phone used for staff registration if you are not signed in.'}
       />
       {loading ? <LoadingSkeleton /> : null}
@@ -152,7 +149,7 @@ export function StaffAttendanceScanPage() {
           </div>
           {result.record ? (
             <div className="scan-result-meta">
-              <span><Clock size={16} /> {formatDateTime(result.record.scanned_at ?? result.record.updated_at, language)}</span>
+              <span><Clock size={16} /> {formatBangkokDateTime(result.record.scanned_at ?? result.record.updated_at, language)}</span>
               <span>{result.record.status}</span>
             </div>
           ) : null}
@@ -163,7 +160,7 @@ export function StaffAttendanceScanPage() {
           </div>
         </Card>
       ) : null}
-      {!loading && !result && token ? (
+      {!loading && !result && token && !showVerifyForm ? (
         <Card className="error-state">
           <AlertTriangle size={28} />
           <h2>{language === 'th' ? 'ยังเช็กชื่อไม่สำเร็จ' : 'Check-in did not complete'}</h2>
