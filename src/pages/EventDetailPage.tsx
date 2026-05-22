@@ -8,7 +8,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDate } from '../lib/dateTime';
-import { legacyDefaultEventRoute } from '../lib/eventRoutes';
+import { eventRegisterPath, eventStaffApplyPath, legacyDefaultEventRoute } from '../lib/eventRoutes';
 import { fetchEventBySlug } from '../services/events';
 
 function statusLabel(status: string, language: 'th' | 'en') {
@@ -85,8 +85,8 @@ export function EventDetailPage() {
               <p>{language === 'th' ? 'ตอนนี้ระบบยังคงใช้หน้ารายชื่อและแก้ไขข้อมูลเดิมสำหรับกิจกรรมปัจจุบัน เพื่อไม่ให้ workflow เดิมเสียหาย' : 'For now, the current participant list and edit flow remain unchanged to preserve the existing workflow.'}</p>
             </div>
             <div className="event-card-actions">
-              <button className="btn btn-secondary" type="button" disabled>{language === 'th' ? 'ลงทะเบียนเข้าร่วม' : 'Register'}</button>
-              <button className="btn btn-secondary" type="button" disabled>{language === 'th' ? 'สมัครเป็นทีมงาน' : 'Apply as staff'}</button>
+              <Link className="btn btn-secondary" to={eventRegisterPath(event.slug)}>{language === 'th' ? 'ลงทะเบียนเข้าร่วม' : 'Register'}</Link>
+              <Link className="btn btn-secondary" to={eventStaffApplyPath(event.slug)}>{language === 'th' ? 'สมัครเป็นทีมงาน' : 'Apply as staff'}</Link>
               <Link className="btn btn-primary" to={legacyDefaultEventRoute('edit')}>{language === 'th' ? 'ตรวจสอบข้อมูลของฉัน' : 'Check my info'}</Link>
               <Link className="btn btn-secondary" to={legacyDefaultEventRoute('home')}>{language === 'th' ? 'ดูรายชื่อ' : 'Participant list'}</Link>
             </div>

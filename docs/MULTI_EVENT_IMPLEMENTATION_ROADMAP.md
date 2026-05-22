@@ -98,6 +98,8 @@ Deferred from P2 until staging/dedupe review:
 
 ## P3: Event-Scoped Registration and Staff Application
 
+Status: foundation started on 2026-05-23.
+
 Routes:
 
 - `/events/:eventSlug/register`
@@ -112,6 +114,31 @@ Tasks:
 - add safe prefill flow
 
 Risk: medium.
+
+Completed in foundation pass:
+
+- Added additive migration `202605230003_event_registration_application_foundation.sql`.
+- Created event-scoped tables:
+  - `event_participants`
+  - `staff_applications`
+  - `event_forms`
+  - `event_form_responses`
+- Added RLS so admins manage tables directly; public users submit only through RPC.
+- Added RPCs:
+  - `get_public_event_form(input_event_slug, input_form_type)`
+  - `submit_event_participant_registration(input_event_slug, input_email, input_phone, input_answers)`
+  - `submit_event_staff_application(input_event_slug, input_email, input_phone, input_data)`
+- Added public routes:
+  - `/events/:eventSlug/register`
+  - `/events/:eventSlug/staff/apply`
+- Existing single-event routes remain unchanged.
+
+Deferred:
+
+- Admin review UI for event participants and staff applications.
+- Dynamic form rendering from `event_forms.config_json`.
+- Creating unknown people from public registration.
+- Event staff approval into `event_staff`.
 
 ## P4: Admin Event Dashboard
 

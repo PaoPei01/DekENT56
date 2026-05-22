@@ -41,6 +41,13 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Event detail page links back to the existing participant list and `/edit`.
 - [ ] `/` still loads the existing public participant list and does not depend on the events table.
 - [ ] Mobile `/events` cards fit iPhone SE width without horizontal scroll.
+- [ ] Open `/events/entaneer-bonding-69/register`.
+- [ ] Registration page asks for email + phone and optional note.
+- [ ] Registration submit fails safely if no matching `people` row exists.
+- [ ] Open `/events/entaneer-bonding-69/staff/apply`.
+- [ ] Staff application page asks for email + phone and event-specific staff fields.
+- [ ] Staff application submit fails safely if staff recruiting is closed or identity is missing.
+- [ ] Neither public event form asks for medical information.
 
 ## Announcements
 

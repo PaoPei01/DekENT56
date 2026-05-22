@@ -20,6 +20,8 @@ const DataHealthPage = lazy(() => import('./pages/DataHealthPage').then((module)
 const EmergencyDashboardPage = lazy(() => import('./pages/EmergencyDashboardPage').then((module) => ({ default: module.EmergencyDashboardPage })));
 const EventsPage = lazy(() => import('./pages/EventsPage').then((module) => ({ default: module.EventsPage })));
 const EventDetailPage = lazy(() => import('./pages/EventDetailPage').then((module) => ({ default: module.EventDetailPage })));
+const EventRegisterPage = lazy(() => import('./pages/EventRegisterPage').then((module) => ({ default: module.EventRegisterPage })));
+const EventStaffApplyPage = lazy(() => import('./pages/EventStaffApplyPage').then((module) => ({ default: module.EventStaffApplyPage })));
 const GroupDashboardPage = lazy(() => import('./pages/GroupDashboardPage').then((module) => ({ default: module.GroupDashboardPage })));
 const DocumentCenterPage = lazy(() => import('./pages/DocumentCenterPage').then((module) => ({ default: module.DocumentCenterPage })));
 const DocumentGeneratePage = lazy(() => import('./pages/DocumentGeneratePage').then((module) => ({ default: module.DocumentGeneratePage })));
@@ -56,6 +58,8 @@ export function App() {
         <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
         <Route path="events" element={<Suspense fallback={<LoadingSkeleton />}><EventsPage /></Suspense>} />
         <Route path="events/:eventSlug" element={<Suspense fallback={<LoadingSkeleton />}><EventDetailPage /></Suspense>} />
+        <Route path="events/:eventSlug/register" element={<Suspense fallback={<LoadingSkeleton />}><EventRegisterPage /></Suspense>} />
+        <Route path="events/:eventSlug/staff/apply" element={<Suspense fallback={<LoadingSkeleton />}><EventStaffApplyPage /></Suspense>} />
         <Route path="guide" element={<Suspense fallback={<LoadingSkeleton />}><GuideCenterPage /></Suspense>} />
         <Route path="guide/:category" element={<Suspense fallback={<LoadingSkeleton />}><GuideCategoryPage /></Suspense>} />
         <Route path="guide/:category/:topic" element={<Suspense fallback={<LoadingSkeleton />}><GuideTopicPage /></Suspense>} />

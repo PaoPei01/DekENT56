@@ -1,6 +1,7 @@
 import { DEFAULT_EVENT_SLUG } from '../lib/defaultEvent';
+import { cleanEmail, cleanPhone } from '../lib/cleaners';
 import { supabase } from '../lib/supabase';
-import type { EventRecord } from '../lib/eventTypes';
+import type { EventForm, EventFormType, EventRecord, EventSubmissionResult } from '../lib/eventTypes';
 
 const eventFields = 'id,name_th,name_en,slug,description,event_type,academic_year,start_date,end_date,location,status,visibility,cover_image_path,created_at,updated_at';
 
@@ -49,4 +50,45 @@ export async function fetchAdminEvents(): Promise<EventRecord[]> {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return orderEvents((data ?? []) as EventRecord[]);
+}
+
+export async function fetchPublicEventForm(eventSlug: string, formType: EventFormType): Promise<EventForm | null> {
+  const { data, error } = await supabase.rpc('get_public_event_form', {
+    input_event_slug: eventSlug,
+    input_form_type: formType,
+  });
+  if (error) throw error;
+  return data as EventForm | null;
+}
+
+export async function submitEventParticipantRegistration(input: {
+  eventSlug: string;
+  email: string;
+  phone: string;
+  answers?: Record<string, unknown>;
+}): Promise<EventSubmissionResult> {
+  const { data, error } = await supabase.rpc('submit_event_participant_registration', {
+    input_event_slug: input.eventSlug,
+    input_email: cleanEmail(input.email),
+    input_phone: cleanPhone(input.phone),
+    input_answers: input.answers ?? {},
+  });
+  if (error) throw error;
+  return data as EventSubmissionResult;
+}
+
+export async function submitEventStaffApplication(input: {
+  eventSlug: string;
+  email: string;
+  phone: string;
+  data?: Record<string, unknown>;
+}): Promise<EventSubmissionResult> {
+  const { data, error } = await supabase.rpc('submit_event_staff_application', {
+    input_event_slug: input.eventSlug,
+    input_email: cleanEmail(input.email),
+    input_phone: cleanPhone(input.phone),
+    input_data: input.data ?? {},
+  });
+  if (error) throw error;
+  return data as EventSubmissionResult;
 }

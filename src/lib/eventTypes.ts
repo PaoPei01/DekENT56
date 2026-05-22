@@ -65,3 +65,40 @@ export type EventRouteParams = {
   eventSlug?: string;
   eventId?: string;
 };
+
+export type EventForm = {
+  id: string;
+  event_id: string;
+  form_type: EventFormType;
+  title: string;
+  description: string | null;
+  opens_at: string | null;
+  closes_at: string | null;
+  is_open: boolean;
+  config_json: Record<string, unknown>;
+  created_at: string | null;
+};
+
+export type EventSubmissionResult = {
+  success: boolean;
+  code: 'submitted' | 'identity_verification_failed' | 'event_not_open' | 'staff_recruiting_closed' | string;
+  message?: string;
+  event?: {
+    id: string;
+    slug: string;
+    name_th: string;
+    name_en: string | null;
+  };
+  registration?: {
+    id: string;
+    status: string;
+  };
+  application?: {
+    id: string;
+    status: string;
+  };
+  person?: {
+    person_id: string;
+    display_name: string;
+  };
+};

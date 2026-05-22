@@ -345,6 +345,34 @@ Deferred:
 - automatic production backfill without preview review
 - event participant/staff relationship tables
 
+## Implementation Note: Registration/Application Foundation
+
+The first P3 implementation adds event-scoped application tables and RPC-only public submission.
+
+Implemented:
+
+- `event_participants`
+- `staff_applications`
+- `event_forms`
+- `event_form_responses`
+- public form lookup RPC
+- participant registration RPC
+- staff application RPC
+
+Security behavior:
+
+- Public users cannot directly insert into the tables.
+- Public submissions require email + phone matching an existing `people` row.
+- Submissions return only minimal safe person/event/status data.
+- Admins can manage the new tables directly through RLS.
+
+Deferred:
+
+- dynamic form builder
+- admin review screens
+- automatic creation of new people from unknown public users
+- approval into `event_staff`
+
 ## What Not To Do Yet
 
 - Do not make `event_id` non-null in legacy tables immediately.
