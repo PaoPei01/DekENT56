@@ -4207,6 +4207,87 @@ th {
   width: min(100%, 520px);
 }
 
+.staff-qr-scanner-modal {
+  display: grid;
+  gap: 1rem;
+  padding-bottom: calc(0.75rem + var(--safe-bottom));
+}
+
+.staff-qr-camera-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: min(58vh, 420px);
+  overflow: hidden;
+  border: 1px solid rgba(132, 155, 190, 0.25);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.staff-qr-reader {
+  width: 100%;
+}
+
+.staff-qr-reader video {
+  width: 100% !important;
+  min-height: min(58vh, 420px);
+  object-fit: cover;
+}
+
+.staff-qr-reader img {
+  display: none;
+}
+
+.staff-qr-camera-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.staff-qr-camera-placeholder svg {
+  color: var(--accent-strong);
+}
+
+.staff-qr-camera-placeholder strong {
+  color: #142033;
+}
+
+.staff-qr-camera-active .staff-qr-camera-placeholder {
+  display: none;
+}
+
+.staff-qr-scan-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.staff-qr-scan-result > svg {
+  flex: 0 0 auto;
+}
+
+.staff-qr-scan-result > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.staff-qr-scan-result span,
+.staff-qr-scan-result em {
+  color: var(--text-soft);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.staff-qr-manual-card {
+  margin: 0;
+}
+
 .attendance-row-actions,
 .attendance-manual-actions {
   display: flex;
@@ -4345,8 +4426,14 @@ th {
   .attendance-qr-card .form-actions,
   .staff-attendance-home .form-actions,
   .staff-attendance-scan-page .form-actions,
-  .staff-personal-qr-page .form-actions {
+  .staff-personal-qr-page .form-actions,
+  .staff-qr-scanner-modal .form-actions {
     grid-template-columns: 1fr;
+  }
+
+  .staff-qr-camera-frame,
+  .staff-qr-reader video {
+    min-height: 320px;
   }
 
   .staff-personal-qr-head {

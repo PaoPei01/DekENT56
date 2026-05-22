@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { CheckCircle2, Clock, Copy, Download, QrCode, RefreshCw, Search, ShieldCheck, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
@@ -38,6 +38,8 @@ const manualStatuses: Array<{ value: StaffAttendanceStatus; th: string; en: stri
   { value: 'checked_out', th: 'เช็กออก', en: 'Checked out' },
 ];
 
+const StaffQrScannerModal = lazy(() => import('../components/attendance/StaffQrScannerModal').then((module) => ({ default: module.StaffQrScannerModal })));
+
 function statusText(status: string | undefined | null, language: 'th' | 'en') {
   const found = manualStatuses.find((item) => item.value === status);
   if (found) return language === 'th' ? found.th : found.en;
@@ -55,6 +57,7 @@ export function AdminStaffAttendanceSessionPage() {
   const [note, setNote] = useState('');
   const [staffQrInput, setStaffQrInput] = useState('');
   const [scanWorking, setScanWorking] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [workingId, setWorkingId] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
 
@@ -225,6 +228,9 @@ export function AdminStaffAttendanceSessionPage() {
           <details className="filter-disclosure attendance-personal-qr-tool">
             <summary>{language === 'th' ? 'สแกน QR ส่วนตัวทีมงาน' : 'Scan staff personal QR'}</summary>
             <div className="form-grid">
+              <Button type="button" icon={<QrCode size={18} />} onClick={() => setScannerOpen(true)}>
+                {language === 'th' ? 'สแกน QR ทีมงาน' : 'Scan Staff QR'}
+              </Button>
               <Input
                 label={language === 'th' ? 'Token หรือข้อความจาก QR' : 'Token or QR text'}
                 value={staffQrInput}
@@ -291,6 +297,20 @@ export function AdminStaffAttendanceSessionPage() {
           ) },
         ]}
       />
+
+      {scannerOpen ? (
+        <Suspense fallback={<LoadingSkeleton />}>
+          <StaffQrScannerModal
+            open={scannerOpen}
+            sessionId={session.id}
+            onClose={() => setScannerOpen(false)}
+            onScanSuccess={async (result) => {
+              setToast({ type: 'success', message: attendanceScanMessage(result.code, language) });
+              await state.reload();
+            }}
+          />
+        </Suspense>
+      ) : null}
     </section>
   );
 }
