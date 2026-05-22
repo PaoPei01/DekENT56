@@ -74,7 +74,7 @@ begin
   if not exists (select 1 from pg_constraint where conname = 'staff_attendance_records_method_check' and conrelid = 'public.staff_attendance_records'::regclass) then
     alter table public.staff_attendance_records
       add constraint staff_attendance_records_method_check
-      check (method in ('session_qr', 'verified_qr', 'manual', 'admin_scan_staff_qr', 'import', 'system'));
+      check (method in ('session_qr', 'verified_qr', 'verified_camera_scan', 'manual', 'admin_scan_staff_qr', 'import', 'system'));
   end if;
 end;
 $$;

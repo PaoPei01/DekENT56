@@ -55,3 +55,29 @@ SUPABASE_ADMIN_ACCESS_TOKEN="..." npm run check:multi-event-staging
 4. Review the preview output.
 5. Run the Events, Admin Events, and People Foundation sections in `docs/MANUAL_QA_CHECKLIST.md`.
 6. Only then decide whether to run the legacy linking RPC on staging.
+
+## Attendance Constraint Repair Note
+
+If applying attendance migrations manually fails with:
+
+```text
+check constraint "staff_attendance_records_method_check" of relation "staff_attendance_records" is violated by some row
+```
+
+the database likely already has attendance records with `method = 'verified_camera_scan'` while an older constraint definition only allowed `session_qr`, `verified_qr`, `manual`, `admin_scan_staff_qr`, `import`, and `system`.
+
+Apply the repair migration:
+
+```text
+supabase/migrations/202605230006_staff_attendance_method_constraint_repair.sql
+```
+
+The intended method set is:
+
+- `session_qr`
+- `verified_qr`
+- `verified_camera_scan`
+- `manual`
+- `admin_scan_staff_qr`
+- `import`
+- `system`
