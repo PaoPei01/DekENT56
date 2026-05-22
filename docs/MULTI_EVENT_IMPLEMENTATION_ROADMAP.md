@@ -237,6 +237,8 @@ Deferred:
 
 ## P7: Full Legacy Route Migration
 
+Status: intentionally deferred after foundation passes.
+
 Tasks:
 
 - redirect old routes to default/current event where appropriate
@@ -246,6 +248,29 @@ Tasks:
 
 Risk: medium to high.
 
+Do not execute yet:
+
+- Do not redirect `/`, `/edit`, `/staff/attendance`, `/admin/dashboard`, or `/admin/documents` until event context has been tested end-to-end.
+- Do not remove single-event assumptions from public search until event participant data exists and is validated.
+- Do not require event selection for staff/admin workflows until an accessible event switcher is backed by real permissions.
+
+Safe prerequisites before P7:
+
+- Apply all foundation migrations on staging.
+- Run `preview_people_legacy_link()` and review duplicate data.
+- Run `link_legacy_profiles_to_people()` only after duplicate review.
+- Confirm `event_participants` and `staff_applications` can be reviewed by admins.
+- Add event-aware filters to attendance, announcements, and documents.
+- Test old routes and new event routes side by side.
+
+Recommended P7 approach:
+
+1. Keep old routes working as default event aliases.
+2. Add visible current-event context on admin/staff pages.
+3. Add event switcher for admins only.
+4. Add event-scoped public routes.
+5. Only then consider platform homepage mode for `/`.
+
 ## Recommended Next Migration Prompt
 
 Use this as the next Codex prompt when ready:
@@ -254,11 +279,13 @@ Use this as the next Codex prompt when ready:
 
 ## Release Gate Before Real Multi-Event Use
 
-- [ ] default event exists in production
+- [x] default event foundation exists in code
+- [ ] default event migration applied in production
 - [ ] backup taken
 - [ ] people dedupe tested on staging data
 - [ ] public search verified not to leak cross-event data
 - [ ] attendance QR verified with event scope
-- [ ] admin event switcher clearly visible
+- [ ] admin event switcher clearly visible and backed by real permissions
 - [ ] RLS event-role checks tested
 - [ ] rollback plan documented
+- [ ] old routes verified after event-scoped migrations

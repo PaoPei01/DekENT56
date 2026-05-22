@@ -48,6 +48,8 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Staff application page asks for email + phone and event-specific staff fields.
 - [ ] Staff application submit fails safely if staff recruiting is closed or identity is missing.
 - [ ] Neither public event form asks for medical information.
+- [ ] Old `/`, `/edit`, `/staff/attendance`, `/admin/dashboard`, and `/admin/documents` routes still work after applying multi-event foundation migrations.
+- [ ] Do not enable platform homepage redirects until event-scoped participant data is validated.
 
 ## Announcements
 

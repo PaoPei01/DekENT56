@@ -39,6 +39,13 @@ Still intentionally deferred:
 - event-scoped announcements/documents
 - event registration and staff application flows
 
+Update after foundation passes:
+
+- P2 added `people` and admin-only legacy link helpers, but production linking must wait for duplicate review.
+- P3 added event registration/staff application foundations and RPC-only public submit flows.
+- P5/P6 added nullable event scope columns for attendance, announcements, and documents while preserving legacy route behavior.
+- Full route migration remains deferred because old single-event workflows are still the safest production path until event-scoped data is validated.
+
 ## Current Single-Event Assumptions
 
 | Area | Current assumption | Risk in multi-event mode | Safe first step |
