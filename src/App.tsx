@@ -24,6 +24,7 @@ const DocumentGeneratePage = lazy(() => import('./pages/DocumentGeneratePage').t
 const DocumentHistoryPage = lazy(() => import('./pages/DocumentHistoryPage').then((module) => ({ default: module.DocumentHistoryPage })));
 const DocumentSettingsPage = lazy(() => import('./pages/DocumentSettingsPage').then((module) => ({ default: module.DocumentSettingsPage })));
 const DocumentTemplatesPage = lazy(() => import('./pages/DocumentTemplatesPage').then((module) => ({ default: module.DocumentTemplatesPage })));
+const GuidePage = lazy(() => import('./pages/GuidePage').then((module) => ({ default: module.GuidePage })));
 const PendingRequestsPage = lazy(() => import('./pages/PendingRequestsPage').then((module) => ({ default: module.PendingRequestsPage })));
 const AdminStaffAttendancePage = lazy(() => import('./pages/AdminStaffAttendancePage').then((module) => ({ default: module.AdminStaffAttendancePage })));
 const AdminStaffAttendanceSessionPage = lazy(() => import('./pages/AdminStaffAttendanceSessionPage').then((module) => ({ default: module.AdminStaffAttendanceSessionPage })));
@@ -48,6 +49,7 @@ export function App() {
         <Route index element={<PublicListPage />} />
         <Route path="announcements" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementsPage /></Suspense>} />
         <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
+        <Route path="guide" element={<Suspense fallback={<LoadingSkeleton />}><GuidePage /></Suspense>} />
         <Route path="edit" element={<VerifyEditPage />} />
         <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
         <Route path="staff/profile/qr" element={<Suspense fallback={<LoadingSkeleton />}><StaffPersonalQrPage /></Suspense>} />
