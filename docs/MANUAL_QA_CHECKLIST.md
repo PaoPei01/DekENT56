@@ -53,6 +53,7 @@ Use this checklist before real event operations and after every production-readi
 
 - [ ] Open `/announcements`.
 - [ ] Public visible announcements load.
+- [ ] Existing announcements keep loading after nullable `event_id` is added.
 - [ ] Pinned/important announcements are clear.
 - [ ] Open announcement detail.
 - [ ] Image/file links, if present, open correctly.
@@ -351,6 +352,7 @@ Use this checklist before real event operations and after every production-readi
 ## Document Center
 
 - [ ] Open `/admin/documents`.
+- [ ] Existing Document Center data still loads after nullable `event_id` is added.
 - [ ] Open settings.
 - [ ] Save project settings.
 - [ ] Add budget item.

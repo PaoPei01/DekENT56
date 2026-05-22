@@ -3,6 +3,7 @@ export type EquipmentStatus = 'draft' | 'requested' | 'borrowed' | 'returned' | 
 
 export type DocumentProjectProfile = {
   id: string;
+  event_id: string | null;
   project_name: string | null;
   project_code: string | null;
   academic_year: string | null;
@@ -46,6 +47,7 @@ export type DocumentProjectProfile = {
 
 export type DocumentTemplate = {
   id: string;
+  event_id: string | null;
   name: string;
   document_type: DocumentType;
   description: string | null;
@@ -124,6 +126,7 @@ export type DocumentEquipmentItem = {
 
 export type GeneratedDocument = {
   id: string;
+  event_id: string | null;
   project_profile_id: string | null;
   template_id: string | null;
   file_name: string;

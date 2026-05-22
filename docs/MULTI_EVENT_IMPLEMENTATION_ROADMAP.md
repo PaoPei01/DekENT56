@@ -207,6 +207,8 @@ Deferred:
 
 ## P6: Event-Scoped Announcements and Documents
 
+Status: compatibility foundation started on 2026-05-23.
+
 Tasks:
 
 - add nullable `event_id` to announcements
@@ -215,6 +217,23 @@ Tasks:
 - add event filters to services and admin pages
 
 Risk: medium.
+
+Completed in compatibility pass:
+
+- Added nullable `event_id` to:
+  - `announcements`
+  - `document_project_profiles`
+  - `document_templates`
+  - `generated_documents`
+- Backfilled existing null rows to the default event when available.
+- Added TypeScript type support for `event_id` in announcements/documents.
+
+Deferred:
+
+- Filtering public/admin announcements by current event.
+- Event-aware Document Center selection.
+- Event namespaced Storage paths.
+- Deciding global vs event-scoped templates in UI.
 
 ## P7: Full Legacy Route Migration
 

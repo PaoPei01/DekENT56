@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 
 export type Announcement = {
   id: string;
+  event_id: string | null;
   title: string;
   description: string | null;
   type: 'banner' | 'schedule' | 'map' | 'traffic' | 'emergency' | 'faq' | 'update' | 'document';
@@ -24,7 +25,7 @@ export type Announcement = {
 export type AnnouncementInput = Partial<Announcement>;
 
 function cleanAnnouncement(input: AnnouncementInput) {
-  return {
+  const payload = {
     title: cleanText(input.title) ?? '',
     description: cleanText(input.description),
     type: input.type ?? 'update',
@@ -39,6 +40,7 @@ function cleanAnnouncement(input: AnnouncementInput) {
     starts_at: cleanText(input.starts_at),
     ends_at: cleanText(input.ends_at),
   };
+  return 'event_id' in input ? { ...payload, event_id: input.event_id ?? null } : payload;
 }
 
 export async function fetchPublicAnnouncements() {
