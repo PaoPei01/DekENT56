@@ -21,3 +21,15 @@ export async function verifyPersonIdentityForPrefill(email: string, phone: strin
   if (error) throw error;
   return data as PersonPrefillResult;
 }
+
+export async function previewPeopleLegacyLink(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('preview_people_legacy_link');
+  if (error) throw error;
+  return data as Record<string, number>;
+}
+
+export async function linkLegacyProfilesToPeople(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('link_legacy_profiles_to_people');
+  if (error) throw error;
+  return data as Record<string, number>;
+}

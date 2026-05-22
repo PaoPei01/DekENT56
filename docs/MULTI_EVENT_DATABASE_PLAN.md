@@ -331,14 +331,18 @@ Implemented foundation:
 - normalized email/phone indexes
 - safe two-factor prefill verification RPC:
   - `verify_person_identity_for_prefill(input_email, input_phone)`
+- nullable `person_id` references on `profiles` and `staff_profiles`
+- admin-only mapping helpers:
+  - `preview_people_legacy_link()`
+  - `link_legacy_profiles_to_people()`
 
 The RPC is designed for future registration/staff application prefill flows. It requires email + phone and returns only minimal non-medical identity fields. It does not expose phone, email, medical data, or internal notes in the returned JSON.
 
+The legacy mapping helpers are intentionally not run automatically by migration. Admins should first run the preview function on staging/production copy, review counts, and only then run the link function. The link function creates missing people and links legacy rows via nullable `person_id`; it does not remove or replace legacy rows.
+
 Deferred:
 
-- bulk insert/backfill from `profiles`
-- bulk insert/backfill from `staff_profiles`
-- `person_id` columns on existing legacy tables
+- automatic production backfill without preview review
 - event participant/staff relationship tables
 
 ## What Not To Do Yet

@@ -162,6 +162,10 @@ Use this checklist before real event operations and after every production-readi
 - [ ] `verify_person_identity_for_prefill` returns `identity_verification_failed` when no matching person exists.
 - [ ] `verify_person_identity_for_prefill` returns only minimal safe identity fields when a matching person exists.
 - [ ] The RPC response does not include phone, email, medical data, or internal notes.
+- [ ] `profiles.person_id` exists and is nullable.
+- [ ] `staff_profiles.person_id` exists and is nullable.
+- [ ] `preview_people_legacy_link()` returns counts for participant and staff rows.
+- [ ] Do not run `link_legacy_profiles_to_people()` on production until preview counts and duplicate data are reviewed.
 - [ ] Existing `/`, `/edit`, `/staff/attendance`, and `/admin/dashboard` behavior is unchanged.
 
 ## Pending Participant Requests

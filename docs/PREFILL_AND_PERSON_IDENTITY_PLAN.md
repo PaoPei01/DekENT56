@@ -170,6 +170,17 @@ Important limitation:
 
 - This RPC will only find people after `public.people` has been safely populated. Backfill from `profiles` and `staff_profiles` is intentionally deferred until duplicate rules are tested on staging data.
 
+## Legacy Link Helpers
+
+Admin-only helpers now exist for a controlled mapping pass:
+
+- `preview_people_legacy_link()` shows how many legacy participant/staff rows are unlinked and how many can match existing people.
+- `link_legacy_profiles_to_people()` links `profiles.person_id` and `staff_profiles.person_id`, creating missing people where no match exists.
+
+Operational rule:
+
+Run preview first, review duplicate student ID/email/phone issues in Data Health, then run the link helper only when the counts look safe. The helper does not change public search or staff attendance behavior.
+
 ## UX Copy
 
 Known person:

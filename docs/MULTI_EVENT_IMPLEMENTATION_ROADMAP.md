@@ -83,12 +83,16 @@ Completed in foundation pass:
 - Added TypeScript person types and service helpers:
   - `fetchAdminPeople()`
   - `verifyPersonIdentityForPrefill(email, phone)`
+- Added additive migration `202605230002_people_legacy_link_tools.sql`.
+- Added nullable `person_id` references on `profiles` and `staff_profiles`.
+- Added admin-only preview/link RPCs:
+  - `preview_people_legacy_link()`
+  - `link_legacy_profiles_to_people()`
+- Added matching service helpers for the preview/link RPCs.
 
 Deferred from P2 until staging/dedupe review:
 
-- Backfilling `people` from `profiles`.
-- Backfilling `people` from `staff_profiles`.
-- Adding nullable `person_id` to legacy tables.
+- Running legacy-to-people linking in production without reviewing preview counts.
 - Creating `event_participants` or `event_staff`.
 - Replacing any existing public/staff/admin flow with `people`.
 
