@@ -6,6 +6,8 @@ Use this checklist before real event operations and after every production-readi
 
 - [ ] Supabase project points to the intended environment.
 - [ ] Latest migrations are applied.
+- [ ] Multi-event staging runbook has been followed if testing multi-event foundation.
+- [ ] `npm run check:multi-event-staging` passes after applying foundation migrations.
 - [ ] Admin account exists.
 - [ ] Staff Auth account exists.
 - [ ] Non-Auth staff profile exists with email + phone.

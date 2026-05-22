@@ -280,6 +280,8 @@ Use this as the next Codex prompt when ready:
 ## Release Gate Before Real Multi-Event Use
 
 - [x] default event foundation exists in code
+- [x] staging runbook exists: `docs/STAGING_MIGRATION_RUNBOOK.md`
+- [x] read-only staging verification script exists: `npm run check:multi-event-staging`
 - [ ] default event migration applied in production
 - [ ] backup taken
 - [ ] people dedupe tested on staging data

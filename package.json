@@ -10,6 +10,7 @@
     "import:registrations": "node scripts/import-registration-xlsx.mjs",
     "import:staff": "node scripts/import-staff-xlsx.mjs",
     "import:group-staff": "node scripts/import-group-staff-roster.mjs",
+    "check:multi-event-staging": "node scripts/check-multi-event-staging.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
