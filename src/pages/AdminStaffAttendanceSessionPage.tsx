@@ -18,6 +18,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useEventContext } from '../context/EventContext';
 import { useAsync } from '../hooks/useAsync';
 import type { StaffAttendanceAdminRow, StaffAttendanceStatus } from '../lib/attendanceTypes';
+import { attendanceEventIsLegacy, attendanceEventLabel, attendanceQrState, attendanceQrStateLabel } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { groupLabel } from '../lib/grouping';
 import {
@@ -108,9 +109,13 @@ export function AdminStaffAttendanceSessionPage() {
   }, [scanUrl]);
 
   async function copyLink() {
+    if (!scanUrl) {
+      setToast({ type: 'error', message: language === 'th' ? 'ยังไม่มีลิงก์ QR สำหรับรอบนี้' : 'No QR link is available for this session.' });
+      return;
+    }
     try {
       await navigator.clipboard.writeText(scanUrl);
-      setToast({ type: 'success', message: language === 'th' ? 'คัดลอกลิงก์แล้ว' : 'Link copied' });
+      setToast({ type: 'success', message: language === 'th' ? `คัดลอกลิงก์ของ ${eventLabel} แล้ว` : `Copied the link for ${eventLabel}.` });
     } catch {
       setToast({ type: 'error', message: language === 'th' ? 'คัดลอกไม่สำเร็จ' : 'Copy failed' });
     }
@@ -179,10 +184,10 @@ export function AdminStaffAttendanceSessionPage() {
   if (!session) return <div className="empty-state">{language === 'th' ? 'ไม่พบรอบเช็กชื่อ' : 'Attendance session not found'}</div>;
 
   const summary = state.data?.summary ?? session.summary;
-  const sessionEvent = events.find((event) => event.id === session.event_id);
-  const eventLabel = sessionEvent
-    ? (language === 'th' ? sessionEvent.name_th : sessionEvent.name_en || sessionEvent.name_th)
-    : (language === 'th' ? 'กิจกรรมเดิม' : 'Legacy/default event');
+  const eventLabel = attendanceEventLabel(session, events, language);
+  const isLegacySession = attendanceEventIsLegacy(session);
+  const qrState = attendanceQrState(session);
+  const canShowQr = qrState === 'available';
 
   return (
     <section className="page-stack admin-staff-attendance-page has-sticky-actions">
@@ -209,20 +214,42 @@ export function AdminStaffAttendanceSessionPage() {
         <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} value={summary?.missing ?? 0} icon={<XCircle size={20} />} />
       </div>
 
+      <Card className={`attendance-event-context-card ${isLegacySession ? 'attendance-event-context-warning' : ''}`} variant={isLegacySession ? 'warning' : 'soft'}>
+        <div>
+          <p className="eyebrow">{language === 'th' ? 'รอบนี้อยู่ในกิจกรรม' : 'Session event'}</p>
+          <h2>{eventLabel}</h2>
+          <p>{isLegacySession
+            ? (language === 'th' ? 'รอบนี้เป็นข้อมูลเดิมหรือ default session โปรดตรวจสอบก่อนแสดง QR หน้างาน' : 'This is a legacy/default session. Confirm the event context before showing the QR onsite.')
+            : (language === 'th' ? 'QR และข้อมูลเช็กชื่อในหน้านี้อ้างอิงกิจกรรมนี้' : 'The QR and attendance records on this page belong to this event.')}</p>
+        </div>
+        <span className={`status-pill ${isLegacySession ? 'status-draft' : 'status-active'}`}>{isLegacySession ? (language === 'th' ? 'Legacy/default' : 'Legacy/default') : eventLabel}</span>
+      </Card>
+
       <div className="attendance-session-layout">
         <Card className="attendance-qr-card" variant="soft">
           <div>
             <div className="section-title-row">
               <div>
-                <p className="eyebrow">{language === 'th' ? 'แสดง QR Code' : 'Show QR Code'}</p>
-                <h2>{language === 'th' ? 'ให้ทีมงานสแกน QR นี้' : 'Let staff scan this QR'}</h2>
+                <p className="eyebrow">{eventLabel}</p>
+                <h2>{language === 'th' ? `${session.title} · QR เช็กชื่อ` : `${session.title} · Attendance QR`}</h2>
               </div>
               <HelpButton topicId="admin-attendance.session-qr" variant="compact" />
             </div>
-            <p>{language === 'th' ? 'ทีมงานสแกนด้วยมือถือของตัวเอง แล้วเข้าสู่ระบบหรือยืนยันอีเมลและเบอร์โทรเพื่อเช็กชื่อ' : 'Staff scan this with their own phone, then sign in or verify by email and phone to check in.'}</p>
+            <p>{language === 'th'
+              ? 'ทีมงานสแกนด้วยมือถือของตัวเอง QR นี้ใช้สำหรับกิจกรรมและรอบเช็กชื่อที่แสดงด้านบน'
+              : 'Staff scan this with their own phone. This QR belongs to the event and session shown above.'}</p>
           </div>
-          {qrDataUrl ? <img className="attendance-qr-image" src={qrDataUrl} alt={language === 'th' ? 'QR เช็กชื่อทีมงาน' : 'Staff attendance QR'} /> : <div className="attendance-qr-fallback">{language === 'th' ? 'ไม่สามารถสร้างรูป QR ได้' : 'Could not render QR image'}</div>}
-          <code className="attendance-scan-url">{scanUrl}</code>
+          {canShowQr && qrDataUrl ? <img className="attendance-qr-image" src={qrDataUrl} alt={language === 'th' ? `QR เช็กชื่อ ${eventLabel}` : `${eventLabel} attendance QR`} /> : (
+            <div className="attendance-qr-fallback">
+              <strong>{attendanceQrStateLabel(qrState, language)}</strong>
+              <span>{language === 'th' ? 'สร้าง QR ใหม่หรือเปิดรอบเช็กชื่อก่อนให้ทีมงานสแกน' : 'Regenerate the QR or reopen/create an active session before staff scan.'}</span>
+            </div>
+          )}
+          <div className="filter-chip-row">
+            <span className={`status-pill ${canShowQr ? 'status-active' : 'status-closed'}`}>{attendanceQrStateLabel(qrState, language)}</span>
+            <span className="status-pill status-excused">{eventLabel}</span>
+          </div>
+          {scanUrl ? <code className="attendance-scan-url">{scanUrl}</code> : null}
           <div className="form-actions">
             <Button variant="secondary" icon={<Copy size={18} />} onClick={copyLink}>{language === 'th' ? 'คัดลอกลิงก์' : 'Copy link'}</Button>
             <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={regenerateQr}>{language === 'th' ? 'สร้าง QR ใหม่' : 'Regenerate QR'}</Button>

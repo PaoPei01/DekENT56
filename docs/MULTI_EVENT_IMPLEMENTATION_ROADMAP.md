@@ -339,10 +339,20 @@ Completed in compatibility pass:
 - Updated `/admin/staff/attendance/:sessionId` to show the session event name, with a "legacy/default event" label when `event_id` is null.
 - Kept `/staff/attendance` and all QR scan flows unchanged for compatibility.
 
+Completed in event-aware attendance UX polish:
+
+- Added a clear selected-event context card on `/admin/staff/attendance`.
+- Added event badges to admin attendance session lists and mobile cards.
+- Added a session event context warning for legacy/default attendance sessions.
+- Updated the admin QR card to show event name, session title, and clear closed/expired/missing QR states.
+- Updated staff QR scan result UI to show event name when the existing RPC returns `session.event_id` and the app can resolve the public event name.
+- Updated staff attendance history to show event name when available without requiring staff-side event selection.
+- Kept QR token generation, scan RPCs, and staff compatibility behavior unchanged.
+
 Deferred:
 
 - Deeper attendance dashboard redesign by event.
-- Event-aware QR result UI.
+- Backend RPC enhancement to return event display names directly for non-public/unresolved events.
 - Staff-side event selection.
 - Event-role RLS for attendance.
 

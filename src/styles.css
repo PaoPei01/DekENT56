@@ -4559,6 +4559,27 @@ th {
   align-items: start;
 }
 
+.attendance-event-context-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.attendance-event-context-card h2 {
+  margin: 0.1rem 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.attendance-event-context-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.attendance-event-context-warning {
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
 .attendance-qr-card,
 .attendance-manual-panel,
 .staff-attendance-primary,
@@ -4567,6 +4588,24 @@ th {
 .scan-result-card {
   display: grid;
   gap: 1rem;
+}
+
+.attendance-qr-fallback {
+  display: grid;
+  gap: 0.35rem;
+  place-items: center;
+  min-height: 260px;
+  border: 1px dashed rgba(132, 155, 190, 0.42);
+  border-radius: 18px;
+  padding: 1rem;
+  background: rgba(245, 248, 252, 0.72);
+  text-align: center;
+  color: var(--muted);
+}
+
+.attendance-qr-fallback strong {
+  color: #142033;
+  font-size: 1.05rem;
 }
 
 .application-mobile-actions,
@@ -5749,6 +5788,11 @@ th {
   .attendance-session-layout,
   .attendance-session-grid {
     grid-template-columns: 1fr;
+  }
+
+  .attendance-event-context-card {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .attendance-qr-card .form-actions,

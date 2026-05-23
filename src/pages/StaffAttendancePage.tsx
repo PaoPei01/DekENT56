@@ -9,8 +9,10 @@ import { Input } from '../components/ui/Input';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Toast, ToastState } from '../components/ui/Toast';
+import { useEventContext } from '../context/EventContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { MyStaffAttendanceData, VerifiedStaffAttendanceIdentity } from '../lib/attendanceTypes';
+import { attendanceEventLabel } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { groupLabel } from '../lib/grouping';
 import { supabase } from '../lib/supabase';
@@ -61,6 +63,7 @@ function authIdentityFromData(data: MyStaffAttendanceData | null, personalQrPayl
 
 export function StaffAttendancePage() {
   const { language } = useLanguage();
+  const { events } = useEventContext();
   const [data, setData] = useState<MyStaffAttendanceData | null>(null);
   const [verifiedIdentity, setVerifiedIdentity] = useState<VerifiedStaffAttendanceIdentity | null>(() => getVerifiedStaffIdentity());
   const [authPersonalQrPayload, setAuthPersonalQrPayload] = useState('');
@@ -76,6 +79,7 @@ export function StaffAttendancePage() {
   const records = useMemo(() => data?.records ?? [], [data?.records]);
   const latest = data?.latest_record;
   const activeIdentity = isAuthenticated ? authIdentityFromData(data, authPersonalQrPayload) : verifiedIdentity;
+  const latestEventLabel = latest?.session?.event_id ? attendanceEventLabel(latest.session, events, language) : '';
 
   const loadAttendance = useCallback(async () => {
     setLoading(true);
@@ -242,7 +246,7 @@ export function StaffAttendancePage() {
       {latest ? (
         <Card className="privacy-notice" variant="success">
           <strong>{language === 'th' ? 'สถานะล่าสุด' : 'Latest status'}</strong>
-          <span>{latest.session?.title ?? '-'} · {statusLabel(latest.status, language)} · {formatBangkokDateTime(latest.scanned_at ?? latest.updated_at, language)}</span>
+          <span>{[latestEventLabel, latest.session?.title ?? '-', statusLabel(latest.status, language), formatBangkokDateTime(latest.scanned_at ?? latest.updated_at, language)].filter(Boolean).join(' · ')}</span>
         </Card>
       ) : null}
 
@@ -256,11 +260,11 @@ export function StaffAttendancePage() {
             rows={records}
             getKey={(row) => row.id}
             emptyText={language === 'th' ? 'ยังไม่มีประวัติการเช็กชื่อ' : 'No attendance history yet'}
-            mobileTitle={(row) => row.session?.title ?? '-'}
-            mobileSubtitle={(row) => statusLabel(row.status, language)}
+            mobileTitle={(row) => row.session?.event_id ? attendanceEventLabel(row.session, events, language) : row.session?.title ?? '-'}
+            mobileSubtitle={(row) => row.session?.event_id ? `${row.session.title} · ${statusLabel(row.status, language)}` : statusLabel(row.status, language)}
             mobileMeta={(row) => formatBangkokDateTime(row.scanned_at ?? row.updated_at, language)}
             columns={[
-              { key: 'session', header: language === 'th' ? 'รอบ' : 'Session', render: (row) => row.session?.title ?? '-' },
+              { key: 'session', header: language === 'th' ? 'รอบ' : 'Session', render: (row) => <div className="participant-admin-cell"><strong>{row.session?.title ?? '-'}</strong>{row.session?.event_id ? <span>{attendanceEventLabel(row.session, events, language)}</span> : null}</div> },
               { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
               { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatBangkokDateTime(row.scanned_at ?? row.updated_at, language) },
               { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => row.method },

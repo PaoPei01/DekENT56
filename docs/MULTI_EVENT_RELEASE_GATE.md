@@ -69,8 +69,12 @@ Findings:
   - successful submission does not promise approval
 - [ ] Attendance QR tested after migrations:
   - admin can create session
+  - admin can see selected event and session event badge
+  - admin QR card shows event name and session title
   - existing sessions still load
+  - legacy/default session warning appears when applicable
   - QR check-in still works
+  - staff scan result shows event context when available
   - manual check-in still works
 - [ ] Rollback plan ready and understood.
 

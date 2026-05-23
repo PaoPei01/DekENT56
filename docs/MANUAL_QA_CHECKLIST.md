@@ -387,16 +387,22 @@ Use this checklist before real event operations and after every production-readi
 
 - [ ] Open `/admin/staff/attendance`.
 - [ ] Admin attendance page shows the current EventSwitcher event.
+- [ ] Admin attendance page shows a selected-event context card and keeps actions usable on mobile.
 - [ ] Switching EventSwitcher filters the admin attendance session list without breaking old routes.
+- [ ] Session list cards/table show event badges for the selected event.
 - [ ] Create attendance session.
+- [ ] Create session modal shows the selected event clearly and keeps Thailand time hint.
 - [ ] New attendance session stores `event_id` from the currently selected event after applying P5 migration.
 - [ ] Existing/legacy sessions with null `event_id` remain visible as fallback and still work.
 - [ ] Confirm datetime displays in Asia/Bangkok as entered.
 - [ ] Set late_after and verify late behavior.
 - [ ] Open session detail.
 - [ ] Attendance session detail shows the event name or "กิจกรรมเดิม" for legacy sessions.
+- [ ] Legacy/default session detail shows a clear warning before showing QR onsite.
 - [ ] Summary cards show total/present/late/missing.
 - [ ] Session QR image is visible and scannable.
+- [ ] QR card shows event name and session title.
+- [ ] Closed/expired/missing QR states show friendly text and do not expose tokens publicly.
 - [ ] Copy session QR link.
 - [ ] Regenerate QR and confirm old QR no longer works.
 - [ ] Close session and confirm QR check-in is blocked.
@@ -431,6 +437,7 @@ Use this checklist before real event operations and after every production-readi
 ## Staff Session QR Check-In
 
 - [ ] Staff scans session QR with phone camera.
+- [ ] Staff scan result shows event name when the session event can be resolved.
 - [ ] Auth staff checks in directly.
 - [ ] Non-Auth staff with remembered identity checks in without retyping email/phone.
 - [ ] Non-Auth staff without remembered identity sees verification form.
@@ -439,6 +446,7 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Closed session is blocked.
 - [ ] Expired QR is blocked.
 - [ ] Already checked state is clear.
+- [ ] `/staff/attendance` history shows event names when available and keeps old behavior when unavailable.
 
 ## Emergency
 

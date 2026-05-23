@@ -19,6 +19,7 @@ import { useAsync } from '../hooks/useAsync';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { staffOperationalRoles } from '../lib/staffRoles';
 import type { StaffAttendanceSessionInput } from '../lib/attendanceTypes';
+import { attendanceEventBadgeLabel, attendanceEventIsLegacy, attendanceEventLabel } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime, isoToDatetimeLocal } from '../lib/dateTime';
 import { createStaffAttendanceSession, fetchAdminStaffAttendance } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
@@ -42,7 +43,7 @@ function statusLabel(status: string, language: 'th' | 'en') {
 
 export function AdminStaffAttendancePage() {
   const { language } = useLanguage();
-  const { currentEvent, currentEventId } = useEventContext();
+  const { currentEvent, currentEventId, events } = useEventContext();
   const navigate = useNavigate();
   const state = useAsync(() => fetchAdminStaffAttendance(null, currentEventId), [currentEventId]);
   const [toast, setToast] = useState<ToastState>(null);
@@ -58,6 +59,9 @@ export function AdminStaffAttendancePage() {
   });
 
   const sessions = useMemo(() => state.data?.sessions ?? [], [state.data?.sessions]);
+  const currentEventLabel = currentEvent
+    ? (language === 'th' ? currentEvent.name_th : currentEvent.name_en || currentEvent.name_th)
+    : (language === 'th' ? 'กิจกรรมเดิม' : 'Legacy/default event');
   const timezoneHint = language === 'th' ? 'เวลาไทย (Asia/Bangkok)' : 'Thailand local time (Asia/Bangkok)';
   const totals = useMemo(() => sessions.reduce(
     (sum, session) => {
@@ -112,6 +116,17 @@ export function AdminStaffAttendancePage() {
         <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} value={totals.missing} />
       </div>
 
+      <Card className="attendance-event-context-card" variant="soft">
+        <div>
+          <p className="eyebrow">{language === 'th' ? 'กิจกรรมที่กำลังจัดการ' : 'Selected event context'}</p>
+          <h2>{currentEventLabel}</h2>
+          <p>{language === 'th'
+            ? 'รายการรอบเช็กชื่อด้านล่างถูกกรองตามกิจกรรมนี้ และรอบใหม่จะผูกกับกิจกรรมนี้อัตโนมัติ'
+            : 'The session list is filtered by this event, and new sessions will be attached to it automatically.'}</p>
+        </div>
+        <EventSwitcher compact />
+      </Card>
+
       {state.loading ? <LoadingSkeleton /> : null}
       {state.error ? <div className="error-state">{state.error}</div> : null}
 
@@ -120,11 +135,12 @@ export function AdminStaffAttendancePage() {
         getKey={(row) => row.id}
         emptyText={language === 'th' ? 'ยังไม่มีรอบเช็กชื่อ' : 'No attendance sessions yet'}
         mobileTitle={(row) => row.title}
-        mobileSubtitle={(row) => `${statusLabel(row.status, language)} · ${formatBangkokDateTime(row.starts_at, language)}`}
-        mobileMeta={(row) => `${language === 'th' ? 'มาแล้ว' : 'Present'} ${row.summary?.present ?? 0} · ${language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} ${row.summary?.missing ?? 0}`}
+        mobileSubtitle={(row) => `${attendanceEventBadgeLabel(row, events, language)} · ${statusLabel(row.status, language)}`}
+        mobileMeta={(row) => `${formatBangkokDateTime(row.starts_at, language)} · ${language === 'th' ? 'มาแล้ว' : 'Present'} ${row.summary?.present ?? 0} · ${language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} ${row.summary?.missing ?? 0}`}
         mobileActions={(row) => <Link className="btn btn-primary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'เปิดรายละเอียด' : 'Open detail'}</Link>}
         columns={[
-          { key: 'title', header: language === 'th' ? 'รอบเช็กชื่อ' : 'Session', render: (row) => <strong>{row.title}</strong> },
+          { key: 'title', header: language === 'th' ? 'รอบเช็กชื่อ' : 'Session', render: (row) => <div className="participant-admin-cell"><strong>{row.title}</strong><span>{attendanceEventLabel(row, events, language)}</span></div> },
+          { key: 'event', header: language === 'th' ? 'กิจกรรม' : 'Event', render: (row) => <span className={`status-pill ${attendanceEventIsLegacy(row) ? 'status-draft' : 'status-active'}`}>{attendanceEventBadgeLabel(row, events, language)}</span> },
           { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
           { key: 'type', header: language === 'th' ? 'ประเภท' : 'Type', render: (row) => row.session_type },
           { key: 'time', header: language === 'th' ? 'เวลาเริ่ม' : 'Starts', render: (row) => formatBangkokDateTime(row.starts_at, language) },

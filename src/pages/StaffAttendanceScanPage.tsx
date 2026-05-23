@@ -8,8 +8,10 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
+import { useEventContext } from '../context/EventContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { StaffAttendanceScanResult } from '../lib/attendanceTypes';
+import { attendanceEventIsLegacy, attendanceEventLabel } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { supabase } from '../lib/supabase';
 import { getVerifiedStaffIdentity, identityFromAttendanceResult, saveVerifiedStaffIdentity } from '../lib/verifiedStaffIdentity';
@@ -41,6 +43,7 @@ function resultCopy(code: string, language: 'th' | 'en') {
 
 export function StaffAttendanceScanPage() {
   const { language } = useLanguage();
+  const { events } = useEventContext();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const [result, setResult] = useState<StaffAttendanceScanResult | null>(null);
@@ -123,6 +126,10 @@ export function StaffAttendanceScanPage() {
 
   const copy = result ? resultCopy(result.code, language) : null;
   const success = Boolean(result?.success && !['session_not_found', 'session_not_active', 'session_not_started', 'session_closed', 'qr_expired', 'staff_not_found', 'identity_verification_failed', 'not_in_target_scope'].includes(result.code));
+  const resultEventLabel = result?.session?.event_id ? attendanceEventLabel(result.session, events, language) : '';
+  const resultSessionContext = result?.session
+    ? [resultEventLabel, result.session.title].filter(Boolean).join(' · ')
+    : (language === 'th' ? 'รอบเช็กชื่อ' : 'Attendance session');
 
   return (
     <section className="narrow-page page-stack staff-attendance-scan-page">
@@ -162,10 +169,16 @@ export function StaffAttendanceScanPage() {
         <Card className={`scan-result-card ${success ? 'scan-success' : 'scan-warning'}`} variant={success ? 'success' : 'warning'}>
           {success ? <CheckCircle2 size={34} /> : <AlertTriangle size={34} />}
           <div>
-            <p className="eyebrow">{result.session?.title ?? (language === 'th' ? 'รอบเช็กชื่อ' : 'Attendance session')}</p>
+            <p className="eyebrow">{resultSessionContext}</p>
             <h2>{copy.title}</h2>
             <p>{copy.body}</p>
           </div>
+          {result.session ? (
+            <div className="filter-chip-row">
+              {resultEventLabel ? <span className={`status-pill ${attendanceEventIsLegacy(result.session) ? 'status-draft' : 'status-active'}`}>{resultEventLabel}</span> : null}
+              <span className="status-pill status-excused">{result.session.title}</span>
+            </div>
+          ) : null}
           {result.record ? (
             <div className="scan-result-meta">
               <span><Clock size={16} /> {formatBangkokDateTime(result.record.scanned_at ?? result.record.updated_at, language)}</span>

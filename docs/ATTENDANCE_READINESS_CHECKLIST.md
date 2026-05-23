@@ -42,7 +42,10 @@ Purpose: confirm the QR attendance workflow is ready for a real event day before
 
 - [ ] Admin can create a session quickly.
 - [ ] Admin can activate, close, and regenerate QR.
+- [ ] Admin can see which event the attendance list and each session belongs to.
+- [ ] Legacy/default sessions show a clear warning before QR is used onsite.
 - [ ] Session detail shows only Summary, Session QR, and Check-in tools as primary areas.
+- [ ] QR card shows event name, session title, and closed/expired/missing state clearly.
 - [ ] Manual check-in works for present, late, absent, and excused.
 - [ ] Manual note is optional and not visually dominant.
 - [ ] Admin can scan or paste staff personal QR.
@@ -54,6 +57,7 @@ Purpose: confirm the QR attendance workflow is ready for a real event day before
 
 - [ ] iPhone SE width has no horizontal scroll.
 - [ ] Bottom nav does not cover QR, submit, or manual check-in buttons.
+- [ ] Attendance event badges and QR state messages fit on common phone widths.
 - [ ] Scanner modal fits mobile screen.
 - [ ] Camera permission denied shows fallback token input.
 - [ ] Touch targets are at least 44px where practical.
@@ -65,4 +69,3 @@ Purpose: confirm the QR attendance workflow is ready for a real event day before
 - [ ] Token paste remains available if camera permission fails.
 - [ ] Admins know who to contact if Supabase RPC/migration errors appear.
 - [ ] Staff know to ask admin for manual check-in if QR is expired or closed.
-
