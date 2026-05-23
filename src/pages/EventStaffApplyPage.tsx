@@ -13,10 +13,12 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { getApplicationStatusLabel } from '../lib/applicationStatus';
+import { formatBangkokDateTime } from '../lib/dateTime';
 import { getEventContent } from '../lib/eventContent';
 import { eventPath, eventProfileCheckPath, eventStaffApplicationStatusPath } from '../lib/eventRoutes';
 import type { EventSubmissionResult } from '../lib/eventTypes';
-import { fetchEventBySlug, fetchEventDutyQuotaStatus, lookupPersonForApplication, submitEventStaffApplication, submitPersonUpdateRequest, type EventDutyQuotaRow, type PersonApplicationLookupResult } from '../services/events';
+import { checkStaffApplicationForApplicant, fetchEventBySlug, fetchEventDutyQuotaStatus, lookupPersonForApplication, submitEventStaffApplication, submitPersonUpdateRequest, type ApplicantExistingApplicationResult, type EventDutyQuotaRow, type PersonApplicationLookupResult } from '../services/events';
 import { errorMessage } from '../utils/error';
 
 const cmuEmailPattern = /^[a-zA-Z0-9._%+-]+@cmu\.ac\.th$/;
@@ -132,6 +134,7 @@ export function EventStaffApplyPage() {
   const [identityLookup, setIdentityLookup] = useState<PersonApplicationLookupResult | null>(null);
   const [checkingIdentity, setCheckingIdentity] = useState(false);
   const [updateRequestId, setUpdateRequestId] = useState<string | null>(null);
+  const [existingApplication, setExistingApplication] = useState<ApplicantExistingApplicationResult | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateEvidenceNote, setUpdateEvidenceNote] = useState('');
   const [submittingUpdate, setSubmittingUpdate] = useState(false);
@@ -162,6 +165,24 @@ export function EventStaffApplyPage() {
     : (requestedNameTh || 'ไม่พบชื่อ-นามสกุลในระบบ');
   const applicantMajor = identityLookup?.safe_person?.major || requestedMajor || '-';
   const applicantYear = identityLookup?.safe_person?.year_level ? String(identityLookup.safe_person.year_level) : '-';
+
+  function existingApplicationFromResult(submitted: EventSubmissionResult): ApplicantExistingApplicationResult {
+    return {
+      exists: true,
+      already_applied: Boolean(submitted.already_applied),
+      message_th: submitted.message_th,
+      event: submitted.event,
+      application: submitted.application ? {
+        application_id: submitted.application.id,
+        status: submitted.application.status,
+        identity_status: submitted.application.identity_status,
+        assigned_duty: submitted.application.assigned_duty,
+        assigned_duty_label_th: submitted.application.assigned_duty_label_th,
+        assignment_method: submitted.application.assignment_method,
+        submitted_at: submitted.application.submitted_at,
+      } : undefined,
+    };
+  }
 
   function toggleDuty(duty: string) {
     setSelectedDuties((current) => current.includes(duty) ? current.filter((item) => item !== duty) : [...current, duty]);
@@ -244,12 +265,19 @@ export function EventStaffApplyPage() {
         return;
       }
       setIdentityLookup(lookup);
+      const existing = await checkStaffApplicationForApplicant({ eventSlug, studentId, email });
+      setExistingApplication(existing.already_applied ? existing : null);
       setErrors((current) => {
         const next = { ...current };
         delete next.identity;
         return next;
       });
-      setToast({ type: lookup.identity_status === 'verified' ? 'success' : 'info', message: lookup.message_th ?? (language === 'th' ? 'ตรวจสอบข้อมูลแล้ว' : 'Identity checked') });
+      setToast({
+        type: lookup.identity_status === 'verified' ? 'success' : 'info',
+        message: existing.already_applied
+          ? (existing.message_th ?? (language === 'th' ? 'พบใบสมัครเดิมของคุณในระบบ' : 'Existing application found.'))
+          : (lookup.message_th ?? (language === 'th' ? 'ตรวจสอบข้อมูลแล้ว' : 'Identity checked')),
+      });
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ตรวจสอบข้อมูลไม่สำเร็จ' : 'Could not check identity') });
     } finally {
@@ -291,6 +319,7 @@ export function EventStaffApplyPage() {
 
   async function submit(eventObject: FormEvent) {
     eventObject.preventDefault();
+    if (saving) return;
     if (!validate()) {
       setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกข้อมูลที่จำเป็นให้ครบ' : 'Please complete the required fields' });
       return;
@@ -334,6 +363,11 @@ export function EventStaffApplyPage() {
         setToast({ type: 'error', message: submitted.code === 'invalid_cmu_email'
           ? (language === 'th' ? 'กรุณากรอก CMU Mail ที่ลงท้ายด้วย @cmu.ac.th เท่านั้น' : 'Please enter a valid CMU Mail ending with @cmu.ac.th')
           : (language === 'th' ? 'กิจกรรมนี้ยังไม่เปิดรับสมัครทีมงาน' : 'Staff recruitment is not open for this event.') });
+        return;
+      }
+      if (submitted.already_applied) {
+        setExistingApplication(existingApplicationFromResult(submitted));
+        setToast({ type: 'info', message: submitted.message_th ?? (language === 'th' ? 'ระบบพบว่าเคยมีการส่งใบสมัครไว้แล้ว จึงแสดงข้อมูลใบสมัครเดิมแทน' : 'Existing application found.' ) });
         return;
       }
       setToast({ type: 'success', message: submitted.message_th ?? (language === 'th' ? 'ส่งใบสมัครทีมงานแล้ว' : 'Staff application submitted') });
@@ -392,15 +426,15 @@ export function EventStaffApplyPage() {
           {result?.success ? (
             <div className="edit-success-card" role="status">
               <CheckCircle2 size={28} />
-              <strong>{language === 'th' ? 'ส่งใบสมัครสำเร็จ' : 'Application submitted'}</strong>
-              <span>{language === 'th' ? 'ระบบได้รับใบสมัครของคุณแล้ว' : 'Your application has been received.'}</span>
+              <strong>{result.already_applied ? (language === 'th' ? 'คุณได้ส่งใบสมัครแล้ว' : 'Application already submitted') : (language === 'th' ? 'ส่งใบสมัครสำเร็จ' : 'Application submitted')}</strong>
+              <span>{result.already_applied ? (result.message_th ?? (language === 'th' ? 'คุณได้ส่งใบสมัครสำหรับกิจกรรมนี้แล้ว ไม่จำเป็นต้องส่งซ้ำ' : 'You have already applied for this event.')) : (language === 'th' ? 'ระบบได้รับใบสมัครของคุณแล้ว' : 'Your application has been received.')}</span>
               <div className="event-fact-grid">
                 <span><strong>{language === 'th' ? 'ชื่อ-นามสกุล' : 'Name'}</strong>{applicantDisplayName}</span>
                 <span><strong>{language === 'th' ? 'ชื่อเล่น' : 'Nickname'}</strong>{safeNickname(identityLookup?.safe_person)}</span>
                 <span><strong>{language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'}</strong>{studentId || '-'}</span>
                 <span><strong>{language === 'th' ? 'สาขา' : 'Major'}</strong>{applicantMajor}</span>
                 <span><strong>{language === 'th' ? 'สถานะการยืนยันตัวตน' : 'Identity status'}</strong>{identityStatusLabel(result.application?.identity_status ?? identityLookup?.identity_status ?? 'pending_identity_review', language)}</span>
-                <span><strong>{language === 'th' ? 'เวลาที่ส่งใบสมัคร' : 'Submitted at'}</strong>{submittedAt ? new Date(submittedAt).toLocaleString(language === 'th' ? 'th-TH' : 'en-US') : '-'}</span>
+                <span><strong>{language === 'th' ? 'เวลาที่ส่งใบสมัคร' : 'Submitted at'}</strong>{formatBangkokDateTime(result.application?.submitted_at ?? submittedAt, language)}</span>
                 <span><strong>{language === 'th' ? 'รหัสใบสมัคร' : 'Application ID'}</strong>{result.application?.id ?? '-'}</span>
               </div>
               <span><strong>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</strong>: {result.assignment?.assigned_label_th ?? result.application?.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรรเพิ่มเติม' : 'Pending admin assignment')}</span>
@@ -414,6 +448,27 @@ export function EventStaffApplyPage() {
                 <Link className="btn btn-secondary" to={eventStaffApplicationStatusPath(event.slug)}>{language === 'th' ? 'ตรวจสอบสถานะใบสมัคร' : 'Check application status'}</Link>
               </div>
             </div>
+          ) : existingApplication?.already_applied ? (
+            <div className="edit-success-card" role="status">
+              <CheckCircle2 size={28} />
+              <strong>{language === 'th' ? 'คุณได้ส่งใบสมัครแล้ว' : 'Application already submitted'}</strong>
+              <span>{existingApplication.message_th ?? (language === 'th' ? 'คุณได้ส่งใบสมัครสำหรับกิจกรรมนี้แล้ว ไม่จำเป็นต้องส่งซ้ำ' : 'You have already applied for this event.')}</span>
+              <div className="event-fact-grid">
+                <span><strong>{language === 'th' ? 'สถานะใบสมัคร' : 'Application status'}</strong>{getApplicationStatusLabel(existingApplication.application?.status ?? 'submitted', language)}</span>
+                <span><strong>{language === 'th' ? 'สถานะการยืนยันตัวตน' : 'Identity status'}</strong>{identityStatusLabel(existingApplication.application?.identity_status ?? 'pending_identity_review', language)}</span>
+                <span><strong>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</strong>{existingApplication.application?.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรร' : 'Pending admin assignment')}</span>
+                <span><strong>{language === 'th' ? 'วันที่ส่งใบสมัคร' : 'Submitted at'}</strong>{formatBangkokDateTime(existingApplication.application?.submitted_at, language)}</span>
+                <span><strong>{language === 'th' ? 'รหัสใบสมัคร' : 'Application ID'}</strong>{existingApplication.application?.application_id ?? '-'}</span>
+              </div>
+              <Card variant="soft">
+                <p className="muted">{language === 'th' ? 'พบใบสมัครเดิมของคุณในระบบ ระบบจะแสดงข้อมูลใบสมัครเดิมแทนการส่งซ้ำ' : 'An existing application was found. The app shows the existing application instead of submitting again.'}</p>
+              </Card>
+              <div className="event-card-actions">
+                <Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'กลับไปหน้ากิจกรรม' : 'Back to event'}</Link>
+                <Link className="btn btn-secondary" to={eventStaffApplicationStatusPath(event.slug)}>{language === 'th' ? 'ตรวจสอบสถานะใบสมัคร' : 'Check application status'}</Link>
+                <Link className="btn btn-secondary" to={eventProfileCheckPath(event.slug)}>{language === 'th' ? 'ติดต่อผู้ดูแล / ขอแก้ไขข้อมูล' : 'Contact admin / request update'}</Link>
+              </div>
+            </div>
           ) : (
             <form className="form-grid" onSubmit={submit} noValidate>
               {currentStep === 1 ? (
@@ -422,8 +477,8 @@ export function EventStaffApplyPage() {
                 <h3>{language === 'th' ? 'ยืนยันตัวตน' : 'Identity verification'}</h3>
                 <p className="muted">{language === 'th' ? 'กรอกรหัสนักศึกษาและ CMU Mail เพื่อค้นหาข้อมูลในฐานข้อมูลกลาง' : 'Enter your student ID and CMU Mail to search the Central People Database.'}</p>
               </div>
-              <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} placeholder="เช่น 680610xxx" hint={language === 'th' ? 'ใช้สำหรับค้นหาข้อมูลจากฐานข้อมูลกลาง' : 'Used to find your record in the Central People Database.'} value={studentId} onChange={(eventInput) => { setStudentId(eventInput.target.value); setIdentityLookup(null); }} error={errors.student_id} required />
-              <Input label={language === 'th' ? 'CMU Mail ปัจจุบัน' : 'Current CMU Mail'} placeholder="yourname@cmu.ac.th" hint={language === 'th' ? 'ต้องเป็นอีเมลที่ลงท้ายด้วย @cmu.ac.th เท่านั้น' : 'Must end with @cmu.ac.th.'} type="email" value={email} onChange={(eventInput) => { setEmail(eventInput.target.value); setIdentityLookup(null); }} error={errors.email} required />
+              <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} placeholder="เช่น 680610xxx" hint={language === 'th' ? 'ใช้สำหรับค้นหาข้อมูลจากฐานข้อมูลกลาง' : 'Used to find your record in the Central People Database.'} value={studentId} onChange={(eventInput) => { setStudentId(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.student_id} required />
+              <Input label={language === 'th' ? 'CMU Mail ปัจจุบัน' : 'Current CMU Mail'} placeholder="yourname@cmu.ac.th" hint={language === 'th' ? 'ต้องเป็นอีเมลที่ลงท้ายด้วย @cmu.ac.th เท่านั้น' : 'Must end with @cmu.ac.th.'} type="email" value={email} onChange={(eventInput) => { setEmail(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.email} required />
               <Input label={language === 'th' ? 'เบอร์โทรปัจจุบัน' : 'Current phone'} placeholder="08x-xxx-xxxx" hint={language === 'th' ? 'ใช้สำหรับติดต่อประสานงานเท่านั้น ไม่ใช้เป็นเงื่อนไขหลักในการยืนยันตัวตน' : 'Used only for event coordination, not as the main identity condition.'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(eventInput) => setPhone(eventInput.target.value)} error={errors.phone} required />
               <div className="full-span event-card-actions">
                 <Button type="button" variant="secondary" loading={checkingIdentity} onClick={() => void checkIdentity()}>{checkingIdentity ? (language === 'th' ? 'กำลังตรวจสอบข้อมูล...' : 'Checking...') : (language === 'th' ? 'ตรวจสอบข้อมูล' : 'Check identity')}</Button>
@@ -633,7 +688,7 @@ export function EventStaffApplyPage() {
               </Card>
               <div className="form-actions full-span">
                 <Button type="button" variant="secondary" onClick={goBack}>{language === 'th' ? 'ย้อนกลับไปแก้ไข' : 'Back to edit'}</Button>
-                <Button type="submit" loading={saving} disabled={saving}>{language === 'th' ? 'ยืนยันส่งใบสมัคร' : 'Confirm submission'}</Button>
+                <Button type="submit" loading={saving} disabled={saving}>{saving ? (language === 'th' ? 'กำลังส่งใบสมัคร...' : 'Submitting...') : (language === 'th' ? 'ยืนยันส่งใบสมัคร' : 'Confirm submission')}</Button>
               </div>
                 </>
               ) : null}

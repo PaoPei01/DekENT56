@@ -277,6 +277,17 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Export reflects the latest status after review actions.
 - [ ] Contact list export does not include health/limitations fields.
 - [ ] Full admin export is clearly labeled as including sensitive/detail fields before use.
+- [ ] Same student_id cannot submit twice for the same event.
+- [ ] Same person_id cannot submit twice for the same event.
+- [ ] Double-clicking submit creates only one application.
+- [ ] Browser refresh/back/submit again shows the existing application summary instead of creating a duplicate.
+- [ ] Same person can still apply to a different event when that event supports staff applications.
+- [ ] Email mismatch with the same student_id still detects the prior application.
+- [ ] Pending identity with the same requested_student_id still detects the prior application.
+- [ ] Backend unique constraints prevent race-condition duplicates.
+- [ ] Applicant sees `คุณได้ส่งใบสมัครสำหรับกิจกรรมนี้แล้ว ไม่จำเป็นต้องส่งซ้ำ`.
+- [ ] Admin applications page shows a duplicate warning if existing duplicate groups are present.
+- [ ] Duplicate rows are not auto-deleted.
 - [ ] Event edit does not change legacy public search or attendance behavior.
 - [ ] Public/non-admin users cannot access `/admin/events`.
 - [ ] Existing `/admin/dashboard` still loads normally.

@@ -83,6 +83,7 @@ export type EventForm = {
 
 export type EventSubmissionResult = {
   success: boolean;
+  already_applied?: boolean;
   code: 'submitted' | 'submitted_pending_identity_review' | 'identity_verification_failed' | 'event_not_open' | 'staff_recruiting_closed' | string;
   message?: string;
   message_th?: string;
@@ -104,6 +105,7 @@ export type EventSubmissionResult = {
     assigned_duty_label_th?: string | null;
     assignment_method?: string | null;
     assignment_note?: string | null;
+    submitted_at?: string | null;
   };
   assignment?: {
     assigned_duty: string | null;

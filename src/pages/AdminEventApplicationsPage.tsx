@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, MessageSquare, RefreshCw, Save, ShieldAlert, UserPlus, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -20,7 +20,7 @@ import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { getEventContent } from '../lib/eventContent';
 import { eventPath } from '../lib/eventRoutes';
-import { fetchAdminEventById, fetchAdminEventStaffApplications, fetchEventDutyQuotaStatus, logStaffApplicationExport, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, type EventDutyQuotaRow, updateAdminStaffApplicationAssignment, updateAdminStaffApplicationReview } from '../services/events';
+import { fetchAdminEventById, fetchAdminEventStaffApplications, fetchEventDutyQuotaStatus, findDuplicateStaffApplications, logStaffApplicationExport, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, type EventDutyQuotaRow, updateAdminStaffApplicationAssignment, updateAdminStaffApplicationReview } from '../services/events';
 import { errorMessage } from '../utils/error';
 import { explainSupabaseSchemaError } from '../utils/supabaseDiagnostics';
 
@@ -138,6 +138,7 @@ export function AdminEventApplicationsPage() {
   const eventState = useAsync(() => fetchAdminEventById(eventId), [eventId]);
   const applicationsState = useAsync(() => fetchAdminEventStaffApplications(eventId), [eventId]);
   const quotaState = useAsync(() => eventId ? fetchEventDutyQuotaStatus(eventId) : Promise.resolve(null), [eventId]);
+  const duplicateState = useAsync(() => eventId ? findDuplicateStaffApplications(eventId) : Promise.resolve(null), [eventId]);
   const [toast, setToast] = useState<ToastState>(null);
   const [filters, setFilters] = useState({
     search: '',
@@ -160,6 +161,7 @@ export function AdminEventApplicationsPage() {
   const [assignmentOverride, setAssignmentOverride] = useState<{ row: AdminStaffApplicationRow; dutyKey: string; isFull: boolean } | null>(null);
   const [excelExport, setExcelExport] = useState<ExcelExportRequest | null>(null);
   const [exportConfirmed, setExportConfirmed] = useState(false);
+  const [showDuplicateDetails, setShowDuplicateDetails] = useState(false);
   const event = eventState.data;
   const rows = useMemo(() => applicationsState.data ?? [], [applicationsState.data]);
   const content = getEventContent(event?.slug);
@@ -170,6 +172,12 @@ export function AdminEventApplicationsPage() {
   const quotaAssigned = quotaState.data?.total_assigned ?? quotaDuties.reduce((sum, duty) => sum + duty.assigned_count, 0);
   const quotaRemaining = quotaState.data?.total_remaining ?? quotaDuties.reduce((sum, duty) => sum + duty.remaining, 0);
   const overQuotaDuties = quotaDuties.filter((duty) => duty.assigned_count > duty.quota);
+  const duplicateReport = duplicateState.data;
+  const duplicateGroups = [
+    ...(duplicateReport?.duplicate_person_groups ?? []),
+    ...(duplicateReport?.duplicate_student_id_groups ?? []),
+    ...(duplicateReport?.duplicate_email_groups ?? []),
+  ];
   const finalDutyOptions = useMemo(() => {
     const fromContent = content?.staffRecruitment?.dutiesTh ?? [];
     const fromRows = rows.map(finalDuty).filter(Boolean);
@@ -476,7 +484,7 @@ export function AdminEventApplicationsPage() {
             <HelpButton topicId="admin.event-applications" variant="link" />
             <Link className="btn btn-secondary" to="/admin/events"><ArrowLeft size={17} />{language === 'th' ? 'กลับกิจกรรม' : 'Back'}</Link>
             {event ? <Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'หน้าสาธารณะ' : 'Public page'}</Link> : null}
-            <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={() => { void eventState.reload(); void applicationsState.reload(); void quotaState.reload(); }}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>
+            <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={() => { void eventState.reload(); void applicationsState.reload(); void quotaState.reload(); void duplicateState.reload(); }}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>
           </>
         )}
       />
@@ -494,6 +502,45 @@ export function AdminEventApplicationsPage() {
           <strong>{language === 'th' ? 'โหลดข้อมูลโควต้าไม่สำเร็จ' : 'Could not load quota status'}</strong>
           <p>{explainSupabaseSchemaError(quotaState.error, language)}</p>
           <Button variant="secondary" onClick={() => void quotaState.reload()}>{language === 'th' ? 'ลองใหม่' : 'Retry'}</Button>
+        </Card>
+      ) : null}
+
+      {duplicateReport && duplicateReport.total_duplicate_groups > 0 ? (
+        <Card variant="warning" className="event-detail-card">
+          <div className="mobile-row-head">
+            <div>
+              <strong>{language === 'th' ? 'พบใบสมัครซ้ำในกิจกรรมนี้ กรุณาตรวจสอบก่อนสรุปรายชื่อ' : 'Duplicate applications found. Review before finalizing.'}</strong>
+              <span>{language === 'th' ? `${duplicateReport.total_duplicate_groups} กลุ่มซ้ำ · ${duplicateReport.total_duplicate_rows} รายการที่เกี่ยวข้อง` : `${duplicateReport.total_duplicate_groups} duplicate groups · ${duplicateReport.total_duplicate_rows} related rows`}</span>
+            </div>
+            <Badge status="pending">{language === 'th' ? 'Data Health' : 'Data Health'}</Badge>
+          </div>
+          <div className="event-card-actions">
+            <Button type="button" variant="secondary" onClick={() => setShowDuplicateDetails((open) => !open)}>
+              {showDuplicateDetails ? (language === 'th' ? 'ซ่อนรายการซ้ำ' : 'Hide duplicates') : (language === 'th' ? 'ดูรายการซ้ำ' : 'View duplicates')}
+            </Button>
+          </div>
+          {showDuplicateDetails ? (
+            <div className="mobile-card-list">
+              {duplicateGroups.map((group, index) => (
+                <Card key={`${group.event_id}-${group.person_id ?? group.requested_student_id ?? group.requested_email ?? index}`} variant="soft">
+                  <div className="mobile-row-head">
+                    <div>
+                      <strong>{group.person_id ? `person_id: ${group.person_id}` : group.requested_student_id ? `student_id: ${group.requested_student_id}` : `email: ${group.requested_email}`}</strong>
+                      <span>{language === 'th' ? `${group.duplicate_count} ใบสมัคร` : `${group.duplicate_count} applications`}</span>
+                    </div>
+                  </div>
+                  <div className="application-detail-grid">
+                    {group.applications.map((application) => (
+                      <Fragment key={application.id}>
+                        <span>{application.id}</span>
+                        <strong>{getApplicationStatusLabel(application.status, language)} · {formatBangkokDateTime(application.submitted_at, language)}</strong>
+                      </Fragment>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : null}
         </Card>
       ) : null}
 

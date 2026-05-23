@@ -619,3 +619,24 @@ QA focus:
 - Full duty cards are readable, disabled, and not color-only.
 - Excel export warning appears before download.
 - No public sensitive data exposure or schema/RLS change was introduced.
+
+## Staff Application Duplicate Prevention Pass
+
+Status: implemented as a server-side idempotency and admin visibility pass.
+
+Completed:
+
+- Added migration `202605230021_staff_application_duplicate_prevention.sql`.
+- Added safe unique indexes for active `event_id + person_id` and pending `event_id + requested_student_id` staff applications when existing data allows index creation.
+- Updated `submit_event_staff_application()` to return an existing application with `already_applied: true` instead of inserting a duplicate.
+- Added public-safe `check_staff_application_for_applicant()` so the application flow can detect an existing application after identity lookup.
+- Added admin-only `find_duplicate_staff_applications()` for duplicate health review.
+- Updated `/events/:eventSlug/staff/apply` to show an existing-application summary card and prevent repeated submit/double click confusion.
+- Updated `/admin/events/:eventId/applications` with a duplicate warning panel for existing duplicate groups.
+- Added `docs/STAFF_APPLICATION_DUPLICATE_PREVENTION.md` with manual resolution guidance.
+
+Safety notes:
+
+- Existing duplicate rows are not deleted or merged automatically.
+- Different events are not blocked.
+- Withdrawn reapply policy remains deferred until product rules are explicit.

@@ -239,6 +239,42 @@ export type StaffApplicationStatusResult = {
   };
 };
 
+export type ApplicantExistingApplicationResult = {
+  exists: boolean;
+  already_applied: boolean;
+  code?: string;
+  message_th?: string;
+  event?: {
+    id: string;
+    slug: string;
+    name_th: string;
+    name_en: string | null;
+  };
+  application?: {
+    application_id: string;
+    status: string;
+    identity_status?: ApplicationIdentityStatus | string | null;
+    assigned_duty?: string | null;
+    assigned_duty_label_th?: string | null;
+    assignment_method?: string | null;
+    submitted_at?: string | null;
+  };
+};
+
+export async function checkStaffApplicationForApplicant(input: {
+  eventSlug: string;
+  studentId: string;
+  email?: string;
+}): Promise<ApplicantExistingApplicationResult> {
+  const { data, error } = await supabase.rpc('check_staff_application_for_applicant', {
+    input_event_slug: input.eventSlug,
+    input_student_id: input.studentId.trim(),
+    input_email: cleanEmail(input.email ?? ''),
+  });
+  if (error) throw error;
+  return data as ApplicantExistingApplicationResult;
+}
+
 export async function checkStaffApplicationStatus(input: {
   eventSlug: string;
   email: string;
@@ -312,6 +348,45 @@ export type EventDutyQuotaStatus = {
   total_assigned: number;
   total_remaining: number;
 };
+
+export type DuplicateStaffApplicationGroup = {
+  event_id: string;
+  event_name_th?: string | null;
+  person_id?: string | null;
+  requested_student_id?: string | null;
+  requested_email?: string | null;
+  duplicate_count: number;
+  applications: Array<{
+    id: string;
+    status: string;
+    submitted_at: string | null;
+    assigned_duty: string | null;
+    identity_status: string | null;
+    requested_student_id: string | null;
+  }>;
+};
+
+export type DuplicateStaffApplicationsReport = {
+  duplicate_person_groups: DuplicateStaffApplicationGroup[];
+  duplicate_student_id_groups: DuplicateStaffApplicationGroup[];
+  duplicate_email_groups?: DuplicateStaffApplicationGroup[];
+  total_duplicate_groups: number;
+  total_duplicate_rows: number;
+};
+
+export async function findDuplicateStaffApplications(eventId?: string | null): Promise<DuplicateStaffApplicationsReport> {
+  const { data, error } = await supabase.rpc('find_duplicate_staff_applications', {
+    input_event_id: eventId ?? null,
+  });
+  if (error) throw error;
+  return (data ?? {
+    duplicate_person_groups: [],
+    duplicate_student_id_groups: [],
+    duplicate_email_groups: [],
+    total_duplicate_groups: 0,
+    total_duplicate_rows: 0,
+  }) as DuplicateStaffApplicationsReport;
+}
 
 export type PersonUpdateRequestRow = {
   id: string;

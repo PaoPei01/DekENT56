@@ -82,6 +82,7 @@ Destructive actions must live in `DangerZone` or use `ConfirmDialog`. Do not pla
 - Use `โปรดเลือก` for form select placeholders. Use `ทั้งหมด` only for admin filters where the empty value truly means all results.
 - Keep full name and nickname separate. A full-name field must never fall back to nickname; show `ไม่พบชื่อ-นามสกุลในระบบ` instead.
 - CMU Mail mismatch should use warning tone and explain that the applicant can continue while admins review identity later.
+- Duplicate/idempotent submissions should be shown as informational, not as scary errors. Use `คุณได้ส่งใบสมัครสำหรับกิจกรรมนี้แล้ว ไม่จำเป็นต้องส่งซ้ำ`.
 
 Preferred wording:
 
