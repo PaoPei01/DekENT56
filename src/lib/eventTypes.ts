@@ -39,12 +39,13 @@ export type EventRecord = {
   status: EventStatus;
   visibility: EventVisibility;
   cover_image_path: string | null;
+  metadata: Record<string, unknown>;
   created_by?: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
 
-export type ActivityEvent = Omit<EventRecord, 'id' | 'created_at' | 'updated_at' | 'description' | 'event_type' | 'academic_year' | 'start_date' | 'end_date' | 'location' | 'cover_image_path'> & {
+export type ActivityEvent = Omit<EventRecord, 'id' | 'created_at' | 'updated_at' | 'description' | 'event_type' | 'academic_year' | 'start_date' | 'end_date' | 'location' | 'cover_image_path' | 'metadata'> & {
   id?: string;
   description?: string | null;
   event_type?: string | null;
@@ -53,6 +54,7 @@ export type ActivityEvent = Omit<EventRecord, 'id' | 'created_at' | 'updated_at'
   end_date?: string | null;
   location?: string | null;
   cover_image_path?: string | null;
+  metadata?: Record<string, unknown>;
   created_at?: string | null;
   updated_at?: string | null;
 };

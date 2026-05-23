@@ -7,9 +7,10 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { getEventContent } from '../lib/eventContent';
 import { formatBangkokDate } from '../lib/dateTime';
 import type { EventRecord } from '../lib/eventTypes';
-import { eventPath, legacyDefaultEventRoute } from '../lib/eventRoutes';
+import { eventPath, eventStaffApplyPath, legacyDefaultEventRoute } from '../lib/eventRoutes';
 import { fetchPublicEvents } from '../services/events';
 
 function eventName(event: EventRecord, language: 'th' | 'en') {
@@ -80,15 +81,22 @@ export function EventsPage() {
               </div>
               <div>
                 <h2>{eventName(event, language)}</h2>
-                {event.description ? <p>{event.description}</p> : null}
+                <p>{getEventContent(event.slug)?.public.summaryTh ?? event.description ?? (language === 'th' ? 'ดูรายละเอียดกิจกรรมและขั้นตอนที่เกี่ยวข้อง' : 'View event details and related actions.')}</p>
               </div>
               <div className="event-card-meta">
                 <span><CalendarDays size={16} /> {eventDate(event, language)}</span>
                 <span><MapPin size={16} /> {event.location || (language === 'th' ? 'ยังไม่ระบุสถานที่' : 'Location to be announced')}</span>
               </div>
               <div className="event-card-actions">
-                <Link className="btn btn-primary" to={eventPath(event.slug)}>{language === 'th' ? 'ดูรายละเอียด' : 'View details'}</Link>
-                <Link className="btn btn-secondary" to={legacyDefaultEventRoute('home')}>{language === 'th' ? 'ดูรายชื่อปัจจุบัน' : 'Current list'}</Link>
+                <Link className="btn btn-primary" to={event.status === 'staff_recruiting' ? eventStaffApplyPath(event.slug) : eventPath(event.slug)}>
+                  {event.status === 'staff_recruiting'
+                    ? (language === 'th' ? 'สมัครเป็นสตาฟ' : 'Apply as staff')
+                    : (language === 'th' ? 'ดูรายละเอียด' : 'View details')}
+                </Link>
+                <Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'รายละเอียด' : 'Details'}</Link>
+                {event.slug === 'entaneer-bonding-69' ? (
+                  <Link className="btn btn-secondary" to={legacyDefaultEventRoute('home')}>{language === 'th' ? 'ดูรายชื่อปัจจุบัน' : 'Current list'}</Link>
+                ) : null}
               </div>
             </Card>
           ))}

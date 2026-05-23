@@ -131,11 +131,15 @@ Completed in foundation pass:
 - Added public routes:
   - `/events/:eventSlug/register`
   - `/events/:eventSlug/staff/apply`
+- Added pilot staff recruitment content and form for `parent-orientation-staff-2569`.
+- Seeded two core platform events through `202605230007_seed_core_platform_events.sql`:
+  - `entaneer-bonding-69`
+  - `parent-orientation-staff-2569`
 - Existing single-event routes remain unchanged.
 
 Deferred:
 
-- Admin review UI for event participants and staff applications.
+- Approve/reject workflow for event participants and staff applications.
 - Dynamic form rendering from `event_forms.config_json`.
 - Creating unknown people from public registration.
 - Event staff approval into `event_staff`.
@@ -163,17 +167,19 @@ Risk: medium.
 Completed in lightweight pass:
 
 - Added `/admin/events/:eventId`.
+- Added `/admin/events/:eventId/applications` as a read-only staff application review page.
 - Added admin event detail/edit page for event metadata, status, visibility, dates, and location.
 - Added admin event service helpers:
   - `fetchAdminEventById(id)`
   - `updateAdminEvent(id, input)`
+  - `fetchAdminEventStaffApplications(eventId)`
 - Kept legacy dashboards and event-scoped operations unchanged.
 
 Deferred:
 
 - Event CRUD create/delete.
 - Registration open/close controls beyond event status field.
-- Staff application review UI.
+- Staff application approve/reject/waitlist actions.
 - Event switcher backed by accessible events.
 - Event-scoped attendance/documents/announcements.
 

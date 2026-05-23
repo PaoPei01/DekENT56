@@ -1,6 +1,6 @@
 # Multi-Event Staging Check Results
 
-Last checked: 2026-05-23
+Last checked: 2026-05-23 before `202605230007_seed_core_platform_events.sql`
 
 Command:
 
@@ -11,6 +11,8 @@ npm run check:multi-event-staging
 ## Result Summary
 
 The read-only schema verification passed against the Supabase project configured in local `.env`.
+
+This result was captured before adding the Parent Orientation seed migration. Re-run the check after applying `202605230007_seed_core_platform_events.sql`.
 
 Passed checks:
 

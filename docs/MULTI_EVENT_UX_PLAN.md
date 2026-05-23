@@ -69,6 +69,9 @@ UX notes:
 - Keep the event name visible in the first viewport.
 - Show disabled/closed states clearly.
 - Avoid showing admin controls to public users.
+- For `entaneer-bonding-69`, show objectives, schedule preview, stations, dress code, registration points, and public rain contingency summaries.
+- For `parent-orientation-staff-2569`, show staff recruitment capacity, eligible years, duties, rehearsal date/time, dress code, and important dates.
+- Do not show detailed budget data, internal contingency details, individual contact data, or medical data on public event pages.
 
 ## 3. Participant Registration Flow
 
@@ -131,6 +134,13 @@ UX notes:
 - Make clear this is an application, not instant staff access.
 - Show application status after submission.
 - Let known Engineering year 2 students avoid retyping base identity fields.
+
+Pilot event:
+
+- `parent-orientation-staff-2569`
+- The first pilot form asks for student ID, email, phone, preferred duties, availability, rehearsal availability, event-day availability, experience, necessary health/food limitations, optional note, and consent.
+- Admin review starts as read-only at `/admin/events/:eventId/applications`.
+- Approve/reject/waitlist actions wait for a later phase after the pilot data shape is reviewed.
 
 ## 5. Admin Event Dashboard
 

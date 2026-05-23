@@ -3,7 +3,7 @@ import { cleanEmail, cleanPhone } from '../lib/cleaners';
 import { supabase } from '../lib/supabase';
 import type { EventForm, EventFormType, EventRecord, EventSubmissionResult } from '../lib/eventTypes';
 
-const eventFields = 'id,name_th,name_en,slug,description,event_type,academic_year,start_date,end_date,location,status,visibility,cover_image_path,created_at,updated_at';
+const eventFields = 'id,name_th,name_en,slug,description,event_type,academic_year,start_date,end_date,location,status,visibility,cover_image_path,metadata,created_at,updated_at';
 
 function orderEvents<T extends { start_date: string | null; created_at: string | null }>(rows: T[]) {
   return [...rows].sort((a, b) => {
@@ -76,6 +76,7 @@ export async function updateAdminEvent(id: string, input: Partial<EventRecord>):
     status: input.status,
     visibility: input.visibility,
     cover_image_path: input.cover_image_path,
+    metadata: input.metadata,
   };
   const { data, error } = await supabase
     .from('events')
@@ -126,4 +127,39 @@ export async function submitEventStaffApplication(input: {
   });
   if (error) throw error;
   return data as EventSubmissionResult;
+}
+
+export type AdminStaffApplicationRow = {
+  id: string;
+  event_id: string;
+  person_id: string;
+  preferred_role: string | null;
+  preferred_team: string | null;
+  availability: Record<string, unknown>;
+  experience: string | null;
+  motivation: string | null;
+  status: string;
+  submitted_at: string | null;
+  review_note: string | null;
+  answers: Record<string, unknown>;
+  people?: {
+    student_id: string | null;
+    name_th: string | null;
+    name_en: string | null;
+    nickname: string | null;
+    email: string | null;
+    phone: string | null;
+    major: string | null;
+    year_level: number | null;
+  } | null;
+};
+
+export async function fetchAdminEventStaffApplications(eventId: string): Promise<AdminStaffApplicationRow[]> {
+  const { data, error } = await supabase
+    .from('staff_applications')
+    .select('id,event_id,person_id,preferred_role,preferred_team,availability,experience,motivation,status,submitted_at,review_note,answers,people(student_id,name_th,name_en,nickname,email,phone,major,year_level)')
+    .eq('event_id', eventId)
+    .order('submitted_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as AdminStaffApplicationRow[];
 }

@@ -33,16 +33,18 @@ const adminSupabase =
 
 const checks = [];
 
-await check('default event exists', async () => {
+await check('core platform events exist', async () => {
   const { data, error } = await supabase
     .from('events')
     .select('id,name_th,name_en,slug,status,visibility')
-    .eq('slug', 'entaneer-bonding-69')
-    .maybeSingle();
+    .in('slug', ['entaneer-bonding-69', 'parent-orientation-staff-2569']);
 
   if (error) throw error;
-  if (!data) throw new Error('Default event entaneer-bonding-69 was not found.');
-  return `${data.name_th} / ${data.name_en ?? '-'} (${data.status}, ${data.visibility})`;
+  const rows = data ?? [];
+  const slugs = new Set(rows.map((row) => row.slug));
+  const missing = ['entaneer-bonding-69', 'parent-orientation-staff-2569'].filter((slug) => !slugs.has(slug));
+  if (missing.length) throw new Error(`Missing event(s): ${missing.join(', ')}`);
+  return rows.map((row) => `${row.slug}: ${row.name_th} / ${row.name_en ?? '-'} (${row.status}, ${row.visibility})`).join('; ');
 });
 
 await check('people table is readable by service role', async () => {

@@ -32,6 +32,10 @@ Run this checklist before event-day deployment and after major UI changes.
 Verify no button is hidden behind bottom navigation on:
 
 - `/`
+- `/events`
+- `/events/entaneer-bonding-69`
+- `/events/parent-orientation-staff-2569`
+- `/events/parent-orientation-staff-2569/staff/apply`
 - `/edit`
 - `/admin/dashboard`
 - `/admin/groups`
@@ -50,6 +54,16 @@ Primary CTAs must remain tappable above the bottom nav on iPhone SE and Android 
 - Public list shows only safe fields.
 - Public profile modal says hidden for privacy.
 - Public pages do not expose email, phone, emergency phone, Line, Instagram, Facebook, disease, food allergy, or drug allergy.
+- Public event pages do not show detailed budget data, internal contingency details, personal QR tokens, or individual staff contact data.
+
+## Multi-Event Pilot
+
+- `/events` shows both seeded public events.
+- Event cards have a clear primary action.
+- Parent Orientation staff recruitment CTA goes to `/events/parent-orientation-staff-2569/staff/apply`.
+- Staff application form fits iPhone SE width.
+- Consent checkboxes have 44px touch targets.
+- Admin applications page is readable on mobile and is read-only in this pilot.
 
 ## Staff Operations
 

@@ -11,7 +11,7 @@ import { useAsync } from '../hooks/useAsync';
 import { DEFAULT_EVENT_SLUG } from '../lib/defaultEvent';
 import { formatBangkokDate } from '../lib/dateTime';
 import type { EventRecord } from '../lib/eventTypes';
-import { adminEventPath, eventPath } from '../lib/eventRoutes';
+import { adminEventApplicationsPath, adminEventPath, eventPath } from '../lib/eventRoutes';
 import { fetchAdminEvents } from '../services/events';
 
 function eventName(event: EventRecord, language: 'th' | 'en') {
@@ -84,14 +84,24 @@ export function AdminEventsPage() {
           mobileTitle={(row) => eventName(row, language)}
           mobileSubtitle={(row) => `${statusLabel(row.status, language)} · ${row.visibility}`}
           mobileMeta={(row) => eventDate(row, language)}
-        mobileActions={(row) => <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{language === 'th' ? 'จัดการ' : 'Manage'}</Link>}
+          mobileActions={(row) => (
+            <div className="event-card-actions">
+              <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{language === 'th' ? 'จัดการ' : 'Manage'}</Link>
+              {row.event_type === 'staff_recruitment' ? <Link className="btn btn-secondary" to={adminEventApplicationsPath(row.id)}>{language === 'th' ? 'ใบสมัคร' : 'Applications'}</Link> : null}
+            </div>
+          )}
           columns={[
             { key: 'name', header: language === 'th' ? 'กิจกรรม' : 'Event', render: (row) => <strong>{eventName(row, language)}</strong>, priority: 'primary' },
             { key: 'slug', header: 'Slug', render: (row) => row.slug, mobileHidden: true },
             { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
             { key: 'visibility', header: language === 'th' ? 'การมองเห็น' : 'Visibility', render: (row) => row.visibility },
             { key: 'date', header: language === 'th' ? 'วันกิจกรรม' : 'Date', render: (row) => eventDate(row, language), mobileLabel: language === 'th' ? 'วัน' : 'Date' },
-            { key: 'action', header: '', render: (row) => <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{language === 'th' ? 'จัดการ' : 'Manage'}</Link>, align: 'right' },
+            { key: 'action', header: '', render: (row) => (
+              <div className="table-action-row">
+                <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{language === 'th' ? 'จัดการ' : 'Manage'}</Link>
+                {row.event_type === 'staff_recruitment' ? <Link className="btn btn-secondary" to={adminEventApplicationsPath(row.id)}>{language === 'th' ? 'ใบสมัคร' : 'Applications'}</Link> : null}
+              </div>
+            ), align: 'right' },
           ]}
         />
       ) : null}

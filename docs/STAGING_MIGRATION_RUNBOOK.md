@@ -33,6 +33,7 @@ Apply these migrations in timestamp order through the Supabase migration workflo
 4. `202605230003_event_registration_application_foundation.sql`
 5. `202605230004_attendance_event_scope_foundation.sql`
 6. `202605230005_event_scoped_announcements_documents_foundation.sql`
+7. `202605230007_seed_core_platform_events.sql`
 
 Do not run `link_legacy_profiles_to_people()` yet.
 
@@ -46,7 +47,9 @@ npm run check:multi-event-staging
 
 This script is read-only. It checks that:
 
-- the default event exists
+- the core platform events exist:
+  - `entaneer-bonding-69`
+  - `parent-orientation-staff-2569`
 - `people` exists
 - legacy `person_id` columns exist
 - `preview_people_legacy_link()` runs

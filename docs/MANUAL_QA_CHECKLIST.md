@@ -37,17 +37,22 @@ Use this checklist before real event operations and after every production-readi
 ## Events
 
 - [ ] Open `/events`.
-- [ ] Default event `สานสัมพันธ์ 69 / Entaneer Bonding 69` appears after applying migrations.
+- [ ] Default event `รับน้องสานสัมพันธ์ 69 / Entaneer CMU 69` appears after applying migrations.
+- [ ] Parent Orientation staff recruitment event appears after applying migrations.
 - [ ] Event card action opens `/events/entaneer-bonding-69`.
-- [ ] Event detail page shows event status and coming-soon actions.
+- [ ] Open `/events/parent-orientation-staff-2569`.
+- [ ] Event detail page shows event status, date, location, target audience, and clear actions.
+- [ ] `/events/entaneer-bonding-69` shows objectives, schedule preview, stations, dress code, registration points, and public rain plan.
+- [ ] `/events/entaneer-bonding-69` does not show detailed budget publicly.
+- [ ] `/events/parent-orientation-staff-2569` shows capacity, eligible years, duties, important dates, and dress code.
 - [ ] Event detail page links back to the existing participant list and `/edit`.
 - [ ] `/` still loads the existing public participant list and does not depend on the events table.
 - [ ] Mobile `/events` cards fit iPhone SE width without horizontal scroll.
 - [ ] Open `/events/entaneer-bonding-69/register`.
 - [ ] Registration page asks for email + phone and optional note.
 - [ ] Registration submit fails safely if no matching `people` row exists.
-- [ ] Open `/events/entaneer-bonding-69/staff/apply`.
-- [ ] Staff application page asks for email + phone and event-specific staff fields.
+- [ ] Open `/events/parent-orientation-staff-2569/staff/apply`.
+- [ ] Staff application page asks for student ID, email, phone, duties, availability, rehearsal availability, event-day availability, optional experience, health limitations, note, and consent.
 - [ ] Staff application submit fails safely if staff recruiting is closed or identity is missing.
 - [ ] Neither public event form asks for medical information.
 - [ ] Old `/`, `/edit`, `/staff/attendance`, `/admin/dashboard`, and `/admin/documents` routes still work after applying multi-event foundation migrations.
@@ -161,8 +166,11 @@ Use this checklist before real event operations and after every production-readi
 
 - [ ] Admin can open `/admin/events`.
 - [ ] `/admin/events` shows the default event after applying migrations.
+- [ ] `/admin/events` shows parent orientation staff recruitment after applying migrations.
 - [ ] Admin can open `/admin/events/:eventId`.
 - [ ] Admin can edit event name, status, visibility, dates, and location.
+- [ ] Admin can open `/admin/events/:eventId/applications` for the staff recruitment event.
+- [ ] Application review page is read-only and does not expose approve/reject actions yet.
 - [ ] Event edit does not change legacy public search or attendance behavior.
 - [ ] Public/non-admin users cannot access `/admin/events`.
 - [ ] Existing `/admin/dashboard` still loads normally.
