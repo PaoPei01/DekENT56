@@ -179,7 +179,19 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Application review shows duty summary, waitlisted count, rejected count, and approved applicants missing final duty.
 - [ ] Filters work for status, final duty, preferred duty, year level, major, rehearsal availability, and event day availability.
 - [ ] Admin can assign a final duty from the dropdown and sees a success toast after saving.
+- [ ] Admin can mark an application as under review.
+- [ ] Admin can approve an application.
+- [ ] Admin can waitlist an application.
+- [ ] Admin can reject an application.
+- [ ] Review note saves and appears in application details.
+- [ ] Status label updates with Thai-friendly labels.
+- [ ] Approving without final duty shows a warning but is allowed.
+- [ ] Rejecting encourages a review note.
+- [ ] Application detail modal shows applicant info, preferred duties, availability, rehearsal availability, event-day availability, staff experience, note, consent, current status, final duty, review note, reviewed_by, and reviewed_at.
+- [ ] Health/limitations field is shown only in admin detail with the privacy warning.
+- [ ] Mobile application cards show primary approve action plus additional actions without horizontal scroll.
 - [ ] Export presets work for all applications, approved only, by final duty, rehearsal list, contact list, and full admin export.
+- [ ] Export reflects the latest status after review actions.
 - [ ] Contact list export does not include health/limitations fields.
 - [ ] Full admin export is clearly labeled as including sensitive/detail fields before use.
 - [ ] Event edit does not change legacy public search or attendance behavior.

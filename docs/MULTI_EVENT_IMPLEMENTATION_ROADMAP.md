@@ -261,11 +261,26 @@ Completed in lightweight pass:
   - `updateAdminStaffApplicationReview(input)`
 - Kept legacy dashboards and event-scoped operations unchanged.
 
+Completed in staff application review workflow pass:
+
+- Added additive migration `202605230011_staff_application_review_workflow.sql`.
+- Added admin-only RPC `review_staff_application(application_id, status, final_duty, review_note)`.
+- Added shared status helper `src/lib/applicationStatus.ts`.
+- Updated `/admin/events/:eventId/applications` with status labels and review actions:
+  - submitted
+  - under_review
+  - approved
+  - waitlisted
+  - rejected
+  - withdrawn
+- Added review modal with optional note, final duty, approval warning when final duty is missing, and rejection note guidance.
+- Added application detail modal with applicant info, availability, experience, health/limitations privacy warning, consent, final duty, review note, reviewed_by, and reviewed_at.
+- Kept filters, CSV exports, public staff application submission, and legacy routes unchanged.
+
 Deferred:
 
 - Event CRUD create/delete.
 - Registration open/close controls beyond event status field.
-- Staff application approve/reject/waitlist actions.
 - Event-scoped attendance/documents/announcements.
 - Promoting approved applications into `event_staff`.
 

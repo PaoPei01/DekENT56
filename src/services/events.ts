@@ -169,15 +169,30 @@ export async function fetchAdminEventStaffApplications(eventId: string): Promise
 export async function updateAdminStaffApplicationReview(input: {
   id: string;
   status?: string;
+  finalDuty?: string | null;
   answers?: Record<string, unknown>;
   reviewNote?: string | null;
 }): Promise<AdminStaffApplicationRow> {
-  const payload: Record<string, unknown> = {
-    reviewed_at: new Date().toISOString(),
-  };
-  if (input.status) payload.status = input.status;
+  if (input.status || input.finalDuty !== undefined || input.reviewNote !== undefined) {
+    const { data: reviewed, error: reviewError } = await supabase.rpc('review_staff_application', {
+      input_application_id: input.id,
+      input_status: input.status ?? 'under_review',
+      input_final_duty: input.finalDuty ?? (input.answers?.final_duty == null ? null : String(input.answers.final_duty)),
+      input_review_note: input.reviewNote ?? null,
+    });
+    if (reviewError) throw reviewError;
+    const row = reviewed as AdminStaffApplicationRow;
+    const { data, error } = await supabase
+      .from('staff_applications')
+      .select('id,event_id,person_id,preferred_role,preferred_team,availability,experience,motivation,status,submitted_at,reviewed_by,reviewed_at,review_note,answers,people(student_id,name_th,name_en,nickname,email,phone,major,year_level)')
+      .eq('id', row.id)
+      .single();
+    if (error) throw error;
+    return data as unknown as AdminStaffApplicationRow;
+  }
+
+  const payload: Record<string, unknown> = {};
   if (input.answers) payload.answers = input.answers;
-  if (input.reviewNote !== undefined) payload.review_note = input.reviewNote;
 
   const { data, error } = await supabase
     .from('staff_applications')

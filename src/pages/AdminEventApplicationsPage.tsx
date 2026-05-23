@@ -1,16 +1,19 @@
-import { ArrowLeft, Download, RefreshCw, Save } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, Eye, MessageSquare, RefreshCw, Save, ShieldAlert, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { EventSwitcher } from '../components/events/EventSwitcher';
+import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
+import { getApplicationStatusLabel, getApplicationStatusTone, STAFF_APPLICATION_STATUSES, type StaffApplicationStatus } from '../lib/applicationStatus';
 import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { getEventContent } from '../lib/eventContent';
@@ -19,8 +22,6 @@ import { fetchAdminEventById, fetchAdminEventStaffApplications, type AdminStaffA
 import { errorMessage } from '../utils/error';
 
 type ExportPreset = 'all' | 'approved' | 'by_final_duty' | 'rehearsal' | 'contact' | 'full_admin';
-
-const statuses = ['submitted', 'under_review', 'approved', 'waitlisted', 'rejected', 'withdrawn'];
 
 function text(value: unknown) {
   if (Array.isArray(value)) return value.join(', ');
@@ -39,6 +40,17 @@ function finalDuty(row: AdminStaffApplicationRow) {
 
 function applicantName(row: AdminStaffApplicationRow) {
   return row.people?.nickname || row.people?.name_th || row.people?.name_en || row.people?.student_id || 'ผู้สมัคร';
+}
+
+function consentText(value: unknown, language: 'th' | 'en') {
+  if (value === true) return language === 'th' ? 'ยินยอม' : 'Accepted';
+  if (value === false) return language === 'th' ? 'ไม่ยินยอม' : 'Not accepted';
+  if (value && typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, accepted]) => `${key}: ${accepted ? (language === 'th' ? 'ยินยอม' : 'yes') : (language === 'th' ? 'ไม่ยินยอม' : 'no')}`)
+      .join(' · ');
+  }
+  return text(value) || '-';
 }
 
 function csvValue(value: unknown) {
@@ -78,6 +90,8 @@ export function AdminEventApplicationsPage() {
   });
   const [savingId, setSavingId] = useState<string | null>(null);
   const [draftFinalDuties, setDraftFinalDuties] = useState<Record<string, string>>({});
+  const [reviewDraft, setReviewDraft] = useState<{ row: AdminStaffApplicationRow; status: StaffApplicationStatus; finalDuty: string; reviewNote: string } | null>(null);
+  const [detailRow, setDetailRow] = useState<AdminStaffApplicationRow | null>(null);
   const event = eventState.data;
   const rows = useMemo(() => applicationsState.data ?? [], [applicationsState.data]);
   const content = getEventContent(event?.slug);
@@ -123,8 +137,7 @@ export function AdminEventApplicationsPage() {
     const value = draftFinalDuties[row.id] ?? finalDuty(row);
     try {
       setSavingId(row.id);
-      const nextAnswers = { ...row.answers, final_duty: value };
-      await updateAdminStaffApplicationReview({ id: row.id, answers: nextAnswers });
+      await updateAdminStaffApplicationReview({ id: row.id, status: row.status, finalDuty: value, reviewNote: row.review_note });
       setToast({ type: 'success', message: language === 'th' ? 'บันทึกหน้าที่สุดท้ายแล้ว' : 'Final duty saved' });
       setDraftFinalDuties((current) => {
         const next = { ...current };
@@ -137,6 +150,62 @@ export function AdminEventApplicationsPage() {
     } finally {
       setSavingId(null);
     }
+  }
+
+  function openReview(row: AdminStaffApplicationRow, status: StaffApplicationStatus = row.status as StaffApplicationStatus) {
+    setReviewDraft({
+      row,
+      status,
+      finalDuty: finalDuty(row),
+      reviewNote: row.review_note ?? '',
+    });
+  }
+
+  async function submitReview() {
+    if (!reviewDraft) return;
+    try {
+      setSavingId(reviewDraft.row.id);
+      await updateAdminStaffApplicationReview({
+        id: reviewDraft.row.id,
+        status: reviewDraft.status,
+        finalDuty: reviewDraft.finalDuty,
+        reviewNote: reviewDraft.reviewNote,
+      });
+      setToast({ type: 'success', message: language === 'th' ? 'อัปเดตสถานะใบสมัครแล้ว' : 'Application review updated' });
+      setReviewDraft(null);
+      await applicationsState.reload();
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'อัปเดตสถานะไม่สำเร็จ' : 'Could not update review status') });
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  function actionButtons(row: AdminStaffApplicationRow, mobile = false) {
+    return (
+      <div className={mobile ? 'application-mobile-actions' : 'table-action-row'}>
+        <Button size="sm" variant="secondary" icon={<Eye size={16} />} onClick={() => setDetailRow(row)}>{language === 'th' ? 'รายละเอียด' : 'Details'}</Button>
+        <Button size="sm" icon={<CheckCircle size={16} />} onClick={() => openReview(row, 'approved')}>{language === 'th' ? 'ผ่าน' : 'Approve'}</Button>
+        {mobile ? (
+          <details className="application-more-actions">
+            <summary>{language === 'th' ? 'เพิ่มเติม' : 'More'}</summary>
+            <div>
+              <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'under_review')}>{language === 'th' ? 'ตรวจสอบแล้ว' : 'Under review'}</Button>
+              <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
+              <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'เพิ่มหมายเหตุ' : 'Note'}</Button>
+              <Button size="sm" variant="danger" icon={<XCircle size={16} />} onClick={() => openReview(row, 'rejected')}>{language === 'th' ? 'ไม่ผ่าน' : 'Reject'}</Button>
+            </div>
+          </details>
+        ) : (
+          <>
+            <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'under_review')}>{language === 'th' ? 'ตรวจสอบแล้ว' : 'Review'}</Button>
+            <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
+            <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'หมายเหตุ' : 'Note'}</Button>
+            <Button size="sm" variant="danger" icon={<XCircle size={16} />} onClick={() => openReview(row, 'rejected')}>{language === 'th' ? 'ไม่ผ่าน' : 'Reject'}</Button>
+          </>
+        )}
+      </div>
+    );
   }
 
   function rowsForExport(preset: ExportPreset) {
@@ -254,7 +323,12 @@ export function AdminEventApplicationsPage() {
               <h2>{language === 'th' ? 'คัดกรองใบสมัคร' : 'Filter applications'}</h2>
             </div>
             <div className="filter-panel-grid">
-              <Select label={language === 'th' ? 'สถานะ' : 'Status'} value={filters.status} onChange={(eventInput) => setFilters({ ...filters, status: eventInput.target.value })} options={statuses} />
+              <Select
+                label={language === 'th' ? 'สถานะ' : 'Status'}
+                value={filters.status}
+                onChange={(eventInput) => setFilters({ ...filters, status: eventInput.target.value })}
+                options={STAFF_APPLICATION_STATUSES.map((status) => ({ value: status, label: getApplicationStatusLabel(status, language) }))}
+              />
               <Select label={language === 'th' ? 'หน้าที่สุดท้าย' : 'Final duty'} value={filters.finalDuty} onChange={(eventInput) => setFilters({ ...filters, finalDuty: eventInput.target.value })} options={finalDutyOptions} />
               <Select label={language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duty'} value={filters.preferredDuty} onChange={(eventInput) => setFilters({ ...filters, preferredDuty: eventInput.target.value })} options={filterOptions.preferred} />
               <Select label={language === 'th' ? 'ชั้นปี' : 'Year'} value={filters.yearLevel} onChange={(eventInput) => setFilters({ ...filters, yearLevel: eventInput.target.value })} options={filterOptions.years} />
@@ -277,8 +351,9 @@ export function AdminEventApplicationsPage() {
             getKey={(row) => row.id}
             emptyText={language === 'th' ? 'ไม่พบใบสมัครตามตัวกรอง' : 'No applications match the filters'}
             mobileTitle={(row) => applicantName(row)}
-            mobileSubtitle={(row) => `${row.status} · ${row.people?.major ?? '-'}`}
+            mobileSubtitle={(row) => `${getApplicationStatusLabel(row.status, language)} · ${row.people?.major ?? '-'}`}
             mobileMeta={(row) => formatBangkokDateTime(row.submitted_at, language)}
+            mobileActions={(row) => actionButtons(row, true)}
             columns={[
               { key: 'name', header: language === 'th' ? 'ผู้สมัคร' : 'Applicant', render: (row) => <strong>{applicantName(row)}</strong>, priority: 'primary' },
               { key: 'year', header: language === 'th' ? 'ชั้นปี' : 'Year', render: (row) => row.people?.year_level ?? '-' },
@@ -287,7 +362,7 @@ export function AdminEventApplicationsPage() {
               { key: 'availability', header: language === 'th' ? 'เวลาว่าง' : 'Availability', render: (row) => text(row.availability?.text) || '-' },
               { key: 'rehearsal', header: language === 'th' ? 'ซ้อม' : 'Rehearsal', render: (row) => text(row.answers?.can_attend_rehearsal) || '-' },
               { key: 'event_day', header: language === 'th' ? 'วันจริง' : 'Event day', render: (row) => text(row.answers?.can_work_event_day) || '-' },
-              { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{row.status}</span> },
+              { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{getApplicationStatusLabel(row.status, language)}</span> },
               { key: 'final', header: language === 'th' ? 'หน้าที่สุดท้าย' : 'Final duty', render: (row) => (
                 <div className="table-action-row">
                   <Select
@@ -307,8 +382,100 @@ export function AdminEventApplicationsPage() {
                   </Button>
                 </div>
               ), align: 'right' },
+              { key: 'actions', header: language === 'th' ? 'จัดการ' : 'Actions', render: (row) => actionButtons(row), align: 'right', mobileHidden: true },
             ]}
           />
+
+          <Modal open={Boolean(reviewDraft)} title={language === 'th' ? 'อัปเดตผลการรีวิว' : 'Update review'} onClose={() => setReviewDraft(null)}>
+            {reviewDraft ? (
+              <div className="modal-body page-stack">
+                <Card variant="soft">
+                  <div className="mobile-row-head">
+                    <div>
+                      <strong>{applicantName(reviewDraft.row)}</strong>
+                      <span>{reviewDraft.row.people?.student_id ?? '-'} · {reviewDraft.row.people?.major ?? '-'}</span>
+                    </div>
+                    <Badge status={getApplicationStatusTone(reviewDraft.row.status)}>{getApplicationStatusLabel(reviewDraft.row.status, language)}</Badge>
+                  </div>
+                </Card>
+                <div className="form-grid two-col">
+                  <Select
+                    label={language === 'th' ? 'สถานะใหม่' : 'New status'}
+                    value={reviewDraft.status}
+                    onChange={(eventInput) => setReviewDraft({ ...reviewDraft, status: eventInput.target.value as StaffApplicationStatus })}
+                    options={STAFF_APPLICATION_STATUSES.map((status) => ({ value: status, label: getApplicationStatusLabel(status, language) }))}
+                  />
+                  <Select
+                    label={language === 'th' ? 'หน้าที่จริง' : 'Final duty'}
+                    value={reviewDraft.finalDuty}
+                    onChange={(eventInput) => setReviewDraft({ ...reviewDraft, finalDuty: eventInput.target.value })}
+                    options={finalDutyOptions}
+                  />
+                </div>
+                {reviewDraft.status === 'approved' && !reviewDraft.finalDuty ? (
+                  <Card variant="warning">
+                    <strong>{language === 'th' ? 'ยังไม่ได้ระบุหน้าที่จริง' : 'Final duty not assigned'}</strong>
+                    <p>{language === 'th' ? 'สามารถอนุมัติก่อนได้ แต่ควรจัดสรรหน้าที่ก่อนวันงาน' : 'You can approve first, but assign a final duty before the event day.'}</p>
+                  </Card>
+                ) : null}
+                {reviewDraft.status === 'rejected' ? (
+                  <Card variant="warning">
+                    <strong>{language === 'th' ? 'แนะนำให้ใส่หมายเหตุ' : 'Review note recommended'}</strong>
+                    <p>{language === 'th' ? 'ระบุหมายเหตุเพื่อใช้ตรวจสอบย้อนหลัง' : 'Add a note for future audit/review.'}</p>
+                  </Card>
+                ) : null}
+                <label className="field">
+                  <span>{language === 'th' ? 'หมายเหตุการรีวิว' : 'Review note'}</span>
+                  <textarea rows={4} value={reviewDraft.reviewNote} onChange={(eventInput) => setReviewDraft({ ...reviewDraft, reviewNote: eventInput.target.value })} placeholder={language === 'th' ? 'เช่น เหมาะกับฝ่ายลงทะเบียน / รอจัดสรรเพิ่มเติม / ไม่ตรงเงื่อนไขรอบนี้' : 'Example: good fit for registration, waitlisted for duty allocation, not eligible this round'} />
+                </label>
+                <div className="form-actions">
+                  <Button icon={<Save size={18} />} loading={savingId === reviewDraft.row.id} onClick={() => void submitReview()}>{language === 'th' ? 'บันทึกผลรีวิว' : 'Save review'}</Button>
+                  <Button variant="secondary" onClick={() => setReviewDraft(null)}>{language === 'th' ? 'ยกเลิก' : 'Cancel'}</Button>
+                </div>
+              </div>
+            ) : null}
+          </Modal>
+
+          <Modal open={Boolean(detailRow)} title={language === 'th' ? 'รายละเอียดใบสมัคร' : 'Application details'} onClose={() => setDetailRow(null)}>
+            {detailRow ? (
+              <div className="modal-body page-stack">
+                <Card variant="soft">
+                  <div className="mobile-row-head">
+                    <div>
+                      <strong>{applicantName(detailRow)}</strong>
+                      <span>{detailRow.people?.student_id ?? '-'} · {detailRow.people?.major ?? '-'} · {detailRow.people?.year_level ?? '-'}</span>
+                    </div>
+                    <Badge status={getApplicationStatusTone(detailRow.status)}>{getApplicationStatusLabel(detailRow.status, language)}</Badge>
+                  </div>
+                </Card>
+                <div className="application-detail-grid">
+                  <span>Email</span><strong>{detailRow.people?.email ?? '-'}</strong>
+                  <span>{language === 'th' ? 'เบอร์โทร' : 'Phone'}</span><strong>{detailRow.people?.phone ?? '-'}</strong>
+                  <span>{language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duties'}</span><strong>{duties(detailRow).join(', ') || '-'}</strong>
+                  <span>{language === 'th' ? 'เวลาว่าง' : 'Availability'}</span><strong>{text(detailRow.availability?.text) || text(detailRow.answers?.availability) || '-'}</strong>
+                  <span>{language === 'th' ? 'วันซ้อม' : 'Rehearsal'}</span><strong>{text(detailRow.answers?.can_attend_rehearsal) || '-'}</strong>
+                  <span>{language === 'th' ? 'วันจริง' : 'Event day'}</span><strong>{text(detailRow.answers?.can_work_event_day) || '-'}</strong>
+                  <span>{language === 'th' ? 'ประสบการณ์' : 'Experience'}</span><strong>{text(detailRow.answers?.staff_experience) || detailRow.experience || '-'}</strong>
+                  <span>{language === 'th' ? 'หมายเหตุผู้สมัคร' : 'Applicant note'}</span><strong>{text(detailRow.answers?.note) || detailRow.motivation || '-'}</strong>
+                  <span>{language === 'th' ? 'Consent' : 'Consent'}</span><strong>{consentText(detailRow.answers?.consent, language)}</strong>
+                  <span>{language === 'th' ? 'หน้าที่จริง' : 'Final duty'}</span><strong>{finalDuty(detailRow) || '-'}</strong>
+                  <span>{language === 'th' ? 'หมายเหตุรีวิว' : 'Review note'}</span><strong>{detailRow.review_note ?? '-'}</strong>
+                  <span>{language === 'th' ? 'รีวิวเมื่อ' : 'Reviewed at'}</span><strong>{formatBangkokDateTime(detailRow.reviewed_at, language)}</strong>
+                  <span>{language === 'th' ? 'รีวิวโดย' : 'Reviewed by'}</span><strong>{detailRow.reviewed_by ?? '-'}</strong>
+                </div>
+                <Card variant="warning">
+                  <div className="section-heading">
+                    <ShieldAlert size={20} />
+                    <div>
+                      <h2>{language === 'th' ? 'ข้อมูลสุขภาพ/ข้อจำกัด' : 'Health or limitations'}</h2>
+                      <p>{language === 'th' ? 'ข้อมูลนี้ใช้เพื่อจัดสรรหน้าที่และดูแลความปลอดภัยเท่านั้น' : 'Use this only for duty allocation and safety care.'}</p>
+                    </div>
+                  </div>
+                  <p>{text(detailRow.answers?.health_or_limitations) || '-'}</p>
+                </Card>
+              </div>
+            ) : null}
+          </Modal>
         </>
       ) : null}
     </section>

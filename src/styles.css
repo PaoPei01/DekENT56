@@ -4423,9 +4423,7 @@ th {
   background: rgba(255, 255, 255, 0.96);
 }
 
-.admin-staff-attendance-page .status-pill,
-.staff-attendance-home .status-pill,
-.staff-attendance-scan-page .status-pill {
+.status-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4440,21 +4438,27 @@ th {
 
 .status-active,
 .status-present,
-.status-checked_out {
+.status-checked_out,
+.status-approved {
   background: rgba(22, 163, 74, 0.12) !important;
   color: #166534 !important;
 }
 
 .status-late,
 .status-draft,
-.status-missing {
+.status-missing,
+.status-submitted,
+.status-under_review,
+.status-waitlisted {
   background: rgba(245, 158, 11, 0.14) !important;
   color: #92400e !important;
 }
 
 .status-absent,
 .status-closed,
-.status-cancelled {
+.status-cancelled,
+.status-rejected,
+.status-withdrawn {
   background: rgba(239, 68, 68, 0.12) !important;
   color: #991b1b !important;
 }
@@ -4480,6 +4484,40 @@ th {
 .scan-result-card {
   display: grid;
   gap: 1rem;
+}
+
+.application-mobile-actions,
+.application-more-actions div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.application-more-actions {
+  width: 100%;
+}
+
+.application-more-actions summary {
+  min-height: 38px;
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.application-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) minmax(0, 1fr);
+  gap: 0.55rem 0.85rem;
+}
+
+.application-detail-grid span {
+  color: var(--text-soft);
+  font-weight: 800;
+}
+
+.application-detail-grid strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .scan-verify-card {
