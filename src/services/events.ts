@@ -156,6 +156,36 @@ export type AdminStaffApplicationRow = {
   } | null;
 };
 
+export type PromoteStaffApplicationResult = {
+  success: boolean;
+  event_staff_id: string;
+  event_id: string;
+  person_id: string;
+  application_id: string;
+  staff_role: string | null;
+  team: string | null;
+  status: string;
+};
+
+export type AdminEventStaffRow = {
+  id: string;
+  event_id: string;
+  person_id: string;
+  staff_role: string | null;
+  team: string | null;
+  status: string;
+  application_id: string | null;
+  approved_at: string | null;
+  people?: {
+    student_id: string | null;
+    name_th: string | null;
+    name_en: string | null;
+    nickname: string | null;
+    major: string | null;
+    year_level: number | null;
+  } | null;
+};
+
 export async function fetchAdminEventStaffApplications(eventId: string): Promise<AdminStaffApplicationRow[]> {
   const { data, error } = await supabase
     .from('staff_applications')
@@ -202,4 +232,28 @@ export async function updateAdminStaffApplicationReview(input: {
     .single();
   if (error) throw error;
   return data as unknown as AdminStaffApplicationRow;
+}
+
+export async function promoteStaffApplicationToEventStaff(input: {
+  applicationId: string;
+  staffRole?: string | null;
+  team?: string | null;
+}): Promise<PromoteStaffApplicationResult> {
+  const { data, error } = await supabase.rpc('promote_staff_application_to_event_staff', {
+    input_application_id: input.applicationId,
+    input_staff_role: input.staffRole ?? null,
+    input_team: input.team ?? null,
+  });
+  if (error) throw error;
+  return data as PromoteStaffApplicationResult;
+}
+
+export async function fetchAdminEventStaff(eventId: string): Promise<AdminEventStaffRow[]> {
+  const { data, error } = await supabase
+    .from('event_staff')
+    .select('id,event_id,person_id,staff_role,team,status,application_id,approved_at,people(student_id,name_th,name_en,nickname,major,year_level)')
+    .eq('event_id', eventId)
+    .order('approved_at', { ascending: false, nullsFirst: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as AdminEventStaffRow[];
 }

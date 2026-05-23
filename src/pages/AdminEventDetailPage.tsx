@@ -1,4 +1,4 @@
-import { Eye, RefreshCw, Save } from 'lucide-react';
+import { Eye, RefreshCw, Save, UserPlus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -14,7 +14,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
 import type { EventRecord, EventStatus, EventVisibility } from '../lib/eventTypes';
 import { adminEventApplicationsPath, eventPath } from '../lib/eventRoutes';
-import { fetchAdminEventById, updateAdminEvent } from '../services/events';
+import { fetchAdminEventById, fetchAdminEventStaff, updateAdminEvent } from '../services/events';
 import { errorMessage } from '../utils/error';
 
 const statuses: EventStatus[] = ['draft', 'published', 'registration_open', 'staff_recruiting', 'active', 'completed', 'archived'];
@@ -41,6 +41,7 @@ export function AdminEventDetailPage() {
   const { language } = useLanguage();
   const { eventId = '' } = useParams();
   const state = useAsync(() => fetchAdminEventById(eventId), [eventId]);
+  const eventStaffState = useAsync(() => fetchAdminEventStaff(eventId), [eventId]);
   const [form, setForm] = useState<Partial<EventRecord>>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
@@ -114,6 +115,18 @@ export function AdminEventDetailPage() {
 
       {event ? (
         <form className="page-stack" onSubmit={submit}>
+          <Card className="event-detail-card" variant="soft">
+            <div className="split-panel">
+              <div>
+                <p className="eyebrow">{language === 'th' ? 'ทีมงานกิจกรรม' : 'Event staff'}</p>
+                <h2>{eventStaffState.data?.length ?? 0} {language === 'th' ? 'คน' : 'people'}</h2>
+                <p>{language === 'th' ? 'มาจากใบสมัครที่แอดมินอนุมัติและเพิ่มเป็นสตาฟกิจกรรมแล้ว' : 'Created from approved applications promoted by admins.'}</p>
+              </div>
+              {event.event_type === 'staff_recruitment' ? (
+                <Link className="btn btn-secondary" to={adminEventApplicationsPath(event.id)}><UserPlus size={17} />{language === 'th' ? 'จัดการใบสมัคร' : 'Manage applications'}</Link>
+              ) : null}
+            </div>
+          </Card>
           <Card className="event-form-card">
             <div>
               <p className="eyebrow">{language === 'th' ? 'ข้อมูลหลัก' : 'Core details'}</p>

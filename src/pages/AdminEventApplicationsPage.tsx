@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Clock, Download, Eye, MessageSquare, RefreshCw, Save, ShieldAlert, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, Eye, MessageSquare, RefreshCw, Save, ShieldAlert, UserPlus, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -18,7 +18,7 @@ import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { getEventContent } from '../lib/eventContent';
 import { eventPath } from '../lib/eventRoutes';
-import { fetchAdminEventById, fetchAdminEventStaffApplications, type AdminStaffApplicationRow, updateAdminStaffApplicationReview } from '../services/events';
+import { fetchAdminEventById, fetchAdminEventStaffApplications, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, updateAdminStaffApplicationReview } from '../services/events';
 import { errorMessage } from '../utils/error';
 
 type ExportPreset = 'all' | 'approved' | 'by_final_duty' | 'rehearsal' | 'contact' | 'full_admin';
@@ -36,6 +36,14 @@ function duties(row: AdminStaffApplicationRow) {
 
 function finalDuty(row: AdminStaffApplicationRow) {
   return text(row.answers?.final_duty);
+}
+
+function promotedEventStaffId(row: AdminStaffApplicationRow) {
+  return text(row.answers?.event_staff_id);
+}
+
+function isPromoted(row: AdminStaffApplicationRow) {
+  return row.answers?.promoted_to_event_staff === true || Boolean(promotedEventStaffId(row));
 }
 
 function applicantName(row: AdminStaffApplicationRow) {
@@ -181,10 +189,40 @@ export function AdminEventApplicationsPage() {
     }
   }
 
+  async function promoteToEventStaff(row: AdminStaffApplicationRow) {
+    const team = draftFinalDuties[row.id] ?? finalDuty(row);
+    try {
+      setSavingId(row.id);
+      await promoteStaffApplicationToEventStaff({
+        applicationId: row.id,
+        staffRole: row.preferred_role,
+        team,
+      });
+      setToast({ type: 'success', message: language === 'th' ? 'เพิ่มเป็นสตาฟกิจกรรมแล้ว' : 'Added to event staff' });
+      setDraftFinalDuties((current) => {
+        const next = { ...current };
+        delete next[row.id];
+        return next;
+      });
+      await applicationsState.reload();
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'เพิ่มเป็นสตาฟกิจกรรมไม่สำเร็จ ตรวจว่าสถานะผ่านการคัดเลือกแล้ว' : 'Could not add to event staff') });
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   function actionButtons(row: AdminStaffApplicationRow, mobile = false) {
+    const promoted = isPromoted(row);
     return (
       <div className={mobile ? 'application-mobile-actions' : 'table-action-row'}>
         <Button size="sm" variant="secondary" icon={<Eye size={16} />} onClick={() => setDetailRow(row)}>{language === 'th' ? 'รายละเอียด' : 'Details'}</Button>
+        {promoted ? <Badge status="approved">{language === 'th' ? 'เพิ่มเป็นสตาฟแล้ว' : 'Event staff'}</Badge> : null}
+        {row.status === 'approved' && !promoted ? (
+          <Button size="sm" variant="secondary" icon={<UserPlus size={16} />} loading={savingId === row.id} onClick={() => void promoteToEventStaff(row)}>
+            {language === 'th' ? 'เพิ่มเป็นสตาฟกิจกรรม' : 'Add to event staff'}
+          </Button>
+        ) : null}
         <Button size="sm" icon={<CheckCircle size={16} />} onClick={() => openReview(row, 'approved')}>{language === 'th' ? 'ผ่าน' : 'Approve'}</Button>
         {mobile ? (
           <details className="application-more-actions">
@@ -226,6 +264,7 @@ export function AdminEventApplicationsPage() {
         event_day: row.answers?.can_work_event_day,
         availability: row.availability?.text ?? row.answers?.availability,
         submitted_at: row.submitted_at,
+        promoted_to_event_staff: isPromoted(row) ? 'yes' : 'no',
       };
       if (preset === 'contact' || preset === 'full_admin') {
         base.email = row.people?.email;
@@ -460,6 +499,7 @@ export function AdminEventApplicationsPage() {
                   <span>{language === 'th' ? 'Consent' : 'Consent'}</span><strong>{consentText(detailRow.answers?.consent, language)}</strong>
                   <span>{language === 'th' ? 'หน้าที่จริง' : 'Final duty'}</span><strong>{finalDuty(detailRow) || '-'}</strong>
                   <span>{language === 'th' ? 'หมายเหตุรีวิว' : 'Review note'}</span><strong>{detailRow.review_note ?? '-'}</strong>
+                  <span>{language === 'th' ? 'สถานะสตาฟกิจกรรม' : 'Event staff'}</span><strong>{isPromoted(detailRow) ? (language === 'th' ? `เพิ่มแล้ว (${promotedEventStaffId(detailRow)})` : `Promoted (${promotedEventStaffId(detailRow)})`) : '-'}</strong>
                   <span>{language === 'th' ? 'รีวิวเมื่อ' : 'Reviewed at'}</span><strong>{formatBangkokDateTime(detailRow.reviewed_at, language)}</strong>
                   <span>{language === 'th' ? 'รีวิวโดย' : 'Reviewed by'}</span><strong>{detailRow.reviewed_by ?? '-'}</strong>
                 </div>

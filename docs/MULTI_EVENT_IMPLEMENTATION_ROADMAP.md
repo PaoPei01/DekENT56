@@ -277,12 +277,24 @@ Completed in staff application review workflow pass:
 - Added application detail modal with applicant info, availability, experience, health/limitations privacy warning, consent, final duty, review note, reviewed_by, and reviewed_at.
 - Kept filters, CSV exports, public staff application submission, and legacy routes unchanged.
 
+Completed in event staff promotion pass:
+
+- Added additive migration `202605230012_event_staff_promotion.sql`.
+- Created `public.event_staff` when missing, with admin-only RLS and unique `(event_id, person_id)`.
+- Added admin-only RPC `promote_staff_application_to_event_staff(application_id, staff_role, team)`.
+- Promotion requires `staff_applications.status = 'approved'`.
+- Promotion upserts into `event_staff` and updates `staff_applications.answers.promoted_to_event_staff` plus `event_staff_id`.
+- Added “เพิ่มเป็นสตาฟกิจกรรม / Add to event staff” action on approved applications.
+- Added promoted-state badge in application review.
+- Added event staff count section on admin event detail.
+- Kept legacy `staff_profiles`, public application submission, filters, and exports unchanged.
+
 Deferred:
 
 - Event CRUD create/delete.
 - Registration open/close controls beyond event status field.
 - Event-scoped attendance/documents/announcements.
-- Promoting approved applications into `event_staff`.
+- Event staff list/detail route beyond the lightweight count.
 
 ## P5: Event-Scoped Attendance
 

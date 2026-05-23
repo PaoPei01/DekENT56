@@ -190,6 +190,15 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Application detail modal shows applicant info, preferred duties, availability, rehearsal availability, event-day availability, staff experience, note, consent, current status, final duty, review note, reviewed_by, and reviewed_at.
 - [ ] Health/limitations field is shown only in admin detail with the privacy warning.
 - [ ] Mobile application cards show primary approve action plus additional actions without horizontal scroll.
+- [ ] Approved application shows "เพิ่มเป็นสตาฟกิจกรรม".
+- [ ] Rejected, waitlisted, submitted, and under_review applications do not show the promote action.
+- [ ] Promoting an approved application creates or updates one `event_staff` row.
+- [ ] Promoting the same application twice does not duplicate `event_staff`.
+- [ ] Promoted application shows "เพิ่มเป็นสตาฟแล้ว".
+- [ ] `event_staff` references the correct event, person, and application.
+- [ ] Public/non-admin users cannot access `event_staff`.
+- [ ] Legacy `staff_profiles` is unchanged after promotion.
+- [ ] Admin event detail shows event staff count after promotion.
 - [ ] Export presets work for all applications, approved only, by final duty, rehearsal list, contact list, and full admin export.
 - [ ] Export reflects the latest status after review actions.
 - [ ] Contact list export does not include health/limitations fields.
