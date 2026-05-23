@@ -288,6 +288,7 @@ Use this as the next Codex prompt when ready:
 - [x] staging runbook exists: `docs/STAGING_MIGRATION_RUNBOOK.md`
 - [x] read-only staging verification script exists: `npm run check:multi-event-staging`
 - [x] current environment schema check result documented: `docs/MULTI_EVENT_STAGING_CHECK_RESULTS.md`
+- [x] release gate checklist exists: `docs/MULTI_EVENT_RELEASE_GATE.md`
 - [ ] default event migration applied in production
 - [ ] backup taken
 - [ ] people dedupe tested on staging data

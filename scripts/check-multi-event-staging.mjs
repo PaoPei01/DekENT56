@@ -56,6 +56,15 @@ await check('people table is readable by service role', async () => {
   return `${count ?? 0} people rows`;
 });
 
+await check('identity prefill RPC exists', async () => {
+  const { data, error } = await supabase.rpc('verify_person_identity_for_prefill', {
+    input_email: 'not-found@example.invalid',
+    input_phone: '0000000000',
+  });
+  if (error) throw error;
+  return `verify_person_identity_for_prefill returned ${data?.code ?? 'unknown'}`;
+});
+
 await check('legacy profiles have nullable person_id columns', async () => {
   const [profiles, staffProfiles] = await Promise.all([
     supabase.from('profiles').select('id,person_id').limit(1),
@@ -86,10 +95,46 @@ await check('event registration tables exist', async () => {
   return tables.join(', ');
 });
 
+await check('event form/read submission RPCs exist', async () => {
+  const formCheck = await supabase.rpc('get_public_event_form', {
+    input_event_slug: 'missing-event',
+    input_form_type: 'staff_application',
+  });
+  if (formCheck.error) throw formCheck.error;
+
+  const participantCheck = await supabase.rpc('submit_event_participant_registration', {
+    input_event_slug: 'missing-event',
+    input_email: 'not-found@example.invalid',
+    input_phone: '0000000000',
+    input_answers: {},
+  });
+  if (participantCheck.error) throw participantCheck.error;
+
+  const staffCheck = await supabase.rpc('submit_event_staff_application', {
+    input_event_slug: 'missing-event',
+    input_email: 'not-found@example.invalid',
+    input_phone: '0000000000',
+    input_data: {},
+  });
+  if (staffCheck.error) throw staffCheck.error;
+
+  return [
+    'get_public_event_form',
+    `submit_event_participant_registration:${participantCheck.data?.code ?? 'unknown'}`,
+    `submit_event_staff_application:${staffCheck.data?.code ?? 'unknown'}`,
+  ].join(', ');
+});
+
 await check('attendance sessions expose event_id', async () => {
   const { error } = await supabase.from('staff_attendance_sessions').select('id,event_id').limit(1);
   if (error) throw error;
   return 'staff_attendance_sessions.event_id is selectable';
+});
+
+await check('default_event_id RPC exists', async () => {
+  const { data, error } = await supabase.rpc('default_event_id');
+  if (error) throw error;
+  return data ? `default event id ${data}` : 'default event id is null';
 });
 
 await check('announcements/documents expose event_id', async () => {
