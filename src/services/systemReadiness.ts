@@ -32,6 +32,12 @@ export type SystemReadinessReport = {
 
 export async function fetchSystemReadinessReport(): Promise<SystemReadinessReport> {
   const { data, error } = await supabase.rpc('get_system_readiness_report');
-  if (error) throw error;
+  if (error) {
+    const message = [error.message, error.details, error.hint, error.code].filter(Boolean).join(' ');
+    if (/get_system_readiness_report|could not find the function|function .* does not exist/i.test(message)) {
+      throw new Error('ยังไม่พบ RPC ตรวจความพร้อมระบบ กรุณารัน migration ล่าสุดก่อน');
+    }
+    throw error;
+  }
   return data as SystemReadinessReport;
 }
