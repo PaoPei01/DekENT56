@@ -419,6 +419,21 @@ Top 10 quality-of-life improvements:
 - Ensure admin application filters are usable on mobile.
 - Improve update request review with clearer diffs.
 
+## Admin Applications Follow-Up Audit
+
+Implemented quick wins:
+
+- The duplicated duty dropdown came from mixing `event_staff_duty_quotas`, event content labels with quota suffixes, raw preferred duties, assigned duty labels, and older manually typed legacy labels.
+- Added a canonical Parent Orientation duty helper so filters, override dropdowns, table chips, detail views, and Excel export resolve to one Thai label per duty.
+- Removed low-priority fields from the main desktop table and kept detailed answers, contact data, review notes, and health/limitations inside the detail modal.
+- Kept health/limitations out of the main list and retained the privacy warning in detail view.
+- Added compact duty chips and grouped secondary row actions under `เพิ่มเติม` to reduce visual clutter.
+
+Remaining deferred UX work:
+
+- A dedicated mobile filter drawer would be cleaner than the current responsive collapsed filter disclosure.
+- A saved-view/filter preset system would help admins during high-pressure event operations.
+
 ### P2: Polish
 
 - Add saved admin filters.

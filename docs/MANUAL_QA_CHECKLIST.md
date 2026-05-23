@@ -690,6 +690,11 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Success screen asks the applicant to screenshot the page.
 - [ ] Admin application review shows assigned duty, assignment method, and assignment note.
 - [ ] Admin can filter by assigned duty.
+- [ ] Assigned duty filter shows canonical options only and has no duplicate quota labels.
+- [ ] Legacy duty labels such as `ฝ่ายจราจร (10 คน)` and `ร่วมร้องเพลงมาร์ชวิศวะและบูมคณะ` display as canonical labels, not separate filter options.
+- [ ] Manual assigned-duty dropdown has only canonical duty options plus `โปรดเลือกฝ่าย`.
+- [ ] Preferred duties display as canonical labels in table/cards/detail/export.
+- [ ] Excel export uses canonical duty labels.
 - [ ] Admin can filter by assignment method.
 - [ ] Admin can manually override assigned duty.
 - [ ] Admin sees warning `ฝ่ายนี้เต็มแล้ว หากบันทึกต่อจะเกินโควต้า` before over-quota override.
@@ -729,6 +734,10 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Large desktop: content max-width prevents overly long lines.
 - [ ] Long names, emails, student IDs, phone numbers, and badges wrap without breaking cards.
 - [ ] Mobile admin application review uses one obvious primary action and keeps secondary actions readable.
+- [ ] Admin application desktop table shows only high-priority columns and keeps long/sensitive answers in the detail modal.
+- [ ] Admin application mobile view uses cards without horizontal scroll.
+- [ ] Admin application detail modal contains health/limitations with a privacy warning; the main table does not show health data.
+- [ ] Duty summary cards show assigned/quota/remaining with `ยังรับได้`, `รับเต็มจำนวนแล้ว`, or `เกินโควต้า`.
 - [ ] Phone fields open a phone keypad on mobile; email fields open an email keyboard.
 - [ ] Full name and nickname display correctly and never duplicate by fallback.
 - [ ] CMU Mail mismatch warning is clear, calm, and does not block submitting when admin review is allowed.

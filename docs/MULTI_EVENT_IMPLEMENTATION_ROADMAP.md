@@ -640,3 +640,24 @@ Safety notes:
 - Existing duplicate rows are not deleted or merged automatically.
 - Different events are not blocked.
 - Withdrawn reapply policy remains deferred until product rules are explicit.
+
+## Admin Applications Duty Normalization and UI Cleanup Pass
+
+Status: implemented as a frontend normalization and readability pass with no database/schema changes.
+
+Completed:
+
+- Added canonical Parent Orientation duty helpers in `src/lib/parentOrientationDuties.ts`.
+- Normalized legacy duty labels, quota-suffix labels, and duty keys for display, filters, detail views, and Excel export.
+- Fixed `/admin/events/:eventId/applications` assigned-duty filters so they show only canonical options plus `ยังไม่ได้จัดฝ่าย`.
+- Moved long/low-priority application details, health/limitations, and duty override controls into the detail modal.
+- Reduced the desktop application table to high-priority columns: applicant, year/major, preferred duties, preliminary duty, availability, status, and actions.
+- Kept mobile application rows as compact cards with one main detail action and secondary actions under `เพิ่มเติม`.
+- Updated duty quota summary cards to show canonical labels, assigned/quota, remaining count, and text badges for available/full/over-quota states.
+
+QA focus:
+
+- No duplicate duty options from event content, quota labels, or raw legacy answers.
+- Legacy values display as canonical Thai labels without mutating existing application data.
+- Export still works and uses canonical duty labels.
+- Health/limitations remain out of the main table.

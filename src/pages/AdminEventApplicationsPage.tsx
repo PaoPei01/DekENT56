@@ -18,8 +18,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { getApplicationStatusLabel, getApplicationStatusTone, STAFF_APPLICATION_STATUSES, type StaffApplicationStatus } from '../lib/applicationStatus';
 import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
-import { getEventContent } from '../lib/eventContent';
 import { eventPath } from '../lib/eventRoutes';
+import { buildDutyFilterOptions, getApplicationAssignedDutyKey, getApplicationFinalDutyKey, getApplicationPreferredDutyKeys, getDutyLabelTh, getDutyOptions, getDutySelectOptions, normalizeDutySelection } from '../lib/parentOrientationDuties';
 import { fetchAdminEventById, fetchAdminEventStaffApplications, fetchEventDutyQuotaStatus, findDuplicateStaffApplications, logStaffApplicationExport, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, type EventDutyQuotaRow, updateAdminStaffApplicationAssignment, updateAdminStaffApplicationReview } from '../services/events';
 import { errorMessage } from '../utils/error';
 import { explainSupabaseSchemaError } from '../utils/supabaseDiagnostics';
@@ -44,19 +44,35 @@ function duties(row: AdminStaffApplicationRow) {
   return Array.isArray(value) ? value.map(String) : text(value).split(',').map((item) => item.trim()).filter(Boolean);
 }
 
-function preferredDutyLabels(row: AdminStaffApplicationRow, dutiesByKey: Map<string, EventDutyQuotaRow>) {
+function preferredDutyLabels(row: AdminStaffApplicationRow) {
+  const keys = getApplicationPreferredDutyKeys(row);
+  if (keys.length) return keys.map(getDutyLabelTh);
   const explicitLabels = row.answers?.preferred_duty_labels;
-  if (Array.isArray(explicitLabels) && explicitLabels.length) return explicitLabels.map(String);
-  return duties(row).map((duty) => dutiesByKey.get(duty)?.duty_label_th ?? duty);
+  if (Array.isArray(explicitLabels) && explicitLabels.length) return normalizeDutySelection(explicitLabels.map(String)).map(getDutyLabelTh);
+  return duties(row).map(getDutyLabelTh);
 }
 
 function finalDuty(row: AdminStaffApplicationRow) {
-  return text(row.answers?.final_duty);
+  return getApplicationFinalDutyKey(row) ?? text(row.answers?.final_duty);
 }
 
 function assignedDutyLabel(row: AdminStaffApplicationRow, dutiesByKey: Map<string, EventDutyQuotaRow>) {
+  const canonicalKey = getApplicationAssignedDutyKey(row);
+  if (canonicalKey) return getDutyLabelTh(canonicalKey);
   if (!row.assigned_duty) return '';
-  return dutiesByKey.get(row.assigned_duty)?.duty_label_th ?? text(row.answers?.assigned_duty_label_th) ?? row.assigned_duty;
+  return dutiesByKey.get(row.assigned_duty)?.duty_label_th ?? getDutyLabelTh(text(row.answers?.assigned_duty_label_th) || row.assigned_duty);
+}
+
+function CompactDutyChips({ labels, language }: { labels: string[]; language: 'th' | 'en' }) {
+  const visible = labels.slice(0, 2);
+  const extraCount = Math.max(labels.length - visible.length, 0);
+  if (!labels.length) return <span>-</span>;
+  return (
+    <div className="application-chip-row">
+      {visible.map((label) => <span className="duty-chip" key={label}>{label}</span>)}
+      {extraCount ? <span className="duty-chip is-muted">{language === 'th' ? `+${extraCount}` : `+${extraCount}`}</span> : null}
+    </div>
+  );
 }
 
 function assignmentMethodLabel(method: string | null | undefined, language: 'th' | 'en') {
@@ -164,31 +180,41 @@ export function AdminEventApplicationsPage() {
   const [showDuplicateDetails, setShowDuplicateDetails] = useState(false);
   const event = eventState.data;
   const rows = useMemo(() => applicationsState.data ?? [], [applicationsState.data]);
-  const content = getEventContent(event?.slug);
   const quotaDuties = useMemo(() => quotaState.data?.duties ?? [], [quotaState.data?.duties]);
   const dutiesByKey = useMemo(() => new Map(quotaDuties.map((duty) => [duty.duty_key, duty])), [quotaDuties]);
-  const assignedDutyOptions = useMemo(() => quotaDuties.map((duty) => ({ value: duty.duty_key, label: duty.duty_label_th })), [quotaDuties]);
+  const canonicalQuotaDuties = useMemo(() => getDutyOptions().map((duty) => {
+    const quota = quotaDuties.find((row) => getApplicationAssignedDutyKey({ assigned_duty: row.duty_key, answers: { assigned_duty_label_th: row.duty_label_th } }) === duty.key);
+    return {
+      duty_key: duty.key,
+      duty_label_th: duty.labelTh,
+      quota: quota?.quota ?? duty.quota,
+      assigned_count: quota?.assigned_count ?? rows.filter((row) => getApplicationAssignedDutyKey(row) === duty.key).length,
+      remaining: quota?.remaining ?? Math.max(duty.quota - rows.filter((row) => getApplicationAssignedDutyKey(row) === duty.key).length, 0),
+      is_full: quota?.is_full ?? false,
+    };
+  }), [quotaDuties, rows]);
   const quotaTotal = quotaState.data?.total_quota ?? quotaDuties.reduce((sum, duty) => sum + duty.quota, 0);
   const quotaAssigned = quotaState.data?.total_assigned ?? quotaDuties.reduce((sum, duty) => sum + duty.assigned_count, 0);
   const quotaRemaining = quotaState.data?.total_remaining ?? quotaDuties.reduce((sum, duty) => sum + duty.remaining, 0);
-  const overQuotaDuties = quotaDuties.filter((duty) => duty.assigned_count > duty.quota);
+  const overQuotaDuties = canonicalQuotaDuties.filter((duty) => duty.assigned_count > duty.quota);
   const duplicateReport = duplicateState.data;
   const duplicateGroups = [
     ...(duplicateReport?.duplicate_person_groups ?? []),
     ...(duplicateReport?.duplicate_student_id_groups ?? []),
     ...(duplicateReport?.duplicate_email_groups ?? []),
   ];
-  const finalDutyOptions = useMemo(() => {
-    const fromContent = content?.staffRecruitment?.dutiesTh ?? [];
-    const fromRows = rows.map(finalDuty).filter(Boolean);
-    const fromQuota = quotaDuties.map((duty) => duty.duty_label_th);
-    return [...new Set([...fromQuota, ...fromContent, ...fromRows])].sort((a, b) => a.localeCompare(b, 'th'));
-  }, [content?.staffRecruitment?.dutiesTh, quotaDuties, rows]);
+  const assignedDutyOptions = useMemo(() => buildDutyFilterOptions(rows, quotaState.data), [quotaState.data, rows]);
+  const assignedDutyFilterOptions = useMemo(() => [
+    ...assignedDutyOptions,
+    { value: '__missing', label: language === 'th' ? 'ยังไม่ได้จัดฝ่าย' : 'Not assigned' },
+  ], [assignedDutyOptions, language]);
+  const manualDutyOptions = useMemo(() => getDutySelectOptions(), []);
+  const finalDutyOptions = manualDutyOptions;
 
   const filterOptions = useMemo(() => {
     const majors = [...new Set(rows.map((row) => row.people?.major).filter(Boolean).map(String))].sort();
     const years = [...new Set(rows.map((row) => row.people?.year_level).filter(Boolean).map(String))].sort();
-    const preferred = [...new Set(rows.flatMap(duties))].sort();
+    const preferred = getDutySelectOptions();
     return { majors, years, preferred };
   }, [rows]);
 
@@ -209,10 +235,12 @@ export function AdminEventApplicationsPage() {
     ].some((value) => String(value ?? '').toLowerCase().includes(search))) return false;
     if (filters.status && row.status !== filters.status) return false;
     if (filters.identityStatus && row.identity_status !== filters.identityStatus) return false;
-    if (filters.assignedDuty && row.assigned_duty !== filters.assignedDuty) return false;
+    const assignedDutyKey = getApplicationAssignedDutyKey(row);
+    if (filters.assignedDuty === '__missing' && assignedDutyKey) return false;
+    if (filters.assignedDuty && filters.assignedDuty !== '__missing' && assignedDutyKey !== filters.assignedDuty) return false;
     if (filters.assignmentMethod && row.assignment_method !== filters.assignmentMethod) return false;
     if (filters.finalDuty && finalDuty(row) !== filters.finalDuty) return false;
-    if (filters.preferredDuty && !duties(row).includes(filters.preferredDuty)) return false;
+    if (filters.preferredDuty && !getApplicationPreferredDutyKeys(row).includes(filters.preferredDuty)) return false;
     if (filters.yearLevel && String(row.people?.year_level ?? '') !== filters.yearLevel) return false;
     if (filters.major && row.people?.major !== filters.major) return false;
     if (filters.rehearsal && text(row.answers?.can_attend_rehearsal) !== filters.rehearsal) return false;
@@ -223,8 +251,8 @@ export function AdminEventApplicationsPage() {
   const summary = useMemo(() => {
     const approved = rows.filter((row) => row.status === 'approved');
     const approvedByDuty = finalDutyOptions.map((duty) => ({
-      duty,
-      count: approved.filter((row) => finalDuty(row) === duty).length,
+      duty: duty.value,
+      count: approved.filter((row) => finalDuty(row) === duty.value).length,
     }));
     return {
       approvedByDuty,
@@ -240,7 +268,7 @@ export function AdminEventApplicationsPage() {
   }, [finalDutyOptions, quotaState.data?.total_remaining, rows]);
 
   async function saveFinalDuty(row: AdminStaffApplicationRow) {
-    const value = draftFinalDuties[row.id] ?? finalDuty(row);
+    const value = getApplicationFinalDutyKey({ answers: { final_duty: draftFinalDuties[row.id] ?? finalDuty(row) } }) ?? draftFinalDuties[row.id] ?? finalDuty(row);
     try {
       setSavingId(row.id);
       await updateAdminStaffApplicationReview({ id: row.id, status: row.status, finalDuty: value, reviewNote: row.review_note });
@@ -259,9 +287,10 @@ export function AdminEventApplicationsPage() {
   }
 
   async function saveAssignedDuty(row: AdminStaffApplicationRow, allowFullOverride = false) {
-    const value = draftAssignedDuties[row.id] ?? row.assigned_duty ?? '';
+    const rawValue = draftAssignedDuties[row.id] ?? getApplicationAssignedDutyKey(row) ?? row.assigned_duty ?? '';
+    const value = getApplicationAssignedDutyKey({ assigned_duty: rawValue }) ?? rawValue;
     const quota = dutiesByKey.get(value);
-    const selectingDifferentDuty = value !== row.assigned_duty;
+    const selectingDifferentDuty = value !== getApplicationAssignedDutyKey(row);
     if (quota?.is_full && selectingDifferentDuty && !allowFullOverride) {
       setAssignmentOverride({ row, dutyKey: value, isFull: true });
       return;
@@ -347,32 +376,23 @@ export function AdminEventApplicationsPage() {
     const promoted = isPromoted(row);
     return (
       <div className={mobile ? 'application-mobile-actions' : 'table-action-row'}>
-        <Button size="sm" variant="secondary" icon={<Eye size={16} />} onClick={() => setDetailRow(row)}>{language === 'th' ? 'รายละเอียด' : 'Details'}</Button>
+        <Button size="sm" variant="secondary" icon={<Eye size={16} />} onClick={() => setDetailRow(row)}>{language === 'th' ? 'ดูรายละเอียด' : 'Details'}</Button>
         {promoted ? <Badge status="approved">{language === 'th' ? 'เพิ่มเป็นสตาฟแล้ว' : 'Event staff'}</Badge> : null}
-        {row.status === 'approved' && !promoted ? (
-          <Button size="sm" variant="secondary" icon={<UserPlus size={16} />} loading={savingId === row.id} onClick={() => void promoteToEventStaff(row)}>
-            {language === 'th' ? 'เพิ่มเป็นสตาฟกิจกรรม' : 'Add to event staff'}
-          </Button>
-        ) : null}
         <Button size="sm" icon={<CheckCircle size={16} />} onClick={() => openReview(row, 'approved')}>{language === 'th' ? 'ผ่าน' : 'Approve'}</Button>
-        {mobile ? (
-          <details className="application-more-actions">
-            <summary>{language === 'th' ? 'เพิ่มเติม' : 'More'}</summary>
-            <div>
-              <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'under_review')}>{language === 'th' ? 'ตรวจสอบแล้ว' : 'Under review'}</Button>
-              <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
-              <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'เพิ่มหมายเหตุ' : 'Note'}</Button>
-              <Button size="sm" variant="danger" icon={<XCircle size={16} />} onClick={() => openReview(row, 'rejected')}>{language === 'th' ? 'ไม่ผ่าน' : 'Reject'}</Button>
-            </div>
-          </details>
-        ) : (
-          <>
+        <details className="application-more-actions">
+          <summary>{language === 'th' ? 'เพิ่มเติม' : 'More'}</summary>
+          <div>
+            {row.status === 'approved' && !promoted ? (
+              <Button size="sm" variant="secondary" icon={<UserPlus size={16} />} loading={savingId === row.id} onClick={() => void promoteToEventStaff(row)}>
+                {language === 'th' ? 'เพิ่มเป็นสตาฟกิจกรรม' : 'Add to event staff'}
+              </Button>
+            ) : null}
             <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'under_review')}>{language === 'th' ? 'ตรวจสอบแล้ว' : 'Review'}</Button>
             <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
             <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'หมายเหตุ' : 'Note'}</Button>
             <Button size="sm" variant="danger" icon={<XCircle size={16} />} onClick={() => openReview(row, 'rejected')}>{language === 'th' ? 'ไม่ผ่าน' : 'Reject'}</Button>
-          </>
-        )}
+          </div>
+        </details>
       </div>
     );
   }
@@ -397,7 +417,7 @@ export function AdminEventApplicationsPage() {
       'เบอร์ที่ผู้สมัครกรอก': row.requested_phone ?? '',
       'ชื่อ-นามสกุลที่ผู้สมัครกรอก หากมี': row.requested_name_th ?? row.requested_name_en ?? '',
       'สาขาที่ผู้สมัครกรอก หากมี': row.requested_major ?? '',
-      'ฝ่ายที่เลือก': preferredDutyLabels(row, dutiesByKey).join(', '),
+      'ฝ่ายที่เลือก': preferredDutyLabels(row).join(', '),
       'เข้าซ้อมวันที่ 10 มิ.ย. ได้หรือไม่': text(row.answers?.can_attend_rehearsal),
       'ปฏิบัติงานวันที่ 12 มิ.ย. ได้หรือไม่': text(row.answers?.can_work_event_day),
       'ช่วงเวลาที่สะดวก': text(row.availability?.text ?? row.answers?.availability),
@@ -405,7 +425,7 @@ export function AdminEventApplicationsPage() {
       'ข้อจำกัดด้านสุขภาพ/การแพ้อาหารที่จำเป็นต้องแจ้ง': text(row.answers?.health_or_limitations),
       'หมายเหตุเพิ่มเติม': text(row.answers?.note ?? row.motivation),
       'หมายเหตุจากผู้ดูแล': row.review_note ?? '',
-      'final_duty/manual override if exists': finalDuty(row) || assignedDutyLabel(row, dutiesByKey) || '',
+      'final_duty/manual override if exists': getDutyLabelTh(finalDuty(row)) || assignedDutyLabel(row, dutiesByKey) || '',
     }));
   }
 
@@ -439,7 +459,7 @@ export function AdminEventApplicationsPage() {
     }
     if (preset === 'by_assigned_duty' && dutyKey) {
       setExcelExport({
-        rows: rows.filter((row) => row.assigned_duty === dutyKey),
+        rows: rows.filter((row) => getApplicationAssignedDutyKey(row) === dutyKey),
         filename: `${base}-${dutyKey}-${date}.xlsx`,
         scope: 'by_assigned_duty',
         filters: { assigned_duty: dutyKey },
@@ -612,19 +632,18 @@ export function AdminEventApplicationsPage() {
               </Card>
             ) : null}
             <div className="event-mini-grid">
-              {quotaDuties.map((duty) => (
+              {canonicalQuotaDuties.map((duty) => (
                 <div
                   className={`event-mini-card quota-click-card ${duty.is_full || duty.assigned_count > duty.quota ? 'is-warning' : ''}`}
                   key={duty.duty_key}
                 >
                   <strong>{duty.assigned_count}/{duty.quota}</strong>
-                  <span>{duty.duty_label_th}</span>
+                  <span>{getDutyLabelTh(duty.duty_key)}</span>
                   <small>{language === 'th' ? `เหลือ ${duty.remaining} คน` : `${duty.remaining} remaining`}</small>
-                  <div className="progress-track" aria-label={`${duty.duty_label_th} ${duty.assigned_count}/${duty.quota}`}>
+                  <div className="progress-track" aria-label={`${getDutyLabelTh(duty.duty_key)} ${duty.assigned_count}/${duty.quota}`}>
                     <span style={{ width: `${Math.min(Math.max((duty.assigned_count / Math.max(duty.quota, 1)) * 100, 0), 100)}%` }} />
                   </div>
-                  {duty.is_full ? <Badge status="pending">{language === 'th' ? 'รับเต็มจำนวนแล้ว' : 'Full'}</Badge> : null}
-                  {duty.assigned_count > duty.quota ? <small className="field-error">{language === 'th' ? 'เกินโควต้า' : 'Over quota'}</small> : null}
+                  {duty.assigned_count > duty.quota ? <Badge status="rejected">{language === 'th' ? 'เกินโควต้า' : 'Over quota'}</Badge> : duty.is_full || duty.remaining <= 0 ? <Badge status="pending">{language === 'th' ? 'รับเต็มจำนวนแล้ว' : 'Full'}</Badge> : <Badge status="approved">{language === 'th' ? 'ยังรับได้' : 'Available'}</Badge>}
                   <Button size="sm" variant="ghost" onClick={() => setFilters({ ...filters, assignedDuty: duty.duty_key })}>
                     {language === 'th' ? 'ดูผู้สมัครฝ่ายนี้' : 'View this duty'}
                   </Button>
@@ -638,46 +657,59 @@ export function AdminEventApplicationsPage() {
           </Card>
 
           <Card className="event-form-card">
-            <div>
-              <p className="eyebrow">{language === 'th' ? 'ตัวกรอง' : 'Filters'}</p>
-              <h2>{language === 'th' ? 'คัดกรองใบสมัคร' : 'Filter applications'}</h2>
+            <div className="filter-panel-head">
+              <div>
+                <p className="eyebrow">{language === 'th' ? 'ตัวกรอง' : 'Filters'}</p>
+                <h2>{language === 'th' ? 'คัดกรองใบสมัคร' : 'Filter applications'}</h2>
+              </div>
+              <Button variant="ghost" onClick={() => setFilters({ search: '', status: '', identityStatus: '', assignedDuty: '', assignmentMethod: '', finalDuty: '', preferredDuty: '', yearLevel: '', major: '', rehearsal: '', eventDay: '' })}>
+                {language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}
+              </Button>
             </div>
             <div className="filter-panel-grid">
               <Input
-                label={language === 'th' ? 'ค้นหา' : 'Search'}
+                label={language === 'th' ? 'ค้นหาผู้สมัคร' : 'Search applicants'}
                 placeholder={language === 'th' ? 'ค้นหาชื่อ รหัสนักศึกษา อีเมล เบอร์ หรือสาขา' : 'Search name, student ID, email, phone, or major'}
                 value={filters.search}
                 onChange={(eventInput) => setFilters({ ...filters, search: eventInput.target.value })}
               />
               <Select
-                label={language === 'th' ? 'สถานะ' : 'Status'}
+                label={language === 'th' ? 'สถานะใบสมัคร' : 'Application status'}
                 placeholder={language === 'th' ? 'ทั้งหมด' : 'All'}
                 value={filters.status}
                 onChange={(eventInput) => setFilters({ ...filters, status: eventInput.target.value })}
                 options={STAFF_APPLICATION_STATUSES.map((status) => ({ value: status, label: getApplicationStatusLabel(status, language) }))}
               />
               <Select
-                label={language === 'th' ? 'สถานะตัวตน' : 'Identity'}
+                label={language === 'th' ? 'สถานะยืนยันตัวตน' : 'Identity status'}
                 placeholder={language === 'th' ? 'ทั้งหมด' : 'All'}
                 value={filters.identityStatus}
                 onChange={(eventInput) => setFilters({ ...filters, identityStatus: eventInput.target.value })}
                 options={['verified', 'email_mismatch', 'pending_identity_review', 'not_found', 'rejected_identity'].map((status) => ({ value: status, label: identityStatusLabel(status, language) }))}
               />
-              <Select label={language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignedDuty} onChange={(eventInput) => setFilters({ ...filters, assignedDuty: eventInput.target.value })} options={assignedDutyOptions} />
+              <Select label={language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignedDuty} onChange={(eventInput) => setFilters({ ...filters, assignedDuty: eventInput.target.value })} options={assignedDutyFilterOptions} />
+            </div>
+            <details className="filter-disclosure">
+              <summary>{language === 'th' ? 'ตัวกรองเพิ่มเติม' : 'More filters'}</summary>
+              <div className="filter-panel-grid">
               <Select label={language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignmentMethod} onChange={(eventInput) => setFilters({ ...filters, assignmentMethod: eventInput.target.value })} options={['auto_quota', 'manual_admin', 'fallback_general', 'pending'].map((method) => ({ value: method, label: assignmentMethodLabel(method, language) }))} />
-              <Select label={language === 'th' ? 'หน้าที่สุดท้าย' : 'Final duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.finalDuty} onChange={(eventInput) => setFilters({ ...filters, finalDuty: eventInput.target.value })} options={finalDutyOptions} />
+              <Select label={language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.finalDuty} onChange={(eventInput) => setFilters({ ...filters, finalDuty: eventInput.target.value })} options={finalDutyOptions} />
               <Select label={language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.preferredDuty} onChange={(eventInput) => setFilters({ ...filters, preferredDuty: eventInput.target.value })} options={filterOptions.preferred} />
               <Select label={language === 'th' ? 'ชั้นปี' : 'Year'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.yearLevel} onChange={(eventInput) => setFilters({ ...filters, yearLevel: eventInput.target.value })} options={filterOptions.years} />
               <Select label={language === 'th' ? 'สาขา' : 'Major'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.major} onChange={(eventInput) => setFilters({ ...filters, major: eventInput.target.value })} options={filterOptions.majors} />
               <Select label={language === 'th' ? 'วันซ้อม' : 'Rehearsal'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.rehearsal} onChange={(eventInput) => setFilters({ ...filters, rehearsal: eventInput.target.value })} options={['ได้', 'ไม่ได้', 'ยังไม่แน่ใจ']} />
               <Select label={language === 'th' ? 'วันจริง' : 'Event day'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.eventDay} onChange={(eventInput) => setFilters({ ...filters, eventDay: eventInput.target.value })} options={['ได้', 'ไม่ได้', 'ยังไม่แน่ใจ']} />
-            </div>
+              </div>
+            </details>
             <div>
               <p className="eyebrow">{language === 'th' ? 'ดาวน์โหลดข้อมูลผู้สมัคร' : 'Download applications'}</p>
             </div>
             <div className="event-card-actions">
               <Button variant="secondary" icon={<Download size={17} />} onClick={() => requestExcelExport('all')}>{language === 'th' ? 'ดาวน์โหลด Excel ทั้งหมด' : 'Download all Excel'}</Button>
               <Button variant="secondary" icon={<Download size={17} />} onClick={() => requestExcelExport('filtered')}>{language === 'th' ? 'ดาวน์โหลด Excel ตามตัวกรองปัจจุบัน' : 'Download current filtered Excel'}</Button>
+              {filters.assignedDuty && filters.assignedDuty !== '__missing' ? (
+                <Button variant="secondary" icon={<Download size={17} />} onClick={() => requestExcelExport('by_assigned_duty', filters.assignedDuty)}>{language === 'th' ? 'ดาวน์โหลด Excel ฝ่ายนี้' : 'Download this duty Excel'}</Button>
+              ) : null}
             </div>
           </Card>
 
@@ -686,71 +718,46 @@ export function AdminEventApplicationsPage() {
             getKey={(row) => row.id}
             emptyText={language === 'th' ? 'ไม่พบใบสมัครตามตัวกรอง' : 'No applications match the filters'}
             mobileTitle={(row) => applicantName(row)}
-            mobileSubtitle={(row) => `${applicantNickname(row) ? `${language === 'th' ? 'ชื่อเล่น' : 'Nickname'}: ${applicantNickname(row)} · ` : ''}${getApplicationStatusLabel(row.status, language)} · ${identityStatusLabel(row.identity_status ?? 'unverified', language)} · ${row.people?.major ?? row.requested_major ?? '-'}`}
-            mobileMeta={(row) => formatBangkokDateTime(row.submitted_at, language)}
+            mobileSubtitle={(row) => `${row.people?.student_id ?? row.requested_student_id ?? '-'} · ${row.people?.major ?? row.requested_major ?? '-'}${row.people?.year_level ? ` · ปี ${row.people.year_level}` : ''}`}
+            mobileMeta={(row) => <Badge status={getApplicationStatusTone(row.status)}>{getApplicationStatusLabel(row.status, language)}</Badge>}
             mobileActions={(row) => actionButtons(row, true)}
+            mobileDetailsLabel={language === 'th' ? 'ดูข้อมูลย่อ' : 'View summary'}
+            density="compact"
             columns={[
               { key: 'name', header: language === 'th' ? 'ผู้สมัคร' : 'Applicant', render: (row) => (
                 <div className="application-duty-stack">
                   <strong>{applicantName(row)}</strong>
                   {applicantNickname(row) ? <small>{language === 'th' ? `ชื่อเล่น: ${applicantNickname(row)}` : `Nickname: ${applicantNickname(row)}`}</small> : null}
+                  <small>{row.people?.student_id ?? row.requested_student_id ?? '-'}</small>
                   {hasNicknameWithoutFullName(row) ? <small className="field-error">{language === 'th' ? 'ข้อมูลนี้มีชื่อเล่น แต่ไม่มีชื่อ-นามสกุลในฐานข้อมูลกลาง' : 'Nickname exists, but full name is missing in the central database.'}</small> : null}
                   {hasNameNicknameConflict(row) ? <small className="field-error">{language === 'th' ? 'ชื่อ-นามสกุลในฐานข้อมูลตรงกับชื่อเล่น ควรตรวจข้อมูลก่อนใช้งานจริง' : 'Full name matches nickname. Review this person data before real use.'}</small> : null}
                 </div>
               ), priority: 'primary' },
-              { key: 'year', header: language === 'th' ? 'ชั้นปี' : 'Year', render: (row) => row.people?.year_level ?? '-' },
-              { key: 'major', header: language === 'th' ? 'สาขา' : 'Major', render: (row) => row.people?.major ?? '-' },
-              { key: 'identity', header: language === 'th' ? 'ตัวตน' : 'Identity', render: (row) => <Badge status={identityTone(row.identity_status ?? 'unverified')}>{identityStatusLabel(row.identity_status ?? 'unverified', language)}</Badge> },
-              { key: 'preferred', header: language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duties', render: (row) => preferredDutyLabels(row, dutiesByKey).join(', ') || '-' },
+              { key: 'year_major', header: language === 'th' ? 'ชั้นปี/สาขา' : 'Year/Major', render: (row) => (
+                <div className="application-duty-stack">
+                  <strong>{row.people?.year_level ? `${language === 'th' ? 'ปี ' : 'Year '}${row.people.year_level}` : '-'}</strong>
+                  <small>{row.people?.major ?? row.requested_major ?? '-'}</small>
+                </div>
+              ) },
+              { key: 'preferred', header: language === 'th' ? 'ฝ่ายที่เลือก' : 'Preferred duties', render: (row) => <CompactDutyChips labels={preferredDutyLabels(row)} language={language} /> },
               { key: 'assigned', header: language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty', render: (row) => (
                 <div className="application-duty-stack">
                   <Badge status={row.assigned_duty ? 'approved' : 'pending'}>{assignedDutyLabel(row, dutiesByKey) || (language === 'th' ? 'รอจัดสรร' : 'Pending')}</Badge>
                   <small>{assignmentMethodLabel(row.assignment_method, language)}</small>
-                  {row.assignment_note ? <small>{row.assignment_note}</small> : null}
                 </div>
               ) },
-              { key: 'availability', header: language === 'th' ? 'เวลาว่าง' : 'Availability', render: (row) => text(row.availability?.text) || '-' },
-              { key: 'rehearsal', header: language === 'th' ? 'ซ้อม' : 'Rehearsal', render: (row) => text(row.answers?.can_attend_rehearsal) || '-' },
-              { key: 'event_day', header: language === 'th' ? 'วันจริง' : 'Event day', render: (row) => text(row.answers?.can_work_event_day) || '-' },
-              { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{getApplicationStatusLabel(row.status, language)}</span> },
-              { key: 'assigned_edit', header: language === 'th' ? 'ปรับฝ่ายเบื้องต้น' : 'Override duty', render: (row) => (
-                <div className="table-action-row">
-                  <Select
-                    className="inline-select"
-                    label={language === 'th' ? 'ฝ่าย' : 'Duty'}
-                    value={draftAssignedDuties[row.id] ?? row.assigned_duty ?? ''}
-                    onChange={(eventInput) => setDraftAssignedDuties({ ...draftAssignedDuties, [row.id]: eventInput.target.value })}
-                    options={assignedDutyOptions}
-                  />
-                  <Button
-                    variant="ghost"
-                    icon={<Save size={16} />}
-                    loading={savingId === row.id}
-                    onClick={() => void saveAssignedDuty(row)}
-                  >
-                    {language === 'th' ? 'บันทึก' : 'Save'}
-                  </Button>
+              { key: 'availability', header: language === 'th' ? 'วันซ้อม / วันจริง' : 'Rehearsal / Event day', render: (row) => (
+                <div className="application-duty-stack">
+                  <small>{language === 'th' ? 'ซ้อม' : 'Rehearsal'}: {text(row.answers?.can_attend_rehearsal) || '-'}</small>
+                  <small>{language === 'th' ? 'วันจริง' : 'Event day'}: {text(row.answers?.can_work_event_day) || '-'}</small>
                 </div>
-              ), align: 'right' },
-              { key: 'final', header: language === 'th' ? 'หน้าที่สุดท้าย' : 'Final duty', render: (row) => (
-                <div className="table-action-row">
-                  <Select
-                    className="inline-select"
-                    label={language === 'th' ? 'หน้าที่' : 'Duty'}
-                    value={draftFinalDuties[row.id] ?? finalDuty(row)}
-                    onChange={(eventInput) => setDraftFinalDuties({ ...draftFinalDuties, [row.id]: eventInput.target.value })}
-                    options={finalDutyOptions}
-                  />
-                  <Button
-                    variant="ghost"
-                    icon={<Save size={16} />}
-                    loading={savingId === row.id}
-                    onClick={() => void saveFinalDuty(row)}
-                  >
-                    {language === 'th' ? 'บันทึก' : 'Save'}
-                  </Button>
+              ) },
+              { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => (
+                <div className="application-duty-stack">
+                  <Badge status={getApplicationStatusTone(row.status)}>{getApplicationStatusLabel(row.status, language)}</Badge>
+                  <Badge status={identityTone(row.identity_status ?? 'unverified')}>{identityStatusLabel(row.identity_status ?? 'unverified', language)}</Badge>
                 </div>
-              ), align: 'right' },
+              ) },
               { key: 'actions', header: language === 'th' ? 'จัดการ' : 'Actions', render: (row) => actionButtons(row), align: 'right', mobileHidden: true },
             ]}
           />
@@ -775,7 +782,7 @@ export function AdminEventApplicationsPage() {
                     options={STAFF_APPLICATION_STATUSES.map((status) => ({ value: status, label: getApplicationStatusLabel(status, language) }))}
                   />
                   <Select
-                    label={language === 'th' ? 'หน้าที่จริง' : 'Final duty'}
+                    label={language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'}
                     value={reviewDraft.finalDuty}
                     onChange={(eventInput) => setReviewDraft({ ...reviewDraft, finalDuty: eventInput.target.value })}
                     options={finalDutyOptions}
@@ -783,8 +790,8 @@ export function AdminEventApplicationsPage() {
                 </div>
                 {reviewDraft.status === 'approved' && !reviewDraft.finalDuty ? (
                   <Card variant="warning">
-                    <strong>{language === 'th' ? 'ยังไม่ได้ระบุหน้าที่จริง' : 'Final duty not assigned'}</strong>
-                    <p>{language === 'th' ? 'สามารถอนุมัติก่อนได้ แต่ควรจัดสรรหน้าที่ก่อนวันงาน' : 'You can approve first, but assign a final duty before the event day.'}</p>
+                    <strong>{language === 'th' ? 'ยังไม่ได้ระบุฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty not assigned'}</strong>
+                    <p>{language === 'th' ? 'สามารถอนุมัติก่อนได้ แต่ควรจัดสรรฝ่ายให้ชัดเจนก่อนวันงาน' : 'You can approve first, but assign a duty before the event day.'}</p>
                   </Card>
                 ) : null}
                 {reviewDraft.status === 'approved' && reviewDraft.row.identity_status !== 'verified' ? (
@@ -816,7 +823,7 @@ export function AdminEventApplicationsPage() {
               <div className="modal-body page-stack">
                 <Card variant="warning">
                   <strong>{language === 'th' ? 'ฝ่ายนี้เต็มแล้ว หากบันทึกต่อจะเกินโควต้า' : 'This duty is full. Saving will exceed quota.'}</strong>
-                  <p>{dutiesByKey.get(assignmentOverride.dutyKey)?.duty_label_th ?? assignmentOverride.dutyKey}</p>
+                  <p>{getDutyLabelTh(dutiesByKey.get(assignmentOverride.dutyKey)?.duty_label_th ?? assignmentOverride.dutyKey)}</p>
                 </Card>
                 <div className="form-actions">
                   <Button icon={<Save size={18} />} loading={savingId === assignmentOverride.row.id} onClick={() => void saveAssignedDuty(assignmentOverride.row, true)}>
@@ -880,7 +887,7 @@ export function AdminEventApplicationsPage() {
                   <span>{language === 'th' ? 'เบอร์โทรที่ผู้สมัครกรอก' : 'Requested phone'}</span><strong>{detailRow.requested_phone ?? '-'}</strong>
                   <span>{language === 'th' ? 'รหัสนักศึกษาที่กรอก' : 'Requested student ID'}</span><strong>{detailRow.requested_student_id ?? '-'}</strong>
                   <span>{language === 'th' ? 'ข้อมูลคนที่ match' : 'Matched person'}</span><strong>{detailRow.people ? `${detailRow.people.student_id ?? '-'} · ${detailRow.people.email ?? '-'} · ${detailRow.people.phone ?? '-'}` : '-'}</strong>
-                  <span>{language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duties'}</span><strong>{preferredDutyLabels(detailRow, dutiesByKey).join(', ') || '-'}</strong>
+                  <span>{language === 'th' ? 'ฝ่ายที่เลือก' : 'Preferred duties'}</span><strong>{preferredDutyLabels(detailRow).join(', ') || '-'}</strong>
                   <span>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</span><strong>{assignedDutyLabel(detailRow, dutiesByKey) || '-'}</strong>
                   <span>{language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'}</span><strong>{assignmentMethodLabel(detailRow.assignment_method, language)}</strong>
                   <span>{language === 'th' ? 'หมายเหตุการจัดฝ่าย' : 'Assignment note'}</span><strong>{detailRow.assignment_note ?? '-'}</strong>
@@ -890,12 +897,45 @@ export function AdminEventApplicationsPage() {
                   <span>{language === 'th' ? 'ประสบการณ์' : 'Experience'}</span><strong>{text(detailRow.answers?.staff_experience) || detailRow.experience || '-'}</strong>
                   <span>{language === 'th' ? 'หมายเหตุผู้สมัคร' : 'Applicant note'}</span><strong>{text(detailRow.answers?.note) || detailRow.motivation || '-'}</strong>
                   <span>{language === 'th' ? 'Consent' : 'Consent'}</span><strong>{consentText(detailRow.answers?.consent, language)}</strong>
-                  <span>{language === 'th' ? 'หน้าที่จริง' : 'Final duty'}</span><strong>{finalDuty(detailRow) || '-'}</strong>
+                  <span>{language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'}</span><strong>{getDutyLabelTh(finalDuty(detailRow)) || '-'}</strong>
                   <span>{language === 'th' ? 'หมายเหตุรีวิว' : 'Review note'}</span><strong>{detailRow.review_note ?? '-'}</strong>
                   <span>{language === 'th' ? 'สถานะสตาฟกิจกรรม' : 'Event staff'}</span><strong>{isPromoted(detailRow) ? (language === 'th' ? `เพิ่มแล้ว (${promotedEventStaffId(detailRow)})` : `Promoted (${promotedEventStaffId(detailRow)})`) : '-'}</strong>
                   <span>{language === 'th' ? 'รีวิวเมื่อ' : 'Reviewed at'}</span><strong>{formatBangkokDateTime(detailRow.reviewed_at, language)}</strong>
                   <span>{language === 'th' ? 'รีวิวโดย' : 'Reviewed by'}</span><strong>{detailRow.reviewed_by ?? '-'}</strong>
                 </div>
+                <Card variant="soft">
+                  <div className="section-heading">
+                    <Save size={20} />
+                    <div>
+                      <h2>{language === 'th' ? 'การจัดการ' : 'Actions'}</h2>
+                      <p>{language === 'th' ? 'ปรับฝ่ายเบื้องต้นและฝ่ายที่จัดไว้ล่าสุดจากรายการมาตรฐานเท่านั้น' : 'Use canonical duty options for preliminary and latest duty updates.'}</p>
+                    </div>
+                  </div>
+                  <div className="form-grid two-col">
+                    <Select
+                      label={language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}
+                      placeholder={language === 'th' ? 'โปรดเลือกฝ่าย' : 'Please select a duty'}
+                      value={draftAssignedDuties[detailRow.id] ?? getApplicationAssignedDutyKey(detailRow) ?? ''}
+                      onChange={(eventInput) => setDraftAssignedDuties({ ...draftAssignedDuties, [detailRow.id]: eventInput.target.value })}
+                      options={manualDutyOptions}
+                    />
+                    <Select
+                      label={language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'}
+                      placeholder={language === 'th' ? 'โปรดเลือกฝ่าย' : 'Please select a duty'}
+                      value={draftFinalDuties[detailRow.id] ?? finalDuty(detailRow)}
+                      onChange={(eventInput) => setDraftFinalDuties({ ...draftFinalDuties, [detailRow.id]: eventInput.target.value })}
+                      options={finalDutyOptions}
+                    />
+                  </div>
+                  <div className="form-actions">
+                    <Button variant="secondary" icon={<Save size={16} />} loading={savingId === detailRow.id} onClick={() => void saveAssignedDuty(detailRow)}>
+                      {language === 'th' ? 'บันทึกฝ่ายเบื้องต้น' : 'Save preliminary duty'}
+                    </Button>
+                    <Button variant="secondary" icon={<Save size={16} />} loading={savingId === detailRow.id} onClick={() => void saveFinalDuty(detailRow)}>
+                      {language === 'th' ? 'บันทึกฝ่ายที่จัดไว้ล่าสุด' : 'Save latest duty'}
+                    </Button>
+                  </div>
+                </Card>
                 <Card variant="warning">
                   <div className="section-heading">
                     <ShieldAlert size={20} />

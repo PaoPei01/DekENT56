@@ -1668,6 +1668,11 @@ a {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
+  min-width: 0;
+}
+
+.table-action-row .application-more-actions {
+  min-width: 8.5rem;
 }
 
 .field textarea {
@@ -4975,11 +4980,63 @@ th {
 .application-duty-stack {
   display: grid;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .application-duty-stack small {
   color: var(--text-soft);
   font-weight: 750;
+}
+
+.application-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.duty-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  max-width: 100%;
+  border: 1px solid rgba(76, 101, 147, 0.18);
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.duty-chip.is-muted {
+  color: var(--text-soft);
+  background: rgba(245, 247, 251, 0.9);
+}
+
+.application-more-actions {
+  position: relative;
+}
+
+.application-more-actions summary {
+  min-height: 36px;
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 900;
+  list-style: none;
+}
+
+.application-more-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.application-more-actions > div {
+  display: grid;
+  gap: 0.45rem;
+  min-width: min(16rem, 80vw);
+  max-width: 100%;
+  padding-top: 0.45rem;
 }
 
 .scan-verify-card {
