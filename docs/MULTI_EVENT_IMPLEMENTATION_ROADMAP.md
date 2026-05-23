@@ -384,6 +384,18 @@ Completed in compatibility pass:
 - New document templates and generated document records are associated with the selected event through admin-safe writes without changing Storage paths or the DOCX generation RPC contract.
 - Added EventSwitcher to Document Center overview, settings, templates, generate, and history pages.
 
+Completed in Document Center event-aware UX polish:
+
+- Added a selected-event context card to Document Center overview, settings, templates, generate, and history.
+- Clarified that document data below each page belongs to the selected event.
+- Clarified that global templates appear together with event-specific templates.
+- Added template scope badges for "กิจกรรมนี้" and "ทุกกิจกรรม".
+- Added template scope filters: all, selected event, and global.
+- Added upload scope selection with current event as the default and global as an explicit choice.
+- Updated generate page to show template scope, selected event data context, and clearer missing-field grouping.
+- Updated history page mobile/table rows to show event context, template scope, generated version, and download action.
+- Kept DOCX generation contract and existing Storage paths unchanged.
+
 Completed in public event announcements/status pass:
 
 - Added public event announcement routes:
@@ -399,7 +411,6 @@ Completed in public event announcements/status pass:
 Deferred:
 
 - Event namespaced Storage paths.
-- A richer global vs event-specific template management UI.
 - Public copy workflow for review notes beyond `answers.public_review_note`.
 
 ## P7: Full Legacy Route Migration

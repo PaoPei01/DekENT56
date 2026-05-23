@@ -2767,6 +2767,24 @@ th {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.document-event-context-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.document-event-context-card h2 {
+  margin: 0.15rem 0 0.35rem;
+  color: #132033;
+}
+
+.document-event-context-card p {
+  margin: 0.2rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
 .template-upload-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
@@ -2870,7 +2888,7 @@ th {
 .document-readiness {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   min-height: 54px;
 }
@@ -2879,6 +2897,17 @@ th {
 .document-preview-card {
   display: grid;
   gap: 0.8rem;
+}
+
+.document-missing-groups {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.document-missing-groups strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #132033;
 }
 
 .document-preview {
@@ -4018,6 +4047,7 @@ th {
   .page-header,
   .toolbar,
   .filter-panel-head,
+  .document-event-context-card,
   .template-upload-card,
   .two-col,
   .subgroup-grid,

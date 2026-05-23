@@ -2,6 +2,7 @@ import { Plus, Save, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { EventSwitcher } from '../components/events/EventSwitcher';
+import { DocumentEventContextCard } from '../components/documents/DocumentEventContextCard';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -68,6 +69,7 @@ export function DocumentSettingsPage() {
       <Toast toast={toast} />
       <PageHeader eyebrow="Document Center" title="ตั้งค่าโครงการ" description="ข้อมูลนี้จะถูกนำไปเติมใน DOCX template ด้วย placeholder มาตรฐานตัวพิมพ์เล็ก" meta={<EventSwitcher compact />} />
       {state.loading ? <LoadingSkeleton /> : null}
+      <DocumentEventContextCard showGlobalTemplateNote={false} />
       <Card className="form-grid two-col">
         <Input label="ชื่อโครงการ {project_name}" value={profile.project_name ?? ''} onChange={(event) => setProfile({ ...profile, project_name: event.target.value })} />
         <Input label="รหัสโครงการ" value={profile.project_code ?? ''} onChange={(event) => setProfile({ ...profile, project_code: event.target.value })} />

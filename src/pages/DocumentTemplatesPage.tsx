@@ -1,5 +1,6 @@
 import { FileUp, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { DocumentEventContextCard } from '../components/documents/DocumentEventContextCard';
 import { EventSwitcher } from '../components/events/EventSwitcher';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -12,6 +13,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useEventContext } from '../context/EventContext';
 import { documentTypeLabel, documentTypeOptions, extractDocxPlaceholders, templateVariableGuide } from '../lib/documentGeneration';
+import { documentScopeLabel, documentScopeTone } from '../lib/documentEventContext';
 import type { DocumentTemplate, DocumentType } from '../lib/documentTypes';
 import { useAsync } from '../hooks/useAsync';
 import { deleteDocumentTemplate, fetchDocumentCenterData, uploadDocumentTemplate } from '../services/documents';
@@ -24,10 +26,16 @@ export function DocumentTemplatesPage() {
   const [description, setDescription] = useState('');
   const [documentType, setDocumentType] = useState<DocumentType>('project_approval');
   const [active, setActive] = useState(true);
+  const [scope, setScope] = useState<'event' | 'global'>('event');
+  const [scopeFilter, setScopeFilter] = useState<'all' | 'event' | 'global'>('all');
   const [file, setFile] = useState<File | null>(null);
   const [detectedPlaceholders, setDetectedPlaceholders] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState>(null);
-  const templates = state.data?.templates ?? [];
+  const templates = (state.data?.templates ?? []).filter((template) => {
+    if (scopeFilter === 'event') return template.event_id === currentEventId;
+    if (scopeFilter === 'global') return !template.event_id;
+    return true;
+  });
   const invalidPlaceholders = detectedPlaceholders.filter((item) => !/^[a-z0-9_.-]+$/.test(item));
 
   async function inspectFile(nextFile: File | null) {
@@ -58,7 +66,7 @@ export function DocumentTemplatesPage() {
         file,
         placeholders,
         is_active: active,
-        event_id: currentEventId,
+        event_id: scope === 'global' ? null : currentEventId,
       });
       setToast({ type: 'success', message: `อัปโหลด template แล้ว พบ placeholder ${placeholders.length} ช่อง` });
       setName('');
@@ -91,6 +99,7 @@ export function DocumentTemplatesPage() {
         meta={<EventSwitcher compact />}
         actions={<HelpButton topicId="documents.templates" variant="link" />}
       />
+      <DocumentEventContextCard />
       <Card className="template-upload-card" variant="soft">
         <div>
           <p className="eyebrow">Template Upload</p>
@@ -108,6 +117,10 @@ export function DocumentTemplatesPage() {
       <Card className="form-grid two-col">
         <Input label="ชื่อ template" value={name} onChange={(event) => setName(event.target.value)} placeholder="เช่น หนังสือขอใช้สถานที่" />
         <Select label="ประเภทเอกสาร" value={documentType} options={documentTypeOptions} onChange={(event) => setDocumentType(event.target.value as DocumentType)} />
+        <Select label="ใช้กับ" value={scope} options={[
+          { value: 'event', label: 'กิจกรรมนี้' },
+          { value: 'global', label: 'ทุกกิจกรรม' },
+        ]} onChange={(event) => setScope(event.target.value as 'event' | 'global')} />
         <Input label="คำอธิบาย" value={description} onChange={(event) => setDescription(event.target.value)} />
         <label className="field checkbox-field"><span>เปิดใช้งาน</span><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /></label>
         {detectedPlaceholders.length ? (
@@ -127,6 +140,13 @@ export function DocumentTemplatesPage() {
         <strong>Template variable guide</strong>
         <span>{templateVariableGuide.map((item) => `{${item}}`).join('  ')}</span>
       </Card>
+      <Card className="toolbar">
+        <Select label="กรอง template" value={scopeFilter} options={[
+          { value: 'all', label: 'ทั้งหมด' },
+          { value: 'event', label: 'กิจกรรมนี้' },
+          { value: 'global', label: 'ทุกกิจกรรม' },
+        ]} onChange={(event) => setScopeFilter(event.target.value as 'all' | 'event' | 'global')} />
+      </Card>
       {state.loading ? <LoadingSkeleton /> : null}
       <ResponsiveDataTable
         rows={templates}
@@ -134,13 +154,13 @@ export function DocumentTemplatesPage() {
         emptyText="ยังไม่มี template"
         mobileTitle={(row) => row.name}
         mobileSubtitle={(row) => documentTypeLabel(row.document_type)}
-        mobileMeta={(row) => row.is_active ? 'active' : 'inactive'}
+        mobileMeta={(row) => documentScopeLabel(row.event_id, currentEventId, 'th')}
         columns={[
           { key: 'name', header: 'Template', render: (row) => <div className="participant-admin-cell"><strong>{row.name}</strong><span>{row.file_name}</span></div> },
           { key: 'type', header: 'ประเภท', render: (row) => documentTypeLabel(row.document_type) },
           { key: 'placeholders', header: 'Placeholders', render: (row) => <span>{row.placeholders.slice(0, 8).join(', ') || '-'}</span> },
           { key: 'active', header: 'สถานะ', render: (row) => row.is_active ? 'active' : 'inactive' },
-          { key: 'event', header: 'กิจกรรม', render: (row) => row.event_id ? 'กิจกรรมนี้' : 'ใช้ได้ทุกกิจกรรม' },
+          { key: 'event', header: 'ขอบเขต', render: (row) => <span className={`badge badge-${documentScopeTone(row.event_id, currentEventId)}`}>{documentScopeLabel(row.event_id, currentEventId, 'th')}</span> },
           { key: 'created', header: 'สร้างเมื่อ', render: (row) => row.created_at ? new Date(row.created_at).toLocaleString('th-TH') : '-' },
           { key: 'actions', header: 'จัดการ', render: (row) => <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => remove(row)}>ลบ</Button> },
         ]}

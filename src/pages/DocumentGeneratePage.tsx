@@ -1,6 +1,7 @@
 import { Download, Eye } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { EventSwitcher } from '../components/events/EventSwitcher';
+import { DocumentEventContextCard } from '../components/documents/DocumentEventContextCard';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Badge } from '../components/ui/Badge';
@@ -12,6 +13,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useEventContext } from '../context/EventContext';
 import { buildDocumentData, documentTypeLabel, downloadBlob, findMissingFields, renderDocxBlob, renderPreviewHtml } from '../lib/documentGeneration';
+import { documentScopeLabel, documentScopeTone } from '../lib/documentEventContext';
 import type { DocumentType } from '../lib/documentTypes';
 import { useAsync } from '../hooks/useAsync';
 import { downloadTemplateBuffer, fetchDocumentCenterData, recordGeneratedDocument, uploadGeneratedDocx } from '../services/documents';
@@ -100,6 +102,7 @@ export function DocumentGeneratePage() {
       {state.loading ? <LoadingSkeleton /> : null}
       {data ? (
         <>
+          <DocumentEventContextCard />
           <Card className="form-grid two-col">
             <Select label="ประเภทเอกสาร" value={documentType} onChange={(event) => { setDocumentType(event.target.value as DocumentType); setTemplateId(''); setPreviewHtml(''); }} options={[
               { value: 'project_approval', label: 'เอกสารขออนุมัติโครงการ' },
@@ -114,6 +117,7 @@ export function DocumentGeneratePage() {
             <Input label="ชื่อเอกสาร" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={template?.name ?? documentTypeLabel(documentType)} />
             <div className="document-readiness">
               <Badge status={missing.length ? 'pending' : 'approved'}>{missing.length ? `ขาด ${missing.length} ช่อง` : 'ข้อมูลพร้อม'}</Badge>
+              {template ? <Badge status={documentScopeTone(template.event_id, currentEventId)}>{documentScopeLabel(template.event_id, currentEventId, 'th')}</Badge> : null}
               <span>{template ? `${template.placeholders.length} placeholders · ${missing.length ? 'ยังไม่พร้อมเต็มที่' : 'พร้อมสร้าง'}` : 'ยังไม่ได้เลือก template'}</span>
             </div>
             <div className="form-actions full-span">
@@ -121,12 +125,25 @@ export function DocumentGeneratePage() {
               <Button icon={<Download size={18} />} onClick={download} disabled={!template || generating}>{generating ? 'กำลังสร้าง...' : 'ดาวน์โหลด DOCX'}</Button>
             </div>
           </Card>
+          {template ? (
+            <Card className="privacy-notice" variant="soft">
+              <strong>Template scope</strong>
+              <span>{documentScopeLabel(template.event_id, currentEventId, 'th')} · ข้อมูลที่เติมในเอกสารจะใช้ข้อมูลของกิจกรรมที่เลือกด้านบน</span>
+            </Card>
+          ) : null}
           <Card className="document-missing-card">
             <div className="section-title-row">
               <h2>Missing info checker</h2>
               <HelpButton topicId="documents.generate" variant="compact" />
             </div>
-            {missing.length ? <div className="filter-chip-row">{missing.map((item) => <span className="filter-chip" key={item.field}>{item.label}</span>)}</div> : <p>ไม่มีข้อมูลที่ขาดสำหรับเอกสารประเภทนี้</p>}
+            {missing.length ? (
+              <div className="document-missing-groups">
+                <div>
+                  <strong>ข้อมูลโครงการ</strong>
+                  <div className="filter-chip-row">{missing.map((item) => <span className="filter-chip" key={item.field}>{item.label}</span>)}</div>
+                </div>
+              </div>
+            ) : <p>ไม่มีข้อมูลที่ขาดสำหรับเอกสารประเภทนี้</p>}
           </Card>
           {previewHtml ? <Card className="document-preview-card"><div dangerouslySetInnerHTML={{ __html: previewHtml }} /></Card> : null}
         </>

@@ -1,6 +1,7 @@
 import { FileText, History, Settings, Upload, Wand2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EventSwitcher } from '../components/events/EventSwitcher';
+import { DocumentEventContextCard } from '../components/documents/DocumentEventContextCard';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Card } from '../components/ui/Card';
@@ -27,6 +28,7 @@ export function DocumentCenterPage() {
       {state.error ? <div className="error-state">{state.error}</div> : null}
       {data ? (
         <>
+          <DocumentEventContextCard />
           <div className="stats-grid">
             <DashboardStatCard label="ข้อมูลโครงการ" value={data.profile?.project_name ? 'พร้อม' : 'ยังไม่ครบ'} icon={<Settings size={20} />} />
             <DashboardStatCard label="เทมเพลต DOCX" value={data.templates.length} icon={<FileText size={20} />} />

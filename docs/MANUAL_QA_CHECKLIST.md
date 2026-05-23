@@ -507,6 +507,9 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Open `/admin/documents`.
 - [ ] Existing Document Center data still loads after nullable `event_id` is added.
 - [ ] EventSwitcher appears on Document Center pages.
+- [ ] Overview/settings/templates/generate/history show the selected-event context card.
+- [ ] Context card explains that document data belongs to the selected event.
+- [ ] Context card notes that global templates are shown together where relevant.
 - [ ] Switching event reloads project profile, templates, and generated history without breaking legacy data.
 - [ ] Open settings.
 - [ ] Save project settings.
@@ -516,14 +519,20 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Add venue.
 - [ ] Add equipment.
 - [ ] Open templates.
+- [ ] Template list shows scope badge: `กิจกรรมนี้` or `ทุกกิจกรรม`.
+- [ ] Template filter works for all, selected event, and global.
 - [ ] Upload valid `.docx`.
 - [ ] Uploaded template is associated with the selected event.
+- [ ] Upload form can explicitly choose selected event or global, defaulting to selected event.
 - [ ] Global templates remain visible across event selections when present.
 - [ ] Invalid file type is rejected.
 - [ ] Placeholder detection is visible.
 - [ ] Missing placeholder warnings are clear.
 - [ ] Open generate page.
 - [ ] Select template.
+- [ ] Selected template shows whether it is event-specific or global.
+- [ ] Generate page clearly states selected event data is used.
+- [ ] Missing fields are grouped clearly and do not overflow on mobile.
 - [ ] Preview escapes HTML/script-like content.
 - [ ] Generate document.
 - [ ] Generated document history row is associated with the selected event.
@@ -531,6 +540,7 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Download generated DOCX.
 - [ ] Open history.
 - [ ] History row exists.
+- [ ] History mobile cards show event context, template scope, version, status, and download action.
 
 ## Guide and Contextual Help
 

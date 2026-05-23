@@ -74,6 +74,10 @@ Findings:
 - [ ] Event announcements tested:
   - public event announcement route loads
   - staff-only/admin-only announcements stay hidden
+- [ ] Document Center tested:
+  - selected-event context card appears on all document admin pages
+  - global templates and event templates are clearly labeled
+  - generated history shows event context, template scope, version, and download action
 - [ ] Attendance QR tested after migrations:
   - admin can create session
   - admin can see selected event and session event badge
