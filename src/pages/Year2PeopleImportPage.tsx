@@ -1,5 +1,6 @@
 import { Database, FileSpreadsheet, PlayCircle, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
+import { HelpButton } from '../components/help/HelpButton';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -107,6 +108,7 @@ export function Year2PeopleImportPage() {
         title={language === 'th' ? 'นำเข้าข้อมูลนักศึกษาปี 2' : 'Import Year 2 Student Data'}
         description={language === 'th' ? 'นำเข้าฐานข้อมูลนักศึกษาวิศวกรรมปี 2 ผ่าน staging table ก่อน upsert เข้า people อย่างปลอดภัย' : 'Safely stage Engineering year 2 student data before upserting into the central people table.'}
         meta={<Badge status="pending">{language === 'th' ? 'Admin only' : 'Admin only'}</Badge>}
+        actions={<HelpButton topicId="admin.people-import" variant="link" />}
       />
 
       <Card variant="soft">

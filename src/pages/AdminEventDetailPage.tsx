@@ -1,6 +1,7 @@
 import { Bell, Eye, FileText, QrCode, RefreshCw, Save, Settings, UserCheck, UserPlus, UsersRound } from 'lucide-react';
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { EventSwitcher } from '../components/events/EventSwitcher';
 import { Button } from '../components/ui/Button';
@@ -161,6 +162,7 @@ export function AdminEventDetailPage() {
         meta={<EventSwitcher compact />}
         actions={(
           <>
+            <HelpButton topicId="events.overview" variant="link" />
             {event ? <Link className="btn btn-secondary" to={eventPath(event.slug)}><Eye size={17} />{language === 'th' ? 'ดูหน้าสาธารณะ' : 'Public page'}</Link> : null}
             {event?.event_type === 'staff_recruitment' ? <Link className="btn btn-secondary" to={adminEventApplicationsPath(event.id)}>{language === 'th' ? 'ใบสมัคร' : 'Applications'}</Link> : null}
             <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>

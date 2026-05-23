@@ -124,7 +124,10 @@ export function AdminStaffAttendancePage() {
             ? 'รายการรอบเช็กชื่อด้านล่างถูกกรองตามกิจกรรมนี้ และรอบใหม่จะผูกกับกิจกรรมนี้อัตโนมัติ'
             : 'The session list is filtered by this event, and new sessions will be attached to it automatically.'}</p>
         </div>
-        <EventSwitcher compact />
+        <div className="attendance-event-context-actions">
+          <HelpButton topicId="attendance.event-attendance" variant="compact" />
+          <EventSwitcher compact />
+        </div>
       </Card>
 
       {state.loading ? <LoadingSkeleton /> : null}

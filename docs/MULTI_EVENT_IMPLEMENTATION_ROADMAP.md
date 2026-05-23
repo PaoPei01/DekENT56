@@ -408,6 +408,13 @@ Completed in public event announcements/status pass:
 - Added a secondary "ตรวจสอบสถานะใบสมัคร" CTA on `parent-orientation-staff-2569`.
 - Kept legacy `/announcements` behavior unchanged.
 
+Completed in contextual guide/help pass:
+
+- Added guide topics for people import, people directory, people dedupe, staff application review, promote-to-event-staff, event documents, and event-aware attendance.
+- Expanded multi-event and staff application topics to explain event id vs slug, email + phone verification, and status checking.
+- Added scoped HelpButtons only on the requested main surfaces: people import/directory/dedupe, event staff application, admin event detail/applications, Document Center event context, and Admin Attendance event context.
+- Kept guide examples generic and avoided real user data.
+
 Deferred:
 
 - Event namespaced Storage paths.

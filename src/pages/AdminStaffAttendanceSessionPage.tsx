@@ -222,7 +222,10 @@ export function AdminStaffAttendanceSessionPage() {
             ? (language === 'th' ? 'รอบนี้เป็นข้อมูลเดิมหรือ default session โปรดตรวจสอบก่อนแสดง QR หน้างาน' : 'This is a legacy/default session. Confirm the event context before showing the QR onsite.')
             : (language === 'th' ? 'QR และข้อมูลเช็กชื่อในหน้านี้อ้างอิงกิจกรรมนี้' : 'The QR and attendance records on this page belong to this event.')}</p>
         </div>
-        <span className={`status-pill ${isLegacySession ? 'status-draft' : 'status-active'}`}>{isLegacySession ? (language === 'th' ? 'Legacy/default' : 'Legacy/default') : eventLabel}</span>
+        <div className="attendance-event-context-actions">
+          <HelpButton topicId="attendance.event-attendance" variant="compact" />
+          <span className={`status-pill ${isLegacySession ? 'status-draft' : 'status-active'}`}>{isLegacySession ? (language === 'th' ? 'Legacy/default' : 'Legacy/default') : eventLabel}</span>
+        </div>
       </Card>
 
       <div className="attendance-session-layout">

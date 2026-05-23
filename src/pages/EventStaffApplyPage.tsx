@@ -1,6 +1,7 @@
 import { CheckCircle2, RefreshCw } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -113,7 +114,12 @@ export function EventStaffApplyPage() {
         description={language === 'th'
           ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทร จากนั้นเลือกหน้าที่และตอบคำถามเฉพาะกิจกรรมนี้'
           : 'Verify with email and phone, then answer event-specific staff questions.'}
-        actions={<Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>}
+        actions={(
+          <>
+            <HelpButton topicId="events.staff-application" variant="link" />
+            <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>
+          </>
+        )}
       />
 
       {state.loading ? <LoadingSkeleton /> : null}

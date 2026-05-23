@@ -1,6 +1,7 @@
 import { AlertTriangle, Database, GitMerge, Link2, RefreshCw, Search, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { HelpButton } from '../components/help/HelpButton';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -119,6 +120,7 @@ export function AdminPeoplePage() {
         title={language === 'th' ? 'ฐานข้อมูลกลาง' : 'People Directory'}
         description={language === 'th' ? 'ข้อมูลบุคคลกลางที่ใช้เชื่อมหลายกิจกรรม เช่น นักศึกษาปี 2 ทีมงาน ผู้เข้าร่วม และผู้สมัครสตาฟ' : 'Central people records used across events, year 2 imports, staff, participants, and staff applications.'}
         meta={<div className="form-actions"><Link className="btn btn-secondary" to="/admin/people/dedupe"><GitMerge size={18} />{language === 'th' ? 'ตรวจข้อมูลซ้ำ' : 'Dedupe'}</Link><Button variant="secondary" icon={<RefreshCw size={18} />} loading={loading} onClick={() => void loadData()}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button></div>}
+        actions={<HelpButton topicId="admin.people-directory" variant="link" />}
       />
 
       <div className="stats-grid">

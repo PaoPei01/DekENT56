@@ -89,6 +89,11 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Staff guide exists.
 - [ ] Attendance guide exists.
 - [ ] Admin guide exists.
+- [ ] Multi-event guide topic `/guide/events/overview` explains event id vs slug.
+- [ ] Staff application guide topic explains email + phone verification and status checking.
+- [ ] People import, people directory, and people dedupe guide topics exist.
+- [ ] Admin event application and promote-to-event-staff guide topics exist.
+- [ ] Document event-documents and attendance event-attendance guide topics exist.
 - [ ] Preview mock cards contain only fake data.
 - [ ] FAQ expands and collapses with keyboard and touch.
 - [ ] Guide link exists in desktop nav.
@@ -551,8 +556,22 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Open `/guide/staff-attendance/session-qr`.
 - [ ] Open `/guide/admin-attendance/create-session`.
 - [ ] Open `/guide/documents/generate`.
+- [ ] Open `/guide/admin/people-import`.
+- [ ] Open `/guide/admin/people-directory`.
+- [ ] Open `/guide/admin/people-dedupe`.
+- [ ] Open `/guide/admin/event-applications`.
+- [ ] Open `/guide/admin/promote-event-staff`.
+- [ ] Open `/guide/documents/event-documents`.
+- [ ] Open `/guide/staff-attendance/event-attendance`.
 - [ ] Open an invalid guide topic and confirm friendly fallback.
 - [ ] Click HelpButton on `/staff/attendance`.
+- [ ] Click HelpButton on `/admin/people/import-year2`.
+- [ ] Click HelpButton on `/admin/people`.
+- [ ] Click HelpButton on `/admin/people/dedupe`.
+- [ ] Click HelpButton on `/events/parent-orientation-staff-2569/staff/apply`.
+- [ ] Click HelpButton on `/admin/events/:eventId/applications`.
+- [ ] Click HelpButton on Document Center event context card.
+- [ ] Click HelpButton on Admin Attendance event context card.
 - [ ] HelpDrawer opens with the correct topic.
 - [ ] Click `อ่านวิธีใช้เต็ม`.
 - [ ] Full guide topic opens.

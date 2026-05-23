@@ -1,6 +1,7 @@
 import { ArrowLeft, CheckCircle, Clock, Download, Eye, MessageSquare, RefreshCw, Save, ShieldAlert, UserPlus, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { EventSwitcher } from '../components/events/EventSwitcher';
 import { Badge } from '../components/ui/Badge';
@@ -305,6 +306,7 @@ export function AdminEventApplicationsPage() {
         meta={<EventSwitcher compact />}
         actions={(
           <>
+            <HelpButton topicId="admin.event-applications" variant="link" />
             <Link className="btn btn-secondary" to="/admin/events"><ArrowLeft size={17} />{language === 'th' ? 'กลับกิจกรรม' : 'Back'}</Link>
             {event ? <Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'หน้าสาธารณะ' : 'Public page'}</Link> : null}
             <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={() => { void eventState.reload(); void applicationsState.reload(); }}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>

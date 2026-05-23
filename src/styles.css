@@ -4642,6 +4642,15 @@ th {
   color: var(--muted);
 }
 
+.attendance-event-context-actions,
+.document-event-context-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .attendance-event-context-warning {
   border-color: rgba(245, 158, 11, 0.34);
 }
@@ -5859,6 +5868,11 @@ th {
   .attendance-event-context-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .attendance-event-context-actions,
+  .document-event-context-actions {
+    justify-content: flex-start;
   }
 
   .attendance-qr-card .form-actions,

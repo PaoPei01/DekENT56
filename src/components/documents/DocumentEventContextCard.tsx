@@ -1,5 +1,6 @@
 import { FileText } from 'lucide-react';
 import { EventSwitcher } from '../events/EventSwitcher';
+import { HelpButton } from '../help/HelpButton';
 import { Card } from '../ui/Card';
 import { useLanguage } from '../../context/LanguageContext';
 import { useEventContext } from '../../context/EventContext';
@@ -21,7 +22,10 @@ export function DocumentEventContextCard({ showGlobalTemplateNote = true }: Docu
         <p>{language === 'th' ? 'ข้อมูลเอกสารด้านล่างใช้กับกิจกรรมที่เลือก' : 'The document data below belongs to the selected event.'}</p>
         {showGlobalTemplateNote ? <p>{language === 'th' ? 'Template ที่ใช้ได้ทุกกิจกรรมจะแสดงร่วมด้วย' : 'Templates available to all events are shown together.'}</p> : null}
       </div>
-      <EventSwitcher compact />
+      <div className="document-event-context-actions">
+        <HelpButton topicId="documents.event-documents" variant="compact" />
+        <EventSwitcher compact />
+      </div>
     </Card>
   );
 }
