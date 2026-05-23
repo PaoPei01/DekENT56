@@ -11,8 +11,8 @@ type PageHeaderProps = {
 
 export function PageHeader({ eyebrow, title, description, meta, actions, compact = false }: PageHeaderProps) {
   return (
-    <header className={`page-header ${compact ? 'page-header-compact' : ''}`}>
-      <div>
+    <header className={`page-header ${meta || actions ? 'page-header-has-actions' : ''} ${compact ? 'page-header-compact' : ''}`}>
+      <div className="page-header-title">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h1>{title}</h1>
         {description ? <p>{description}</p> : null}

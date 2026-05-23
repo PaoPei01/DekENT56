@@ -718,6 +718,12 @@ Use this checklist before real event operations and after every production-readi
 
 ## Mobile QA
 
+- [ ] `/admin/events` title `จัดการกิจกรรม` displays normally and never wraps one Thai character per line.
+- [ ] `/admin/events/:eventId` event title displays normally and is not squeezed by EventSwitcher/actions.
+- [ ] `/admin/events/:eventId/applications` title and filters are readable at 375px, 768px, and desktop.
+- [ ] PageHeader actions wrap below the title on narrow screens instead of squeezing the title.
+- [ ] EventSwitcher select fits its card/header area and does not overflow the viewport.
+- [ ] Admin event pages do not have oversized empty hero/header spaces.
 - [ ] iPhone SE width: no horizontal scroll.
 - [ ] iPhone SE width: staff application stepper, duty cards, confirmation screen, and success screen do not overflow.
 - [ ] iPhone SE width: `/events/parent-orientation-staff-2569/profile-check`, `/admin/events/:eventId/applications`, `/admin/people/update-requests`, and `/admin/people` do not horizontally scroll.

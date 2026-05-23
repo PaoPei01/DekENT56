@@ -111,6 +111,16 @@ Preferred wording:
 - Tables need headers.
 - Respect `prefers-reduced-motion`.
 
+## Layout Stability
+
+- Do not use `word-break: break-all` globally.
+- Do not use `overflow-wrap: anywhere` on headings, buttons, labels, or normal Thai copy.
+- Use `.break-safe` only for long URLs, emails, IDs, file paths, and other technical strings.
+- Page headers must keep long Thai titles in a `minmax(0, 1fr)` title area and move actions below the title on narrow screens.
+- EventSwitcher belongs in a bounded toolbar/header meta area and must not squeeze a page title.
+- Add `min-width: 0` to grid/flex children that contain long text.
+- Admin pages should use practical header heights and avoid decorative empty hero space.
+
 ## Future Features Checklist
 
 New pages for announcements, maps, duty schedule, staff quota, push notifications, emergency incident reports, attendance analytics, and event tools must follow:
