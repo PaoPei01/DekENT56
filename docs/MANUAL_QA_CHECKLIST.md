@@ -54,6 +54,11 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Open `/events/parent-orientation-staff-2569/staff/apply`.
 - [ ] Staff application page asks for student ID, email, phone, duties, availability, rehearsal availability, event-day availability, optional experience, health limitations, note, and consent.
 - [ ] Staff application submit fails safely if staff recruiting is closed or identity is missing.
+- [ ] Open `/events/parent-orientation-staff-2569/staff/application-status`.
+- [ ] Status checker requires email and phone.
+- [ ] Correct applicant identity shows only that applicant's status.
+- [ ] Wrong email/phone shows a generic "not found" state and does not reveal whether another applicant exists.
+- [ ] Approved applicant sees final duty only after correct identity verification.
 - [ ] Participant registration does not ask for medical information.
 - [ ] Staff application health/limitations text is shown only inside the application form and admin review/export tools.
 - [ ] Old `/`, `/edit`, `/staff/attendance`, `/admin/dashboard`, and `/admin/documents` routes still work after applying multi-event foundation migrations.
@@ -70,6 +75,11 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Staff-only/admin-only announcements are not visible publicly.
 - [ ] Admin announcements can be filtered by selected event plus global rows.
 - [ ] Public announcements still load with the existing default behavior.
+- [ ] Open `/events/parent-orientation-staff-2569/announcements`.
+- [ ] Public event announcement page loads event-specific and global public announcements only.
+- [ ] Staff-only/admin-only event announcements are hidden from the public event route.
+- [ ] Open `/events/parent-orientation-staff-2569/announcements/:announcementId`.
+- [ ] Event announcement detail does not show hidden/staff/admin announcements.
 
 ## Guide
 

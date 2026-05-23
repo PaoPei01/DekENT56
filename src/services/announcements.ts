@@ -1,5 +1,6 @@
 import { cleanText } from '../lib/cleaners';
 import { supabase } from '../lib/supabase';
+import { fetchEventBySlug } from './events';
 
 export type Announcement = {
   id: string;
@@ -52,6 +53,19 @@ export async function fetchPublicAnnouncements(eventId?: string | null) {
   const { data, error } = await supabase.rpc('get_visible_announcements', { input_audience: 'public' });
   if (error) throw error;
   return filterByEvent((data ?? []) as Announcement[], eventId);
+}
+
+export async function fetchPublicEventAnnouncements(eventSlug: string) {
+  const event = await fetchEventBySlug(eventSlug);
+  if (!event || event.visibility !== 'public') return { event: null, announcements: [] as Announcement[] };
+  const announcements = await fetchPublicAnnouncements(event.id);
+  return { event, announcements };
+}
+
+export async function fetchPublicEventAnnouncement(eventSlug: string, announcementId: string) {
+  const { event, announcements } = await fetchPublicEventAnnouncements(eventSlug);
+  const announcement = announcements.find((item) => item.id === announcementId) ?? null;
+  return { event, announcement };
 }
 
 export async function fetchStaffAnnouncements(eventId?: string | null) {

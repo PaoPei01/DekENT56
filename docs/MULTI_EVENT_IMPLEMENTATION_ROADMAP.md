@@ -384,11 +384,23 @@ Completed in compatibility pass:
 - New document templates and generated document records are associated with the selected event through admin-safe writes without changing Storage paths or the DOCX generation RPC contract.
 - Added EventSwitcher to Document Center overview, settings, templates, generate, and history pages.
 
+Completed in public event announcements/status pass:
+
+- Added public event announcement routes:
+  - `/events/:eventSlug/announcements`
+  - `/events/:eventSlug/announcements/:announcementId`
+- Event announcement routes use public-visible announcement data only and include global rows through the existing event filter behavior.
+- Added a safe public staff application status checker route:
+  - `/events/:eventSlug/staff/application-status`
+- Added `check_staff_application_status(input_event_slug, input_email, input_phone)` RPC that returns only the matching applicant's safe status fields after email + phone verification.
+- Added a secondary "ตรวจสอบสถานะใบสมัคร" CTA on `parent-orientation-staff-2569`.
+- Kept legacy `/announcements` behavior unchanged.
+
 Deferred:
 
 - Event namespaced Storage paths.
-- Dedicated public event announcement routes.
 - A richer global vs event-specific template management UI.
+- Public copy workflow for review notes beyond `answers.public_review_note`.
 
 ## P7: Full Legacy Route Migration
 

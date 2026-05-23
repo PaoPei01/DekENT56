@@ -1200,6 +1200,40 @@ a {
   align-items: center;
 }
 
+.event-announcement-head,
+.event-status-result-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.event-announcement-head h2,
+.event-status-result-card h2 {
+  margin: 0.15rem 0 0.35rem;
+  color: #132033;
+}
+
+.event-announcement-head p,
+.event-status-check-card p,
+.event-status-result-card p {
+  margin: 0.35rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+
+.event-announcement-link {
+  display: grid;
+  gap: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.event-status-check-card {
+  display: grid;
+  gap: 1rem;
+}
+
 .event-detail-tabs {
   display: inline-flex;
   width: fit-content;
@@ -4001,7 +4035,9 @@ th {
   }
 
   .event-actions-card,
-  .event-admin-current {
+  .event-admin-current,
+  .event-announcement-head,
+  .event-status-result-card {
     grid-template-columns: 1fr;
   }
 

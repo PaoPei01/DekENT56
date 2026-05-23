@@ -50,6 +50,8 @@ Findings:
   - `/events/entaneer-bonding-69`
   - `/events/parent-orientation-staff-2569`
   - `/events/parent-orientation-staff-2569/staff/apply`
+  - `/events/parent-orientation-staff-2569/staff/application-status`
+  - `/events/parent-orientation-staff-2569/announcements`
   - `/admin/events`
 - [ ] RLS tested:
   - anon can read public events
@@ -67,6 +69,11 @@ Findings:
   - empty required fields show friendly validation
   - unknown email/phone fails with friendly error
   - successful submission does not promise approval
+  - status checker requires matching email + phone before showing status
+  - wrong identity does not reveal another applicant
+- [ ] Event announcements tested:
+  - public event announcement route loads
+  - staff-only/admin-only announcements stay hidden
 - [ ] Attendance QR tested after migrations:
   - admin can create session
   - admin can see selected event and session event badge

@@ -129,6 +129,38 @@ export async function submitEventStaffApplication(input: {
   return data as EventSubmissionResult;
 }
 
+export type StaffApplicationStatusResult = {
+  success: boolean;
+  code: 'found' | 'identity_required' | 'not_found' | string;
+  message?: string;
+  event?: {
+    id: string;
+    slug: string;
+    name_th: string;
+    name_en: string | null;
+  };
+  application?: {
+    status: string;
+    final_duty: string | null;
+    review_note: string | null;
+    submitted_at: string | null;
+  };
+};
+
+export async function checkStaffApplicationStatus(input: {
+  eventSlug: string;
+  email: string;
+  phone: string;
+}): Promise<StaffApplicationStatusResult> {
+  const { data, error } = await supabase.rpc('check_staff_application_status', {
+    input_event_slug: input.eventSlug,
+    input_email: cleanEmail(input.email),
+    input_phone: cleanPhone(input.phone),
+  });
+  if (error) throw error;
+  return data as StaffApplicationStatusResult;
+}
+
 export type AdminStaffApplicationRow = {
   id: string;
   event_id: string;
