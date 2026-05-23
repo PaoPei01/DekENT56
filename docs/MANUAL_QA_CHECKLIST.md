@@ -75,6 +75,10 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Status checker requires email and phone.
 - [ ] Correct applicant identity shows only that applicant's status.
 - [ ] Wrong email/phone shows a generic "not found" state and does not reveal whether another applicant exists.
+- [ ] Status checker works for applicants whose submitted CMU Mail differs from the old `people.email`.
+- [ ] Status checker shows `ฝ่ายที่ระบบจัดให้เบื้องต้น`.
+- [ ] Status checker says the preliminary duty may be adjusted later by admins.
+- [ ] Status checker shows pending identity review copy when identity is not verified.
 - [ ] Approved applicant sees final duty only after correct identity verification.
 - [ ] Participant registration does not ask for medical information.
 - [ ] Staff application health/limitations text is shown only inside the application form and admin review/export tools.

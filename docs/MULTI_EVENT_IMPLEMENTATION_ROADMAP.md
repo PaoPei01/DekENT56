@@ -539,3 +539,20 @@ QA focus:
 - Applicant sees "ฝ่ายที่ระบบจัดให้เบื้องต้น" before and after submit.
 - Admin can override preliminary duty and sees a warning when a selected duty is already full.
 - Excel export includes base `people` data plus application-submitted data.
+
+## Staff Application Status Assignment Display Pass
+
+Status: implemented as a small follow-up to the duty quota pass.
+
+Completed:
+
+- Updated `check_staff_application_status()` so applicants can check status using the email/phone they submitted, even when old `people.email` or `people.phone` is outdated.
+- Added safe status response fields for `identity_status`, preliminary assigned duty, assignment method, and assignment note.
+- Updated `/events/:eventSlug/staff/application-status` to show "ฝ่ายที่ระบบจัดให้เบื้องต้น" with the same preliminary-assignment warning copy.
+- Kept final duty hidden unless the application is approved.
+
+Privacy/security notes:
+
+- Status lookup still requires both submitted email and phone.
+- The RPC returns only the matching applicant's safe status and does not expose health data.
+- No email sending or automatic notification was added.

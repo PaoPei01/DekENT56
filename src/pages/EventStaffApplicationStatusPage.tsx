@@ -14,6 +14,16 @@ import { eventPath } from '../lib/eventRoutes';
 import { checkStaffApplicationStatus, type StaffApplicationStatusResult } from '../services/events';
 import { errorMessage } from '../utils/error';
 
+function assignmentMethodLabel(method: string | null | undefined, language: 'th' | 'en') {
+  const labels: Record<string, { th: string; en: string }> = {
+    auto_quota: { th: 'ระบบจัดตามโควต้า', en: 'Auto quota' },
+    manual_admin: { th: 'ผู้ดูแลปรับเอง', en: 'Manual admin' },
+    fallback_general: { th: 'สำรองเข้าฝ่ายทั่วไป', en: 'General fallback' },
+    pending: { th: 'รอจัดสรร', en: 'Pending' },
+  };
+  return method ? labels[method]?.[language] ?? method : (language === 'th' ? 'ยังไม่จัดฝ่าย' : 'Not assigned');
+}
+
 export function EventStaffApplicationStatusPage() {
   const { language } = useLanguage();
   const { eventSlug = '' } = useParams();
@@ -78,8 +88,26 @@ export function EventStaffApplicationStatusPage() {
               <Badge status={getApplicationStatusTone(application.status)}>{getApplicationStatusLabel(application.status, language)}</Badge>
               {application.submitted_at ? <Badge>{formatBangkokDateTime(application.submitted_at, language)}</Badge> : null}
             </div>
+            <Card variant="soft">
+              <div className="application-detail-grid">
+                <span>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</span>
+                <strong>{application.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรรเพิ่มเติม' : 'Pending admin assignment')}</strong>
+                <span>{language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'}</span>
+                <strong>{assignmentMethodLabel(application.assignment_method, language)}</strong>
+                {application.assignment_note ? (
+                  <>
+                    <span>{language === 'th' ? 'หมายเหตุ' : 'Note'}</span>
+                    <strong>{application.assignment_note}</strong>
+                  </>
+                ) : null}
+              </div>
+              <p className="muted">{language === 'th' ? 'ตำแหน่งที่แสดงเป็นการจัดสรรเบื้องต้น อาจมีการปรับเปลี่ยนตามความเหมาะสมโดยผู้ดูแล' : 'This is a preliminary assignment and may be adjusted later by admins.'}</p>
+            </Card>
             {application.status === 'approved' && application.final_duty ? (
               <p><strong>{language === 'th' ? 'หน้าที่จริง:' : 'Final duty:'}</strong> {application.final_duty}</p>
+            ) : null}
+            {application.identity_status && application.identity_status !== 'verified' ? (
+              <p className="muted">{language === 'th' ? 'ใบสมัครนี้ยังรอตรวจสอบตัวตนเพิ่มเติม' : 'This application is still pending identity review.'}</p>
             ) : null}
             {application.review_note ? <p>{application.review_note}</p> : null}
           </div>

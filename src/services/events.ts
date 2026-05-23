@@ -219,6 +219,11 @@ export type StaffApplicationStatusResult = {
   };
   application?: {
     status: string;
+    identity_status?: ApplicationIdentityStatus | string | null;
+    assigned_duty?: string | null;
+    assigned_duty_label_th?: string | null;
+    assignment_method?: string | null;
+    assignment_note?: string | null;
     final_duty: string | null;
     review_note: string | null;
     submitted_at: string | null;
