@@ -171,6 +171,12 @@ Use this checklist before real event operations and after every production-readi
 - [ ] `/admin/events` shows the default event after applying migrations.
 - [ ] `/admin/events` shows parent orientation staff recruitment after applying migrations.
 - [ ] Admin can open `/admin/events/:eventId`.
+- [ ] `/admin/events/:eventId` opens on the Overview tab first.
+- [ ] Overview cards show event status, visibility, participant registrations, staff applications, approved staff, waitlisted, rejected, missing final duty, attendance sessions, announcements, and generated documents.
+- [ ] Overview count cards do not crash if an optional data source is unavailable; unavailable counts show 0.
+- [ ] Quick actions work for public page, staff applications, staff management, attendance, announcements, and Document Center.
+- [ ] Parent orientation event shows capacity 300, total applications, approved count, estimated remaining capacity, and missing final duty.
+- [ ] Settings tab still shows the metadata edit form.
 - [ ] Admin can edit event name, status, visibility, dates, and location.
 - [ ] EventSwitcher appears on admin dashboard and admin event pages.
 - [ ] Changing EventSwitcher selection persists after reload on the same device.

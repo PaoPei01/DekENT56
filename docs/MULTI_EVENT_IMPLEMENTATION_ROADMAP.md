@@ -289,6 +289,24 @@ Completed in event staff promotion pass:
 - Added event staff count section on admin event detail.
 - Kept legacy `staff_profiles`, public application submission, filters, and exports unchanged.
 
+Completed in event operations dashboard pass:
+
+- Upgraded `/admin/events/:eventId` from a metadata-only page into a two-tab event operations dashboard:
+  - Overview
+  - Settings
+- Added `fetchAdminEventOverview(eventId)` service helper with fail-soft counts for:
+  - participant registrations
+  - staff applications
+  - approved/waitlisted/rejected applications
+  - missing final duty
+  - event staff
+  - attendance sessions
+  - announcements
+  - generated documents
+- Added mobile-first overview cards and quick actions for public page, staff applications, staff management, attendance, announcements, and Document Center.
+- Added a staff recruitment summary panel for `parent-orientation-staff-2569`, including capacity, total applications, approved count, estimated remaining capacity, and missing final duty.
+- Kept the metadata edit form intact in the Settings tab.
+
 Deferred:
 
 - Event CRUD create/delete.

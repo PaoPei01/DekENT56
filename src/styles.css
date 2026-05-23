@@ -1200,6 +1200,89 @@ a {
   align-items: center;
 }
 
+.event-detail-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 0.35rem;
+  border: 1px solid rgba(132, 155, 190, 0.2);
+  border-radius: 16px;
+  padding: 0.3rem;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-soft);
+}
+
+.event-detail-tabs button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  background: transparent;
+  color: var(--text-soft);
+  font-weight: 950;
+}
+
+.event-detail-tabs button.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(40, 104, 232, 0.24);
+}
+
+.event-operations-hero {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.event-operations-hero h2 {
+  margin: 0;
+}
+
+.event-operation-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.event-operation-action {
+  display: flex;
+  min-height: 78px;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(132, 155, 190, 0.22);
+  border-radius: 16px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: #142033;
+  text-decoration: none;
+}
+
+.event-operation-action svg {
+  flex: 0 0 auto;
+  color: var(--accent-strong);
+}
+
+.event-operation-action span {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.event-operation-action strong {
+  color: #142033;
+  font-size: 0.95rem;
+}
+
+.event-operation-action small {
+  color: var(--text-soft);
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.event-operation-action-primary {
+  border-color: rgba(40, 104, 232, 0.28);
+  background: rgba(40, 104, 232, 0.08);
+}
+
 .event-form-card {
   display: grid;
   gap: 1rem;

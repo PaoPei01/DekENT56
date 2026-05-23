@@ -186,6 +186,76 @@ export type AdminEventStaffRow = {
   } | null;
 };
 
+export type AdminEventOverview = {
+  event: EventRecord | null;
+  participant_count: number;
+  staff_application_count: number;
+  approved_staff_application_count: number;
+  waitlisted_count: number;
+  rejected_count: number;
+  missing_final_duty_count: number;
+  event_staff_count: number;
+  attendance_session_count: number;
+  announcement_count: number;
+  document_count: number;
+};
+
+async function safeEventCount(table: string, eventId: string) {
+  try {
+    const { count, error } = await supabase
+      .from(table)
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', eventId);
+    if (error) return 0;
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function fetchAdminEventOverview(eventId: string): Promise<AdminEventOverview> {
+  const event = await fetchAdminEventById(eventId);
+  let applications: Array<{ status: string | null; answers: Record<string, unknown> | null }> = [];
+  try {
+    const { data, error } = await supabase
+      .from('staff_applications')
+      .select('status,answers')
+      .eq('event_id', eventId);
+    if (!error) applications = (data ?? []) as Array<{ status: string | null; answers: Record<string, unknown> | null }>;
+  } catch {
+    applications = [];
+  }
+
+  const [
+    participantCount,
+    eventStaffCount,
+    attendanceSessionCount,
+    announcementCount,
+    documentCount,
+  ] = await Promise.all([
+    safeEventCount('event_participants', eventId),
+    safeEventCount('event_staff', eventId),
+    safeEventCount('staff_attendance_sessions', eventId),
+    safeEventCount('announcements', eventId),
+    safeEventCount('generated_documents', eventId),
+  ]);
+
+  const approved = applications.filter((row) => row.status === 'approved');
+  return {
+    event,
+    participant_count: participantCount,
+    staff_application_count: applications.length,
+    approved_staff_application_count: approved.length,
+    waitlisted_count: applications.filter((row) => row.status === 'waitlisted').length,
+    rejected_count: applications.filter((row) => row.status === 'rejected').length,
+    missing_final_duty_count: approved.filter((row) => !String(row.answers?.final_duty ?? '').trim()).length,
+    event_staff_count: eventStaffCount,
+    attendance_session_count: attendanceSessionCount,
+    announcement_count: announcementCount,
+    document_count: documentCount,
+  };
+}
+
 export async function fetchAdminEventStaffApplications(eventId: string): Promise<AdminStaffApplicationRow[]> {
   const { data, error } = await supabase
     .from('staff_applications')
