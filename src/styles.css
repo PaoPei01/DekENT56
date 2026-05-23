@@ -5443,7 +5443,8 @@ th {
 .event-switcher {
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.65rem;
   max-width: 100%;
   border: 1px solid rgba(132, 155, 190, 0.22);
   border-radius: 18px;
@@ -5472,6 +5473,18 @@ th {
   font-weight: 850;
 }
 
+.event-switcher select {
+  min-height: 38px;
+  max-width: min(320px, 100%);
+  border: 1px solid rgba(132, 155, 190, 0.35);
+  border-radius: 12px;
+  padding: 0.45rem 2rem 0.45rem 0.65rem;
+  background: #fff;
+  color: #142033;
+  font: inherit;
+  font-weight: 850;
+}
+
 .event-switcher strong {
   overflow: hidden;
   color: #142033;
@@ -5483,6 +5496,10 @@ th {
 
 .event-switcher-compact em {
   display: none;
+}
+
+.event-switcher-compact select {
+  max-width: 220px;
 }
 
 @media (max-width: 760px) {

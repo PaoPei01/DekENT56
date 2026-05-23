@@ -2,6 +2,7 @@ import { Eye, RefreshCw, Save } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { EventSwitcher } from '../components/events/EventSwitcher';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -95,6 +96,7 @@ export function AdminEventDetailPage() {
         eyebrow="Event Admin"
         title={event ? (language === 'th' ? event.name_th : event.name_en || event.name_th) : (language === 'th' ? 'จัดการกิจกรรม' : 'Manage Event')}
         description={language === 'th' ? 'แก้ไขข้อมูลกิจกรรมและสถานะการเปิดใช้งาน โดยยังไม่กระทบข้อมูลเดิมของรายชื่อ/เช็กชื่อ' : 'Edit event metadata and lifecycle status without changing legacy participant or attendance flows.'}
+        meta={<EventSwitcher compact />}
         actions={(
           <>
             {event ? <Link className="btn btn-secondary" to={eventPath(event.slug)}><Eye size={17} />{language === 'th' ? 'ดูหน้าสาธารณะ' : 'Public page'}</Link> : null}

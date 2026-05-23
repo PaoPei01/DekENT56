@@ -2,6 +2,7 @@ import { ArrowLeft, Download, RefreshCw, Save } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { EventSwitcher } from '../components/events/EventSwitcher';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -193,6 +194,7 @@ export function AdminEventApplicationsPage() {
         eyebrow="Applications"
         title={language === 'th' ? 'รีวิวใบสมัครสตาฟ' : 'Staff Application Review'}
         description={event ? (language === 'th' ? event.name_th : event.name_en || event.name_th) : ''}
+        meta={<EventSwitcher compact />}
         actions={(
           <>
             <Link className="btn btn-secondary" to="/admin/events"><ArrowLeft size={17} />{language === 'th' ? 'กลับกิจกรรม' : 'Back'}</Link>

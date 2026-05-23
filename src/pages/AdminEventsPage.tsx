@@ -1,6 +1,7 @@
 import { CalendarDays, Eye, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { EventSwitcher } from '../components/events/EventSwitcher';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -54,6 +55,7 @@ export function AdminEventsPage() {
           ? 'รายการกิจกรรมในระบบ เริ่มจากกิจกรรมปัจจุบันและขยายสำหรับกิจกรรมในอนาคต'
           : 'Events in the system, starting with the current event and future expansion.'}
         actions={<Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>}
+        meta={<EventSwitcher />}
       />
 
       {defaultEvent ? (

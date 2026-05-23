@@ -172,6 +172,8 @@ Completed in lightweight pass:
 - Added duty summary cards for total applications, waitlisted, rejected, and approved applicants missing a final duty.
 - Added approved-per-duty summary, filters by status/final duty/preferred duty/year/major/rehearsal/event-day availability, and quick final-duty assignment stored in `staff_applications.answers.final_duty`.
 - Added CSV export presets for all applications, approved only, by final duty, rehearsal list, contact list, and a clearly labeled full admin export that includes sensitive health/limitations text.
+- Added `EventContext` and upgraded `EventSwitcher` to load accessible events, remember the selected event in `tfbp_current_event_id`, and show a migration note that some legacy pages still use default-event data.
+- Placed the EventSwitcher only on safe admin/event surfaces for now: admin dashboard, admin events, admin event detail, and staff application review.
 - Added admin event service helpers:
   - `fetchAdminEventById(id)`
   - `updateAdminEvent(id, input)`
@@ -184,7 +186,6 @@ Deferred:
 - Event CRUD create/delete.
 - Registration open/close controls beyond event status field.
 - Staff application approve/reject/waitlist actions.
-- Event switcher backed by accessible events.
 - Event-scoped attendance/documents/announcements.
 - Promoting approved applications into `event_staff`.
 

@@ -170,6 +170,9 @@ Use this checklist before real event operations and after every production-readi
 - [ ] `/admin/events` shows parent orientation staff recruitment after applying migrations.
 - [ ] Admin can open `/admin/events/:eventId`.
 - [ ] Admin can edit event name, status, visibility, dates, and location.
+- [ ] EventSwitcher appears on admin dashboard and admin event pages.
+- [ ] Changing EventSwitcher selection persists after reload on the same device.
+- [ ] Switching events does not redirect or change legacy public search, attendance, documents, or announcements yet.
 - [ ] Admin can open `/admin/events/:eventId/applications` from the parent orientation event.
 - [ ] Application review shows duty summary, waitlisted count, rejected count, and approved applicants missing final duty.
 - [ ] Filters work for status, final duty, preferred duty, year level, major, rehearsal availability, and event day availability.
