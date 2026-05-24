@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, MessageSquare, RefreshCw, Save, UserPlus, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, MessageSquare, RefreshCw, Save, Trash2, UserPlus, XCircle } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -24,7 +24,7 @@ import { formatBangkokDateTime } from '../lib/dateTime';
 import { eventPath } from '../lib/eventRoutes';
 import { majorLabel } from '../lib/major';
 import { buildDutyFilterOptions, getApplicationAssignedDutyKey, getApplicationFinalDutyKey, getApplicationPreferredDutyKeys, getDutyLabelTh, getDutyOptions, getDutySelectOptions, normalizeDutySelection } from '../lib/parentOrientationDuties';
-import { fetchAdminEventById, fetchAdminEventStaffApplications, fetchEventDutyQuotaStatus, findDuplicateStaffApplications, logStaffApplicationExport, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, type EventDutyQuotaRow, updateAdminStaffApplicationAssignment, updateAdminStaffApplicationReview } from '../services/events';
+import { deleteAdminStaffApplication, fetchAdminEventById, fetchAdminEventStaffApplications, fetchEventDutyQuotaStatus, findDuplicateStaffApplications, logStaffApplicationExport, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, type EventDutyQuotaRow, updateAdminStaffApplicationAssignment, updateAdminStaffApplicationReview } from '../services/events';
 import { exportStaffApplicantsXlsx, type StaffApplicantExportRow } from '../utils/csv';
 import { errorMessage } from '../utils/error';
 import { explainSupabaseSchemaError } from '../utils/supabaseDiagnostics';
@@ -242,6 +242,8 @@ export function AdminEventApplicationsPage() {
   const [draftAssignedDuties, setDraftAssignedDuties] = useState<Record<string, string>>({});
   const [reviewDraft, setReviewDraft] = useState<{ row: AdminStaffApplicationRow; status: StaffApplicationStatus; finalDuty: string; reviewNote: string } | null>(null);
   const [detailRow, setDetailRow] = useState<AdminStaffApplicationRow | null>(null);
+  const [deleteDraft, setDeleteDraft] = useState<AdminStaffApplicationRow | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [assignmentOverride, setAssignmentOverride] = useState<{ row: AdminStaffApplicationRow; dutyKey: string; isFull: boolean } | null>(null);
   const [excelExport, setExcelExport] = useState<ExcelExportRequest | null>(null);
   const [exportConfirmed, setExportConfirmed] = useState(false);
@@ -445,6 +447,32 @@ export function AdminEventApplicationsPage() {
     }
   }
 
+  async function confirmDeleteApplication() {
+    if (!deleteDraft) return;
+    try {
+      setDeletingId(deleteDraft.id);
+      await deleteAdminStaffApplication({
+        applicationId: deleteDraft.id,
+        eventId,
+      });
+      setToast({
+        type: 'success',
+        message: language === 'th' ? 'ลบใบสมัครแล้ว' : 'Application deleted',
+      });
+      setDeleteDraft(null);
+      await applicationsState.reload();
+      await quotaState.reload();
+      await duplicateState.reload();
+    } catch (err) {
+      setToast({
+        type: 'error',
+        message: explainSupabaseSchemaError(err, language) || errorMessage(err, language === 'th' ? 'ลบใบสมัครไม่สำเร็จ' : 'Could not delete application'),
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   function actionButtons(row: AdminStaffApplicationRow, mobile = false) {
     const promoted = isPromoted(row);
     return (
@@ -464,6 +492,7 @@ export function AdminEventApplicationsPage() {
             <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
             <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'หมายเหตุ' : 'Note'}</Button>
             <Button size="sm" variant="danger" icon={<XCircle size={16} />} onClick={() => openReview(row, 'rejected')}>{language === 'th' ? 'ไม่ผ่าน' : 'Reject'}</Button>
+            <Button size="sm" variant="danger" icon={<Trash2 size={16} />} onClick={() => setDeleteDraft(row)}>{language === 'th' ? 'ลบใบสมัคร' : 'Delete application'}</Button>
           </div>
         </details>
       </div>
@@ -1046,6 +1075,44 @@ export function AdminEventApplicationsPage() {
                     {language === 'th' ? 'ยืนยันดาวน์โหลด' : 'Confirm download'}
                   </Button>
                   <Button variant="secondary" onClick={() => { setExcelExport(null); setExportConfirmed(false); }}>{language === 'th' ? 'ยกเลิก' : 'Cancel'}</Button>
+                </div>
+              </div>
+            ) : null}
+          </Modal>
+
+          <Modal open={Boolean(deleteDraft)} title={language === 'th' ? 'ยืนยันการลบใบสมัคร' : 'Confirm application deletion'} onClose={() => setDeleteDraft(null)}>
+            {deleteDraft ? (
+              <div className="modal-body page-stack">
+                <Card variant="danger">
+                  <strong>{language === 'th' ? 'การลบนี้ไม่ควรใช้แทนการปฏิเสธใบสมัคร' : 'Deletion should not be used instead of rejection'}</strong>
+                  <p>{language === 'th' ? 'หากต้องการเก็บประวัติการพิจารณา ควรใช้ปุ่ม “ไม่ผ่าน” แทนการลบ ใช้การลบเฉพาะกรณีข้อมูลซ้ำ กรอกผิด หรือทดสอบระบบเท่านั้น' : 'If you need to keep review history, use “Reject” instead. Delete only duplicate, incorrect, or test submissions.'}</p>
+                </Card>
+
+                <div className="application-detail-grid">
+                  <span>{language === 'th' ? 'ผู้สมัคร' : 'Applicant'}</span>
+                  <strong>{applicantName(deleteDraft)}</strong>
+
+                  <span>{language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'}</span>
+                  <strong>{deleteDraft.people?.student_id || deleteDraft.requested_student_id || '-'}</strong>
+
+                  <span>{language === 'th' ? 'สถานะ' : 'Status'}</span>
+                  <strong>{getApplicationStatusLabel(deleteDraft.status, language)}</strong>
+                </div>
+
+                {isPromoted(deleteDraft) ? (
+                  <Card variant="warning">
+                    <strong>{language === 'th' ? 'ใบสมัครนี้ถูกเพิ่มเป็นสตาฟกิจกรรมแล้ว' : 'This application has already been added to event staff'}</strong>
+                    <p>{language === 'th' ? 'หากลบใบสมัคร อาจยังมีข้อมูลสตาฟกิจกรรมที่เกี่ยวข้องอยู่ กรุณาตรวจสอบรายชื่อทีมงานหลังลบ' : 'Deleting the application may leave related event staff data. Please review the staff list after deletion.'}</p>
+                  </Card>
+                ) : null}
+
+                <div className="form-actions">
+                  <Button type="button" variant="secondary" onClick={() => setDeleteDraft(null)}>
+                    {language === 'th' ? 'ยกเลิก' : 'Cancel'}
+                  </Button>
+                  <Button type="button" variant="danger" icon={<Trash2 size={18} />} loading={deletingId === deleteDraft.id} onClick={() => void confirmDeleteApplication()}>
+                    {language === 'th' ? 'ยืนยันลบใบสมัคร' : 'Delete application'}
+                  </Button>
                 </div>
               </div>
             ) : null}

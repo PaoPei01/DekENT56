@@ -605,6 +605,19 @@ export async function fetchAdminEventStaffApplications(eventId: string): Promise
   return (data ?? []) as unknown as AdminStaffApplicationRow[];
 }
 
+export async function deleteAdminStaffApplication(input: {
+  applicationId: string;
+  eventId: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from('staff_applications')
+    .delete()
+    .eq('id', input.applicationId)
+    .eq('event_id', input.eventId);
+
+  if (error) throw error;
+}
+
 export async function fetchEventDutyQuotaStatus(eventId: string): Promise<EventDutyQuotaStatus> {
   const { data, error } = await supabase.rpc('get_event_staff_duty_quota_status', {
     input_event_id: eventId,
