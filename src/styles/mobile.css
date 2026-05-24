@@ -945,6 +945,7 @@
   gap: 0.55rem;
   justify-items: center;
   width: min(100%, 420px);
+  min-height: 96px;
   margin: 1rem auto;
   border: 1px solid var(--border);
   border-radius: 22px;
@@ -952,7 +953,7 @@
   color: var(--text);
   text-align: center;
   background: var(--surface-elevated);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
 }
 
 .route-loading-fallback strong,
@@ -996,7 +997,8 @@
     flex-direction: row;
     gap: 0.65rem;
     padding: 0.58rem 0.8rem;
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .brand {
@@ -1213,7 +1215,8 @@
   .glass-card,
   .modal,
   .toast {
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .glass-card {
@@ -1241,8 +1244,15 @@
     border-radius: 24px;
     padding: 0.28rem;
     background: var(--nav-bg);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-soft);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .mobile-bottom-nav a,
+  .mobile-bottom-nav button {
+    min-width: 0;
+    overflow: hidden;
   }
 
   .mobile-bottom-nav a {
@@ -1252,9 +1262,10 @@
     min-height: 50px;
     border-radius: 18px;
     color: var(--text-soft);
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 900;
-    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    line-height: 1.05;
+    transition: background 120ms ease, color 120ms ease;
   }
 
   .mobile-bottom-nav button {
@@ -1267,8 +1278,9 @@
     color: var(--text-soft);
     background: transparent;
     font: inherit;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 900;
+    line-height: 1.05;
   }
 
   .mobile-bottom-nav a span,
@@ -1293,25 +1305,41 @@
   .public-list-page .page-header {
     grid-template-columns: 1fr;
     align-items: start;
+    justify-items: stretch;
     padding: 0.75rem 0.85rem;
   }
 
+  .public-list-page .page-header-title {
+    width: 100%;
+  }
+
   .public-list-page .page-header h1 {
+    width: 100%;
     overflow-wrap: anywhere;
     word-break: normal;
   }
 
   .public-list-page .page-header-meta {
+    display: grid;
+    grid-template-columns: 1fr;
     width: 100%;
-    justify-content: flex-start;
+    justify-content: stretch;
+    justify-items: stretch;
+    gap: 0.5rem;
   }
 
   .public-list-page .page-header-actions {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: stretch;
+  }
+
+  .public-list-page .page-header-actions > * {
+    width: 100%;
   }
 
   .public-list-page .count-badge {
+    display: block;
+    width: 100%;
     padding: 0.45rem 0.65rem;
     white-space: normal;
   }
@@ -1407,8 +1435,9 @@
     padding: 0.75rem;
     border-radius: 22px;
     background: rgba(255, 255, 255, 0.88);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-soft);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .admin-action-bar .btn {
@@ -1496,7 +1525,8 @@
     top: 70px;
     border-radius: 22px;
     padding: 0.65rem;
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .emergency-quick-grid {
@@ -3271,13 +3301,13 @@
 
 @media (max-width: 760px) {
   :root {
-    --shadow-soft: 0 8px 22px rgba(15, 23, 42, 0.08);
-    --shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+    --shadow-soft: 0 5px 14px rgba(15, 23, 42, 0.07);
+    --shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
   }
 
   :root[data-theme="dark"] {
-    --shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.24);
-    --shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+    --shadow-soft: 0 5px 14px rgba(0, 0, 0, 0.2);
+    --shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
   }
 
   .top-nav,
@@ -3287,10 +3317,15 @@
   .modal,
   .toast,
   .sticky-bottom-bar,
+  .sticky-action-bar,
+  .staff-sticky-actions,
   .admin-action-bar,
   .emergency-toolbar,
+  .emergency-dock,
+  .help-drawer-backdrop,
   .mobile-more-sheet,
-  .mobile-filter-sheet {
+  .mobile-filter-sheet,
+  .table-sticky th {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -3299,10 +3334,17 @@
   .mobile-bottom-nav,
   .mobile-search-header,
   .sticky-bottom-bar,
+  .sticky-action-bar,
+  .staff-sticky-actions,
   .admin-action-bar,
-  .emergency-toolbar {
+  .emergency-toolbar,
+  .emergency-dock {
     background: var(--surface-elevated) !important;
     box-shadow: var(--shadow-soft) !important;
+  }
+
+  .help-drawer-backdrop {
+    background: var(--backdrop-bg) !important;
   }
 
   .mobile-more-sheet,
@@ -3312,6 +3354,33 @@
   .glass-card {
     background: var(--surface-elevated);
     box-shadow: var(--shadow-soft);
+  }
+
+  .skeleton {
+    animation: none;
+    background: var(--surface-soft);
+  }
+
+  .route-loading-fallback,
+  .route-error-state {
+    width: 100%;
+    margin-block: 0.75rem;
+    box-shadow: none;
+  }
+
+  .btn,
+  .participant-card-clickable,
+  .event-card,
+  .staff-action-card,
+  .document-action-card,
+  .action-card,
+  .staff-attendance-action-card,
+  .guide-category-card,
+  .guide-topic-card,
+  .guide-related-card {
+    transform: none !important;
+    transition-property: background, border-color, color, box-shadow;
+    transition-duration: 120ms;
   }
 
   .mobile-search-header {
