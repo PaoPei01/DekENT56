@@ -823,6 +823,17 @@ Use this checklist before real event operations and after every production-readi
 - [ ] QR/camera flows have manual fallback input.
 - [ ] Color contrast rough check passes for primary text, buttons, warning/error states.
 
+## Future Localization and Theme QA
+
+- [ ] Browser/device language detection defaults Thai users to Thai and English users to English when no manual override exists.
+- [ ] Manual language override persists after refresh and does not depend on route.
+- [ ] Invalid stored language values fall back safely and do not crash `LanguageContext`.
+- [ ] System theme detection follows OS light/dark when no manual theme override exists.
+- [ ] Manual theme override persists after refresh and can return to system mode.
+- [ ] Dark mode keeps body, cards, nav, bottom nav, modals, sheets, tables, toasts, and badges readable.
+- [ ] QR codes and scanner surfaces remain high contrast and are not inverted in dark mode.
+- [ ] Status colors remain distinguishable by text labels as well as color.
+
 ## Build and Release
 
 - [ ] `npm run lint` passes.

@@ -110,6 +110,15 @@ Preferred wording:
 - Preliminary duty -> ฝ่ายที่ระบบจัดให้เบื้องต้น
 - Pending admin assignment -> รอผู้ดูแลจัดสรร
 
+## Localization and Theme Readiness
+
+- Keep Thai-first copy natural and concise; English should be simple and consistent.
+- Extend the existing `LanguageContext` and `src/lib/i18n.ts` instead of creating a second language system.
+- Store only preference values for language/theme in localStorage; never store personal data for UI preferences.
+- Do not auto-translate database content such as names, announcements, event descriptions, or document data unless localized fields are explicitly available.
+- Future dark mode should use semantic CSS variables and tested component surfaces. Do not rely on color inversion.
+- QR codes, scanner targets, and document previews must remain high contrast and readable in every theme.
+
 ## Accessibility
 
 - Touch targets must be at least 44px.
