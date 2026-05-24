@@ -2,6 +2,17 @@ import { groupLabel } from '../lib/grouping';
 import { majorLabel } from '../lib/major';
 import type { GroupProfile, Profile } from '../lib/types';
 
+export type StaffApplicantExportRow = {
+  'ชื่อ สกุล': string;
+  'สาขา': string;
+  'รหัสนักศึกษา': string;
+  'เบอร์': string;
+  'ตำแหน่ง': string;
+  'โรคประจำตัว': string;
+  'แพ้ยา': string;
+  'แพ้อาหาร': string;
+};
+
 const headers: (keyof Profile)[] = [
   'email',
   'student_id',
@@ -100,6 +111,60 @@ export async function exportProfilesXlsx(rows: GroupProfile[]) {
   const link = document.createElement('a');
   link.href = url;
   link.download = `participants-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function safeCell(value: unknown) {
+  const text = String(value ?? '').trim();
+  return text || '-';
+}
+
+function safeFilenamePart(value: string | null | undefined) {
+  return String(value ?? 'event')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0E00-\u0E7F]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'event';
+}
+
+export async function exportStaffApplicantsXlsx(rows: StaffApplicantExportRow[], eventNameOrSlug?: string | null) {
+  const ExcelJS = await import('exceljs');
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Entaneer Gear 56';
+  workbook.created = new Date();
+
+  const sheet = workbook.addWorksheet('Staff Applicants');
+  sheet.columns = [
+    { header: 'ชื่อ สกุล', key: 'ชื่อ สกุล', width: 28 },
+    { header: 'สาขา', key: 'สาขา', width: 24 },
+    { header: 'รหัสนักศึกษา', key: 'รหัสนักศึกษา', width: 16 },
+    { header: 'เบอร์', key: 'เบอร์', width: 16 },
+    { header: 'ตำแหน่ง', key: 'ตำแหน่ง', width: 24 },
+    { header: 'โรคประจำตัว', key: 'โรคประจำตัว', width: 28 },
+    { header: 'แพ้ยา', key: 'แพ้ยา', width: 24 },
+    { header: 'แพ้อาหาร', key: 'แพ้อาหาร', width: 24 },
+  ];
+  rows.forEach((row) => sheet.addRow({
+    'ชื่อ สกุล': safeCell(row['ชื่อ สกุล']),
+    'สาขา': safeCell(row['สาขา']),
+    'รหัสนักศึกษา': safeCell(row['รหัสนักศึกษา']),
+    'เบอร์': safeCell(row['เบอร์']),
+    'ตำแหน่ง': safeCell(row['ตำแหน่ง']),
+    'โรคประจำตัว': safeCell(row['โรคประจำตัว']),
+    'แพ้ยา': safeCell(row['แพ้ยา']),
+    'แพ้อาหาร': safeCell(row['แพ้อาหาร']),
+  }));
+  sheet.getRow(1).font = { bold: true };
+  sheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `staff-applicants-${safeFilenamePart(eventNameOrSlug)}-${new Date().toISOString().slice(0, 10)}.xlsx`;
   link.click();
   URL.revokeObjectURL(url);
 }

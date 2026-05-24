@@ -21,8 +21,10 @@ import { copy } from '../lib/copy';
 import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { eventPath } from '../lib/eventRoutes';
+import { majorLabel } from '../lib/major';
 import { buildDutyFilterOptions, getApplicationAssignedDutyKey, getApplicationFinalDutyKey, getApplicationPreferredDutyKeys, getDutyLabelTh, getDutyOptions, getDutySelectOptions, normalizeDutySelection } from '../lib/parentOrientationDuties';
 import { fetchAdminEventById, fetchAdminEventStaffApplications, fetchEventDutyQuotaStatus, findDuplicateStaffApplications, logStaffApplicationExport, promoteStaffApplicationToEventStaff, type AdminStaffApplicationRow, type EventDutyQuotaRow, updateAdminStaffApplicationAssignment, updateAdminStaffApplicationReview } from '../services/events';
+import { exportStaffApplicantsXlsx, type StaffApplicantExportRow } from '../utils/csv';
 import { errorMessage } from '../utils/error';
 import { explainSupabaseSchemaError } from '../utils/supabaseDiagnostics';
 
@@ -39,6 +41,10 @@ function text(value: unknown) {
   if (Array.isArray(value)) return value.join(', ');
   if (value && typeof value === 'object' && 'text' in value) return String((value as { text?: unknown }).text ?? '');
   return value == null ? '' : String(value);
+}
+
+function answerObject(value: unknown) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
 function duties(row: AdminStaffApplicationRow) {
@@ -97,6 +103,11 @@ function isPromoted(row: AdminStaffApplicationRow) {
 
 function applicantName(row: AdminStaffApplicationRow) {
   return row.people?.name_th || row.people?.name_en || row.requested_name_th || (row.people ? 'ไม่พบชื่อ-นามสกุล' : row.requested_student_id) || 'ผู้สมัคร';
+}
+
+function exportCell(value: unknown) {
+  const valueText = text(value).trim();
+  return valueText || '-';
 }
 
 function applicantNickname(row: AdminStaffApplicationRow) {
@@ -180,6 +191,7 @@ export function AdminEventApplicationsPage() {
   const [assignmentOverride, setAssignmentOverride] = useState<{ row: AdminStaffApplicationRow; dutyKey: string; isFull: boolean } | null>(null);
   const [excelExport, setExcelExport] = useState<ExcelExportRequest | null>(null);
   const [exportConfirmed, setExportConfirmed] = useState(false);
+  const [handoffExporting, setHandoffExporting] = useState(false);
   const [showDuplicateDetails, setShowDuplicateDetails] = useState(false);
   const event = eventState.data;
   const rows = useMemo(() => applicationsState.data ?? [], [applicationsState.data]);
@@ -430,6 +442,55 @@ export function AdminEventApplicationsPage() {
       'หมายเหตุจากผู้ดูแล': row.review_note ?? '',
       'final_duty/manual override if exists': getDutyLabelTh(finalDuty(row)) || assignedDutyLabel(row, dutiesByKey) || '',
     }));
+  }
+
+  function handoffPosition(row: AdminStaffApplicationRow) {
+    const finalLabel = getDutyLabelTh(finalDuty(row));
+    if (finalLabel) return finalLabel;
+    const assignedLabel = assignedDutyLabel(row, dutiesByKey);
+    if (assignedLabel) return assignedLabel;
+    const preferredLabels = preferredDutyLabels(row);
+    if (preferredLabels.length) return preferredLabels.join(' / ');
+    return text(row.preferred_team || row.preferred_role);
+  }
+
+  function handoffRows(rowsToExport: AdminStaffApplicationRow[]): StaffApplicantExportRow[] {
+    return rowsToExport.map((row) => {
+      const healthDetails = answerObject(row.answers?.health_details);
+      return {
+        'ชื่อ สกุล': exportCell(row.people?.name_th || row.people?.name_en || row.requested_name_th || row.requested_name_en),
+        'สาขา': exportCell(majorLabel(row.people?.major || row.requested_major || '')),
+        'รหัสนักศึกษา': exportCell(row.people?.student_id || row.requested_student_id),
+        'เบอร์': exportCell(row.people?.phone || row.requested_phone),
+        'ตำแหน่ง': exportCell(handoffPosition(row)),
+        'โรคประจำตัว': exportCell(healthDetails.chronic_condition || row.people?.disease),
+        'แพ้ยา': exportCell(healthDetails.drug_allergy || row.people?.drug_allergy),
+        'แพ้อาหาร': exportCell(healthDetails.food_allergy || row.people?.food_allergy),
+      };
+    });
+  }
+
+  async function downloadHandoffExcel() {
+    if (!rows.length) {
+      setToast({ type: 'error', message: language === 'th' ? 'ยังไม่มีข้อมูลผู้สมัครสตาฟสำหรับส่งออก' : 'No staff application data to export yet.' });
+      return;
+    }
+    try {
+      setHandoffExporting(true);
+      await logStaffApplicationExport({
+        eventId,
+        exportScope: 'all',
+        rowCount: rows.length,
+        includesSensitiveFields: true,
+        filters: { handoff_format: true },
+      });
+      await exportStaffApplicantsXlsx(handoffRows(rows), event?.slug || event?.name_en || event?.name_th);
+      setToast({ type: 'success', message: language === 'th' ? 'ดาวน์โหลด Excel สำหรับส่งต่อแล้ว' : 'Handoff Excel downloaded' });
+    } catch (err) {
+      setToast({ type: 'error', message: explainSupabaseSchemaError(err, language) || errorMessage(err, language === 'th' ? 'ดาวน์โหลดไฟล์ไม่สำเร็จ กรุณาลองใหม่' : 'Could not download the file. Please try again.') });
+    } finally {
+      setHandoffExporting(false);
+    }
   }
 
   async function downloadExcel(rowsToExport: AdminStaffApplicationRow[], filename: string) {
@@ -706,8 +767,18 @@ export function AdminEventApplicationsPage() {
             </details>
             <div>
               <p className="eyebrow">{language === 'th' ? 'ส่งออกข้อมูล' : 'Export data'}</p>
+              <p className="muted">{language === 'th' ? 'ไฟล์นี้มีข้อมูลติดต่อและข้อมูลสุขภาพ ใช้สำหรับส่งต่อให้หน่วยงานที่เกี่ยวข้องเท่านั้น' : 'This file contains contact and health information. Use it only for authorized handoff.'}</p>
             </div>
             <div className="event-card-actions">
+              <Button
+                variant="secondary"
+                icon={<FileSpreadsheet size={18} />}
+                loading={handoffExporting}
+                disabled={!rows.length}
+                onClick={() => void downloadHandoffExcel()}
+              >
+                {language === 'th' ? 'ดาวน์โหลด Excel สำหรับส่งต่อ' : 'Download handoff Excel'}
+              </Button>
               <ExportActions
                 label={commonCopy.export}
                 actions={[
