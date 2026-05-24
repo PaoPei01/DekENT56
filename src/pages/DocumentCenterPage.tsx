@@ -170,11 +170,6 @@ export function DocumentCenterPage() {
                 <span>{lastGenerated ? `${lastGenerated.title} · v${lastGenerated.version}` : (language === 'th' ? 'ยังไม่มีเอกสารที่เคยสร้างแล้ว' : 'No generated documents yet')}</span>
               </div>
             </div>
-            {!projectInfoReady ? (
-              <Link className="btn btn-secondary document-readiness-action" to="/admin/documents/settings">
-                <Settings size={18} />{language === 'th' ? 'ไปกรอกข้อมูลตั้งต้น' : 'Fill missing project info'}
-              </Link>
-            ) : null}
           </Card>
           <div className="document-flow-steps">
             {steps.map((step, index) => (
