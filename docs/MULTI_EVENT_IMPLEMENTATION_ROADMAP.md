@@ -723,3 +723,22 @@ QA focus:
 - Non-admin access remains blocked by existing AdminGuard.
 - Old admin routes are still direct links.
 - Mobile admin navigation is grouped and usable without a long flat list.
+
+## Document Center Guided Workflow Pass
+
+Status: implemented as a frontend-only document workflow UX pass with no schema/RPC/Storage/RLS changes.
+
+Completed:
+
+- Reworked `/admin/documents` into a guided five-step workflow: project information, templates, missing information, generation/download, and history.
+- Added readiness status for project information, template count, generated document count, and generation readiness.
+- Reduced the main Document Center actions to generation, template management, and history.
+- Added an incomplete project information warning that routes admins to `/admin/documents/settings`.
+- Updated generate/templates/history copy to be Thai-first and clearer in English.
+- Documented the workflow in `docs/DOCUMENT_CENTER_GUIDED_WORKFLOW.md`.
+
+QA focus:
+
+- Existing DOCX template upload, preview, generation, download, and history download still work.
+- Missing information warning helps admins complete settings without changing backend validation.
+- Document Center remains admin-only and private storage behavior is unchanged.
