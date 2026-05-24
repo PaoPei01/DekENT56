@@ -18,7 +18,7 @@ import { fetchDocumentCenterData, saveProjectProfile } from '../services/documen
 import { errorMessage } from '../utils/error';
 
 const blankProfile: Partial<DocumentProjectProfile> = {
-  project_name: 'สานสัมพันธ์ 69 Entaneer Bonding 69',
+  project_name: 'Entaneer Gear 56',
   academic_year: '2569',
   organizer: 'คณะวิศวกรรมศาสตร์',
   department: 'มหาวิทยาลัยเชียงใหม่',

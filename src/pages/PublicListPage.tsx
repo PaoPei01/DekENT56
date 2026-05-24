@@ -75,7 +75,7 @@ export function PublicListPage() {
       <Card className="participant-portal-hero">
         <div className="participant-portal-copy">
           <p className="eyebrow">{language === 'th' ? 'Participant Portal' : 'Participant Portal'}</p>
-          <h1>{language === 'th' ? 'สานสัมพันธ์ 69' : 'Entaneer Bonding 69'}</h1>
+          <h1>Entaneer Gear 56</h1>
           <p>{language === 'th' ? 'ค้นหารายชื่อ ตรวจสอบข้อมูล สมัครกิจกรรม และอ่านประกาศได้จากที่นี่' : 'Search participants, check your information, register for activities, and read announcements from one place.'}</p>
         </div>
         <div className="participant-portal-actions">

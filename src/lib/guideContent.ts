@@ -157,8 +157,8 @@ export const guideTopics: GuideTopic[] = [
       { label: 'event_id', description: 'Internal event ID used to link applications, attendance sessions, and documents.' },
       { label: 'slug', description: 'Short public URL name, such as parent-orientation-staff-2569.' },
     ],
-    tipsTh: ['ระบบปัจจุบันยังใช้กิจกรรม default คือ สานสัมพันธ์ 69 อยู่', 'การ migrate จริงควรทำแบบเพิ่มตารางใหม่และ fallback กลับกิจกรรมเดิมได้'],
-    tipsEn: ['The current app still uses the default Entaneer Bonding 69 event.', 'Real migration should be additive and keep fallback to the current event.'],
+    tipsTh: ['ระบบปัจจุบันยังใช้กิจกรรม default คือ Entaneer Gear 56 อยู่', 'การ migrate จริงควรทำแบบเพิ่มตารางใหม่และ fallback กลับกิจกรรมเดิมได้'],
+    tipsEn: ['The current app still uses the default Entaneer Gear 56 event.', 'Real migration should be additive and keep fallback to the current event.'],
     commonProblemsTh: [
       { problem: 'กลัวข้อมูลกิจกรรมปนกัน', solution: 'ต้องมี event_id และ event switcher ก่อนเปิดใช้หลายกิจกรรมจริง' },
     ],

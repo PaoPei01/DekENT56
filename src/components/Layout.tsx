@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, CalendarDays, Database, FileText, HeartPulse, Home, Languages, LogOut, Menu, Pencil, Search, Shield, ShieldCheck, UserCheck, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Gear13Icon } from './brand/Gear13Icon';
 import { MobileMoreMenu } from './mobile/MobileMoreMenu';
 import { RoleAwareBottomNav } from './mobile/RoleAwareBottomNav';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
@@ -99,10 +100,10 @@ export function Layout() {
   return (
     <div>
       <nav className="top-nav">
-        <Link className="brand" to="/">
-          <ShieldCheck size={22} />
-          <span>สานสัมพันธ์ 69</span>
-          <small>Entaneer Bonding 69</small>
+        <Link className="brand" to="/" aria-label={language === 'th' ? 'กลับหน้าแรก Entaneer Gear 56' : 'Entaneer Gear 56 home'}>
+          <Gear13Icon size={22} />
+          <span>Entaneer Gear 56</span>
+          <small>Gear 56</small>
         </Link>
         <div className="nav-links">
           <NavLink to="/">{t.participants}</NavLink>

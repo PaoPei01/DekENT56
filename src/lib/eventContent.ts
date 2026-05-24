@@ -68,8 +68,8 @@ export const eventContentBySlug: Record<string, EventContent> = {
   'entaneer-bonding-69': {
     slug: 'entaneer-bonding-69',
     public: {
-      titleTh: 'รับน้องสานสัมพันธ์ 69',
-      titleEn: 'Entaneer CMU 69',
+      titleTh: 'Entaneer Gear 56',
+      titleEn: 'Entaneer Gear 56',
       summaryTh: 'กิจกรรมต้อนรับนักศึกษาใหม่คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเชียงใหม่ เพื่อให้น้องใหม่ได้รู้จักสถานที่ วัฒนธรรมคณะ เพื่อนใหม่ และรุ่นพี่ ผ่านกิจกรรมฐาน 7 ฐาน',
       summaryEn: 'A welcoming activity for new Engineering students at Chiang Mai University through seven station-based activities.',
       targetAudienceTh: 'นักศึกษาใหม่ คณะวิศวกรรมศาสตร์ TCAS69',

@@ -300,7 +300,7 @@ export function GuidePage() {
     <section className="guide-page page-stack has-sticky-actions">
       <PageHeader
         eyebrow={isThai ? 'Guide Center' : 'Guide Center'}
-        title={isThai ? 'วิธีใช้งานระบบสานสัมพันธ์ 69' : 'How to use Entaneer Bonding 69 System'}
+        title={isThai ? 'วิธีใช้งานระบบ Entaneer Gear 56' : 'How to use Entaneer Gear 56'}
         description={isThai ? 'รวมขั้นตอนการใช้งานสำหรับผู้เข้าร่วม ทีมงาน และผู้ดูแลระบบ' : 'A quick guide for participants, staff, and admins.'}
         actions={<Link className="btn btn-secondary btn-md" to="/announcements">{isThai ? 'ดูประกาศล่าสุด' : 'Latest announcements'}</Link>}
       />

@@ -1,8 +1,8 @@
 import type { ActivityEvent } from './eventTypes';
 
 export const DEFAULT_EVENT_SLUG = 'entaneer-bonding-69';
-export const DEFAULT_EVENT_NAME_TH = 'รับน้องสานสัมพันธ์ 69';
-export const DEFAULT_EVENT_NAME_EN = 'Entaneer CMU 69';
+export const DEFAULT_EVENT_NAME_TH = 'Entaneer Gear 56';
+export const DEFAULT_EVENT_NAME_EN = 'Entaneer Gear 56';
 
 export const DEFAULT_EVENT: ActivityEvent = {
   name_th: DEFAULT_EVENT_NAME_TH,

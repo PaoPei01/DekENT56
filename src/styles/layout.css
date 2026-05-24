@@ -24,6 +24,15 @@
 .brand {
   gap: 0.55rem;
   font-weight: 760;
+  min-width: 0;
+}
+
+.brand svg {
+  flex: 0 0 auto;
+}
+
+.brand span {
+  min-width: 0;
 }
 
 .brand small {
