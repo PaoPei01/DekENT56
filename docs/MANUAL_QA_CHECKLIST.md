@@ -718,6 +718,16 @@ Use this checklist before real event operations and after every production-readi
 
 ## Mobile QA
 
+- [ ] `/admin` opens `ศูนย์ควบคุมระบบ / Admin Command Center` for admins.
+- [ ] Non-admin users still cannot access `/admin` or any admin hub.
+- [ ] `/admin/dashboard` still works as the legacy participant-management dashboard.
+- [ ] `/admin/people-groups` opens and links to people database, groups, participant edit requests, people update requests, duplicate check, and year 2 import.
+- [ ] `/admin/staff-ops` opens and links to staff list, staff attendance, staff quota, staff import, staff requests, and emergency.
+- [ ] Admin mobile bottom nav uses Dashboard, People, Staff, Emergency, More.
+- [ ] Admin More menu is grouped by overview, people/groups, staff operations, and documents/system.
+- [ ] `/admin/events` event actions show manage/setup/review/public-page labels without removing old links.
+- [ ] `/admin/events/:eventId` works as an event admin hub and keeps settings/editing available.
+- [ ] Existing admin routes remain directly reachable after the hub changes.
 - [ ] `/staff/start` shows `ศูนย์ทีมงาน / Staff Center` for unauthenticated users.
 - [ ] `/staff/start` has three primary choices: staff sign in, email/phone verification, and staff application status.
 - [ ] `/staff/start` redirects authenticated staff to `/staff`.

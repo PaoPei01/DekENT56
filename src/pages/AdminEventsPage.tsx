@@ -40,6 +40,17 @@ function eventDate(event: EventRecord, language: 'th' | 'en') {
   return formatBangkokDate(event.start_date ?? event.end_date, language);
 }
 
+function smartEventAction(status: string, language: 'th' | 'en') {
+  const labels: Record<string, { th: string; en: string }> = {
+    draft: { th: 'ตั้งค่ากิจกรรม', en: 'Set up event' },
+    registration_open: { th: 'ดูใบสมัคร', en: 'Review applications' },
+    staff_recruiting: { th: 'ดูใบสมัคร', en: 'Review applications' },
+    active: { th: 'เปิดแดชบอร์ดกิจกรรม', en: 'Open event dashboard' },
+    completed: { th: 'ดูสรุป', en: 'View summary' },
+  };
+  return labels[status]?.[language] ?? (language === 'th' ? 'จัดการ' : 'Manage');
+}
+
 export function AdminEventsPage() {
   const { language } = useLanguage();
   const state = useAsync(() => fetchAdminEvents(), []);
@@ -88,8 +99,9 @@ export function AdminEventsPage() {
           mobileMeta={(row) => eventDate(row, language)}
           mobileActions={(row) => (
             <div className="event-card-actions">
-              <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{language === 'th' ? 'จัดการ' : 'Manage'}</Link>
+              <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{smartEventAction(row.status, language)}</Link>
               {row.event_type === 'staff_recruitment' ? <Link className="btn btn-secondary" to={adminEventApplicationsPath(row.id)}>{language === 'th' ? 'ใบสมัคร' : 'Applications'}</Link> : null}
+              <Link className="btn btn-secondary" to={eventPath(row.slug)}><Eye size={16} />{language === 'th' ? 'ดูหน้าสาธารณะ' : 'Public page'}</Link>
             </div>
           )}
           columns={[
@@ -100,8 +112,9 @@ export function AdminEventsPage() {
             { key: 'date', header: language === 'th' ? 'วันกิจกรรม' : 'Date', render: (row) => eventDate(row, language), mobileLabel: language === 'th' ? 'วัน' : 'Date' },
             { key: 'action', header: '', render: (row) => (
               <div className="table-action-row">
-                <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{language === 'th' ? 'จัดการ' : 'Manage'}</Link>
+                <Link className="btn btn-secondary" to={adminEventPath(row.id)}>{smartEventAction(row.status, language)}</Link>
                 {row.event_type === 'staff_recruitment' ? <Link className="btn btn-secondary" to={adminEventApplicationsPath(row.id)}>{language === 'th' ? 'ใบสมัคร' : 'Applications'}</Link> : null}
+                <Link className="btn btn-secondary" to={eventPath(row.slug)}><Eye size={16} />{language === 'th' ? 'ดูหน้าสาธารณะ' : 'Public page'}</Link>
               </div>
             ), align: 'right' },
           ]}

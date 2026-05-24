@@ -42,6 +42,7 @@ const AdminEventsPage = lazy(() => import('./pages/AdminEventsPage').then((modul
 const AdminEventDetailPage = lazy(() => import('./pages/AdminEventDetailPage').then((module) => ({ default: module.AdminEventDetailPage })));
 const AdminEventApplicationsPage = lazy(() => import('./pages/AdminEventApplicationsPage').then((module) => ({ default: module.AdminEventApplicationsPage })));
 const AdminPeopleDedupePage = lazy(() => import('./pages/AdminPeopleDedupePage').then((module) => ({ default: module.AdminPeopleDedupePage })));
+const AdminPeopleGroupsHubPage = lazy(() => import('./pages/AdminPeopleGroupsHubPage').then((module) => ({ default: module.AdminPeopleGroupsHubPage })));
 const AdminPeoplePage = lazy(() => import('./pages/AdminPeoplePage').then((module) => ({ default: module.AdminPeoplePage })));
 const AdminPeopleUpdateRequestsPage = lazy(() => import('./pages/AdminPeopleUpdateRequestsPage').then((module) => ({ default: module.AdminPeopleUpdateRequestsPage })));
 const AdminStaffAttendancePage = lazy(() => import('./pages/AdminStaffAttendancePage').then((module) => ({ default: module.AdminStaffAttendancePage })));
@@ -55,6 +56,7 @@ const StaffImportPage = lazy(() => import('./pages/StaffImportPage').then((modul
 const StaffManagementPage = lazy(() => import('./pages/StaffManagementPage').then((module) => ({ default: module.StaffManagementPage })));
 const StaffMobilePage = lazy(() => import('./pages/StaffMobilePage').then((module) => ({ default: module.StaffMobilePage })));
 const StaffOperationsPage = lazy(() => import('./pages/StaffOperationsPage').then((module) => ({ default: module.StaffOperationsPage })));
+const AdminStaffOpsHubPage = lazy(() => import('./pages/AdminStaffOpsHubPage').then((module) => ({ default: module.AdminStaffOpsHubPage })));
 const StaffStartPage = lazy(() => import('./pages/StaffStartPage').then((module) => ({ default: module.StaffStartPage })));
 const StaffProfileEditPage = lazy(() => import('./pages/StaffProfileEditPage').then((module) => ({ default: module.StaffProfileEditPage })));
 const StaffProfilePage = lazy(() => import('./pages/StaffProfilePage').then((module) => ({ default: module.StaffProfilePage })));
@@ -113,6 +115,8 @@ export function App() {
           <Route path="admin/announcements/:id/edit" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementEditPage /></Suspense>} />
           <Route path="admin/emergency" element={<Suspense fallback={<LoadingSkeleton />}><EmergencyDashboardPage /></Suspense>} />
           <Route path="admin/groups" element={<Suspense fallback={<LoadingSkeleton />}><GroupDashboardPage /></Suspense>} />
+          <Route path="admin/people-groups" element={<Suspense fallback={<LoadingSkeleton />}><AdminPeopleGroupsHubPage /></Suspense>} />
+          <Route path="admin/staff-ops" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffOpsHubPage /></Suspense>} />
           <Route path="admin/staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffManagementPage /></Suspense>} />
           <Route path="admin/staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffAttendancePage /></Suspense>} />
           <Route path="admin/staff/attendance/:sessionId" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffAttendanceSessionPage /></Suspense>} />

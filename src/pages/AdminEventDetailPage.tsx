@@ -197,16 +197,19 @@ export function AdminEventDetailPage() {
                 <h2>{language === 'th' ? 'งานที่ต้องทำต่อ' : 'Next actions'}</h2>
                 <p>{language === 'th' ? 'เริ่มจากดูใบสมัคร สร้างรอบเช็กชื่อ ประกาศข้อมูล และเตรียมเอกสารสำหรับกิจกรรมนี้' : 'Start with applications, attendance sessions, announcements, and documents for this event.'}</p>
                 <div className="event-operation-actions">
-                  <QuickAction to={eventPath(event.slug)} icon={<Eye size={20} />} title={language === 'th' ? 'ดูหน้า public' : 'Public page'} description={language === 'th' ? 'ตรวจสิ่งที่ผู้ใช้เห็น' : 'Check public-facing details'} primary />
-                  <QuickAction to={adminEventApplicationsPath(event.id)} icon={<UserPlus size={20} />} title={language === 'th' ? 'ดูใบสมัครสตาฟ' : 'Staff applications'} description={language === 'th' ? 'รีวิวและจัดหน้าที่' : 'Review and assign duties'} />
-                  <QuickAction to="/admin/staff" icon={<UserCheck size={20} />} title={language === 'th' ? 'จัดการสตาฟกิจกรรม' : 'Manage event staff'} description={language === 'th' ? 'เปิดหน้าทีมงานหลัก' : 'Open staff management'} />
+                  <QuickAction to="#event-info" icon={<Settings size={20} />} title={language === 'th' ? 'ข้อมูลกิจกรรม' : 'Event info'} description={language === 'th' ? 'สถานะ การมองเห็น และตัวเลขสรุป' : 'Status, visibility, and summary metrics'} primary />
+                  <QuickAction to="/admin/events" icon={<FileText size={20} />} title={language === 'th' ? 'ฟอร์มสมัคร' : 'Registration form'} description={language === 'th' ? 'ตรวจ route ลงทะเบียนและสถานะกิจกรรม' : 'Check registration route and event status'} />
+                  <QuickAction to={adminEventApplicationsPath(event.id)} icon={<UserPlus size={20} />} title={language === 'th' ? 'สมัครทีมงาน' : 'Staff application'} description={language === 'th' ? 'เปิดหน้ารีวิวใบสมัครทีมงาน' : 'Open staff application review'} />
+                  <QuickAction to={adminEventApplicationsPath(event.id)} icon={<UsersRound size={20} />} title={language === 'th' ? 'ใบสมัคร' : 'Applications'} description={language === 'th' ? 'รีวิวและจัดหน้าที่' : 'Review and assign duties'} />
                   <QuickAction to="/admin/staff/attendance" icon={<QrCode size={20} />} title={language === 'th' ? 'สร้างรอบเช็กชื่อ' : 'Create attendance session'} description={language === 'th' ? 'ใช้ event ที่เลือกใน EventSwitcher' : 'Uses selected EventSwitcher event'} />
-                  <QuickAction to="/admin/announcements" icon={<Bell size={20} />} title={language === 'th' ? 'จัดการประกาศ' : 'Announcements'} description={language === 'th' ? 'ประกาศตามกิจกรรม' : 'Event-aware announcements'} />
+                  <QuickAction to="/admin/announcements" icon={<Bell size={20} />} title={language === 'th' ? 'ประกาศ' : 'Announcements'} description={language === 'th' ? 'ประกาศตามกิจกรรม' : 'Event-aware announcements'} />
+                  <QuickAction to={eventPath(event.slug)} icon={<Eye size={20} />} title={language === 'th' ? 'หน้าสาธารณะ' : 'Public page'} description={language === 'th' ? 'ตรวจสิ่งที่ผู้ใช้เห็น' : 'Check public-facing details'} />
+                  <QuickAction to="#event-info" icon={<UserCheck size={20} />} title={language === 'th' ? 'สถานะ' : 'Status'} description={language === 'th' ? 'ดูสถานะกิจกรรมและความพร้อม' : 'Review status and readiness'} />
                   <QuickAction to="/admin/documents" icon={<FileText size={20} />} title={language === 'th' ? 'เปิดศูนย์เอกสาร' : 'Open Document Center'} description={language === 'th' ? 'ข้อมูลตั้งต้นและเอกสารของกิจกรรม' : 'Event document settings and files'} />
                 </div>
               </Card>
 
-              <div className="stats-grid">
+              <div className="stats-grid" id="event-info">
                 {overviewCards.map((card) => (
                   <DashboardStatCard key={card.label} label={card.label} value={card.value} icon={card.icon} />
                 ))}

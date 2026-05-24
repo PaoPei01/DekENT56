@@ -233,12 +233,12 @@ export function AdminDashboardPage() {
 
       <div className="section-heading-row manage-records-heading">
         <div>
-          <p className="eyebrow">{language === 'th' ? 'จัดการข้อมูลทั้งหมด' : 'Manage all records'}</p>
-          <h2>{language === 'th' ? 'รายชื่อผู้เข้าร่วมทั้งหมด' : 'All participant records'}</h2>
-          <span>{language === 'th' ? 'ตารางเต็มยังอยู่ครบสำหรับค้นหา แก้ไข ลบ และส่งออกข้อมูล' : 'The full table remains available for search, edit, delete, and export.'}</span>
+          <p className="eyebrow">{language === 'th' ? 'รายชื่อล่าสุด / จัดการรายชื่อ' : 'Recent records / Manage participants'}</p>
+          <h2>{language === 'th' ? 'รายชื่อล่าสุด / จัดการรายชื่อ' : 'Recent records / Manage participants'}</h2>
+          <span>{language === 'th' ? 'ตารางเต็มยังอยู่ครบสำหรับค้นหา แก้ไข ลบ และส่งออกข้อมูล โดยใช้เป็นงานรองจากทางลัดหลัก' : 'The full table remains available for search, edit, delete, and export as a secondary workflow.'}</span>
         </div>
         <Link className="btn btn-secondary" to="/admin/people">
-          {language === 'th' ? 'เปิดฐานข้อมูลบุคคล' : 'Open people database'}
+          {language === 'th' ? 'จัดการรายชื่อทั้งหมด' : 'Manage all participants'}
         </Link>
       </div>
 

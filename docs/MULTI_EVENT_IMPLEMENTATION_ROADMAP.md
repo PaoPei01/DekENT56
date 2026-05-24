@@ -702,3 +702,24 @@ QA focus:
 - Both QR attendance methods still work.
 - Old staff direct routes remain available.
 - Unauthorized staff roles do not see health flags, counts, or special-care filters.
+
+## Admin Command Center and Hub IA Pass
+
+Status: implemented as an admin information architecture and navigation cleanup with no schema/RPC/RLS changes.
+
+Completed:
+
+- Reworked `/admin` into a clearer Admin Command Center with `งานที่ควรตรวจสอบ` and `ทางลัดหลัก`.
+- Added `/admin/people-groups` as the People & Groups hub for people database, groups, participant edit requests, people update requests, duplicate check, and year 2 import.
+- Added `/admin/staff-ops` as the Staff Operations hub for staff list, attendance, quota, import, requests, and emergency.
+- Updated admin desktop and mobile navigation to point to hubs and keep grouped More sections.
+- Improved `/admin/events` action wording with smarter status-aware labels and public page links.
+- Added more explicit event-admin hub actions inside `/admin/events/:eventId`.
+- Moved legacy dashboard participant table framing into `รายชื่อล่าสุด / จัดการรายชื่อ`, keeping edit/export capabilities available but secondary.
+
+QA focus:
+
+- `/admin`, `/admin/dashboard`, `/admin/people-groups`, and `/admin/staff-ops` all work for admins.
+- Non-admin access remains blocked by existing AdminGuard.
+- Old admin routes are still direct links.
+- Mobile admin navigation is grouped and usable without a long flat list.

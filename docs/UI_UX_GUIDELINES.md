@@ -86,6 +86,9 @@ Destructive actions must live in `DangerZone` or use `ConfirmDialog`. Do not pla
 - Keep both staff attendance paths visible inside `/staff/attendance`: `ให้แอดมินสแกนฉัน` and `ฉันสแกน QR รอบเช็กชื่อเอง`.
 - Do not expose health flags, special-care badges, health counts, or health filters to staff roles that are not allowed to know those flags exist.
 - Admin copy should be precise.
+- Admin IA should group tools into focused hubs: `ภาพรวม`, `รายชื่อและกลุ่ม`, `งานทีมงาน`, `เอกสารและระบบ`, and `เหตุฉุกเฉิน`.
+- `/admin` should act as the Admin Command Center with `งานที่ควรตรวจสอบ` and `ทางลัดหลัก` before long tables or secondary tools.
+- Mobile admin navigation should prefer hub-level destinations and grouped More sections instead of one long flat list.
 - Emergency copy should be short and direct.
 - Avoid technical user-facing words such as Auth, RPC, token, database error, JSON, RLS, invalid input syntax, and function does not exist. Use plain recovery copy instead.
 - Use `โปรดเลือก` for form select placeholders. Use `ทั้งหมด` only for admin filters where the empty value truly means all results.

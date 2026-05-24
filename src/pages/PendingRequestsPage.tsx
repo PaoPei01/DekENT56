@@ -62,7 +62,7 @@ export function PendingRequestsPage() {
       <Card className="workflow-explainer-card" variant="soft">
         <div>
           <strong>{language === 'th' ? 'คำขอแก้ไขผู้เข้าร่วม' : 'Participant edit requests'}</strong>
-          <span>{language === 'th' ? 'ตรวจคำขอแก้ไขข้อมูลที่ผู้เข้าร่วมส่งจากหน้า public' : 'Review edit requests submitted from the public page.'}</span>
+          <span>{language === 'th' ? 'ตรวจคำขอแก้ไขข้อมูลที่ผู้เข้าร่วมส่งจากหน้าข้อมูลของฉัน' : 'Review edit requests submitted from the My information page.'}</span>
         </div>
         <Badge status="pending">{language === 'th' ? `รอตรวจสอบ ${(state.data?.length ?? 0).toLocaleString()} รายการ` : `${(state.data?.length ?? 0).toLocaleString()} waiting for review`}</Badge>
       </Card>

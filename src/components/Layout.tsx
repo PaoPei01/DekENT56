@@ -108,6 +108,7 @@ export function Layout() {
                   <NavLink to="/guide">{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
 
                   <span className="nav-menu-label">{language === 'th' ? 'รายชื่อและกลุ่ม' : 'People & Groups'}</span>
+                  <NavLink to="/admin/people-groups">{language === 'th' ? 'รายชื่อและกลุ่ม' : 'People & Groups'}</NavLink>
                   <NavLink to="/admin/people">{language === 'th' ? 'ฐานข้อมูลบุคคล' : 'People database'}</NavLink>
                   <NavLink to="/admin/groups">{t.groups}</NavLink>
                   <NavLink to="/admin/requests">{language === 'th' ? 'คำขอแก้ไขเดิม' : 'Edit Requests'}</NavLink>
@@ -116,6 +117,7 @@ export function Layout() {
                   <NavLink to="/admin/people/import-year2">{language === 'th' ? 'นำเข้าฐานปี 2' : 'Import Year 2'}</NavLink>
 
                   <span className="nav-menu-label">{language === 'th' ? 'งานทีมงาน' : 'Staff Operations'}</span>
+                  <NavLink to="/admin/staff-ops">{language === 'th' ? 'งานทีมงาน' : 'Staff Operations'}</NavLink>
                   <NavLink to="/admin/staff">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink>
                   <NavLink to="/admin/staff/attendance">{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}</NavLink>
                   <NavLink to="/admin/staff/operations">{language === 'th' ? 'โควตา/งานทีมงาน' : 'Staff Quota / Operations'}</NavLink>
@@ -199,13 +201,13 @@ export function Layout() {
           <>
             <NavLink to="/admin">
               <Shield size={19} />
-              <span>{language === 'th' ? 'แอดมิน' : 'Admin'}</span>
+              <span>{language === 'th' ? 'แดชบอร์ด' : 'Dashboard'}</span>
             </NavLink>
-            <NavLink to="/admin/people">
+            <NavLink to="/admin/people-groups">
               <UsersRound size={19} />
-              <span>{language === 'th' ? 'รายชื่อ' : 'People'}</span>
+              <span>{language === 'th' ? 'รายชื่อ/กลุ่ม' : 'People'}</span>
             </NavLink>
-            <NavLink to="/admin/staff">
+            <NavLink to="/admin/staff-ops">
               <UserCheck size={19} />
               <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
             </NavLink>
@@ -268,6 +270,7 @@ export function Layout() {
             </div>
             <div className="mobile-more-section">
               <span className="mobile-more-section-title">{language === 'th' ? 'รายชื่อและกลุ่ม' : 'People & Groups'}</span>
+              <NavLink to="/admin/people-groups"><UsersRound size={18} />{language === 'th' ? 'รายชื่อและกลุ่ม' : 'People & Groups'}</NavLink>
               <NavLink to="/admin/groups"><UsersRound size={18} />{language === 'th' ? 'จัดกลุ่ม' : 'Groups'}</NavLink>
               <NavLink to="/admin/people"><Database size={18} />{language === 'th' ? 'ฐานข้อมูลบุคคล' : 'People Database'}</NavLink>
               <NavLink to="/admin/people/update-requests"><Database size={18} />{language === 'th' ? 'คำร้องแก้ข้อมูล' : 'Update Requests'}</NavLink>
@@ -276,6 +279,7 @@ export function Layout() {
             </div>
             <div className="mobile-more-section">
               <span className="mobile-more-section-title">{language === 'th' ? 'งานสตาฟ' : 'Staff Operations'}</span>
+              <NavLink to="/admin/staff-ops"><UserCheck size={18} />{language === 'th' ? 'งานทีมงาน' : 'Staff Operations'}</NavLink>
               <NavLink to="/admin/staff"><UserCheck size={18} />{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink>
               <NavLink to="/admin/staff/attendance"><UserCheck size={18} />{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}</NavLink>
               <NavLink to="/admin/staff/operations"><UsersRound size={18} />{language === 'th' ? 'โควตาทีมงาน' : 'Staff Ops'}</NavLink>
