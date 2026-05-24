@@ -90,10 +90,10 @@ export function StaffPersonalQrPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="Staff Personal QR"
-        title={language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff Personal QR'}
+        title={language === 'th' ? 'QR ส่วนตัว' : 'Personal QR'}
         description={language === 'th'
-          ? 'ยืนยันด้วยอีเมลและเบอร์โทรเพื่อแสดง QR สำหรับให้แอดมินสแกนเช็กชื่อแทน'
-          : 'Verify with email and phone to show a QR for admin-assisted attendance.'}
+          ? 'ยืนยันด้วยอีเมลและเบอร์โทรเพื่อแสดง QR สำหรับให้แอดมินสแกนเช็กชื่อ หน้าหลักของการเช็กชื่ออยู่ที่เมนูเช็กชื่อทีมงาน'
+          : 'Verify with email and phone to show a QR for admin-assisted attendance. The primary attendance flow is on Staff check-in.'}
         actions={<HelpButton topicId="staff.personal-qr" variant="link" />}
       />
 

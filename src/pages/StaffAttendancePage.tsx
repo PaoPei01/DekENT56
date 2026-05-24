@@ -169,8 +169,8 @@ export function StaffAttendancePage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="Staff Attendance"
-        title={language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}
-        description={language === 'th' ? 'ยืนยันตัวตนครั้งเดียว แล้วเลือกแสดง QR หรือสแกน QR รอบเช็กชื่อ' : 'Verify once, then show your QR or scan an attendance QR.'}
+        title={language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}
+        description={language === 'th' ? 'ยืนยันตัวตนครั้งเดียว แล้วเลือกว่าจะให้แอดมินสแกนคุณ หรือสแกน QR รอบเช็กชื่อด้วยตัวเอง' : 'Verify once, then choose whether an admin scans you or you scan the session QR yourself.'}
         actions={(
           <>
             <HelpButton topicId="staff-attendance.overview" variant="link" />
@@ -183,7 +183,7 @@ export function StaffAttendancePage() {
         <Card className="scan-verify-card">
           <div>
             <p className="eyebrow">{language === 'th' ? 'ยืนยันตัวตนทีมงาน' : 'Staff verification'}</p>
-            <h2>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}</h2>
+            <h2>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</h2>
             <p>{language === 'th' ? 'กรอกอีเมลและเบอร์โทรที่ใช้ลงทะเบียนทีมงานเพื่อใช้งานเมนูเช็กชื่อ' : 'Enter the email and phone used for staff registration to use attendance tools.'}</p>
           </div>
           <form className="form-grid" onSubmit={verifyIdentity}>
@@ -210,7 +210,7 @@ export function StaffAttendancePage() {
               <div className="section-title-row">
                 <div>
                   <p className="eyebrow">{language === 'th' ? 'เลือกวิธีเช็กชื่อ' : 'Choose check-in method'}</p>
-                  <h2>{language === 'th' ? 'คุณต้องการเช็กชื่อแบบไหน' : 'How do you want to check in?'}</h2>
+                  <h2>{language === 'th' ? 'วันนี้ใครเป็นคนสแกน?' : 'Who is scanning today?'}</h2>
                 </div>
                 <HelpButton topicId="staff-attendance.overview" variant="compact" />
               </div>
@@ -222,15 +222,15 @@ export function StaffAttendancePage() {
             <div className="staff-attendance-action-grid">
               <button className="staff-attendance-action-card" type="button" onClick={openPersonalQr}>
                 <QrCode size={28} />
-                <strong>{language === 'th' ? 'เปิด QR ของฉันให้แอดมินสแกน' : 'Show my QR for admin scan'}</strong>
-                <span>{language === 'th' ? 'ใช้เมื่อแอดมินหรือหัวหน้าทีมเป็นคนเช็กชื่อให้' : 'Use when an admin or team lead checks you in.'}</span>
+                <strong>{language === 'th' ? 'ให้แอดมินสแกนฉัน' : 'Let admin scan me'}</strong>
+                <span>{language === 'th' ? 'เปิด QR ของตัวเองให้แอดมินหรือหัวหน้าทีมสแกน' : 'Show your personal QR so an admin or team lead can check you in.'}</span>
                 <em>{language === 'th' ? 'แสดง QR ของฉัน' : 'Show my QR'}</em>
               </button>
               <button className="staff-attendance-action-card" type="button" onClick={() => setSessionScannerOpen(true)}>
                 <Camera size={28} />
-                <strong>{language === 'th' ? 'สแกน QR รอบเช็กชื่อ' : 'Scan attendance QR'}</strong>
-                <span>{language === 'th' ? 'ใช้กล้องมือถือสแกน QR ที่แอดมินแสดง' : 'Use your phone camera to scan the QR shown by admin.'}</span>
-                <em>{language === 'th' ? 'เปิดกล้องสแกน QR' : 'Open QR scanner'}</em>
+                <strong>{language === 'th' ? 'ฉันสแกน QR รอบเช็กชื่อเอง' : 'I will scan the session QR'}</strong>
+                <span>{language === 'th' ? 'ใช้กล้องมือถือสแกน QR รอบเช็กชื่อที่แอดมินแสดง' : 'Use your phone camera to scan the attendance QR shown by admin.'}</span>
+                <em>{language === 'th' ? 'เปิดกล้องสแกน' : 'Open scanner'}</em>
               </button>
             </div>
             {!isAuthenticated ? (

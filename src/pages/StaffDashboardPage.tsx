@@ -31,7 +31,7 @@ export function StaffDashboardPage() {
       <PageHeader
         eyebrow={language === 'th' ? 'โหมดสตาฟ' : 'Staff App Mode'}
         title={language === 'th' ? 'วันนี้ต้องทำอะไร' : 'Today’s operations'}
-        description={language === 'th' ? 'เลือกงานที่ต้องใช้หน้างานได้เร็ว' : 'Quick access to live event tools'}
+        description={language === 'th' ? 'เลือกงานที่ต้องใช้หน้างานได้เร็วใน 1-2 แตะ' : 'Quick access to the tools you need during the event.'}
         meta={<Badge status="approved">{access.is_admin ? 'admin' : access.roles.join(', ')}</Badge>}
         compact
       />
@@ -42,7 +42,7 @@ export function StaffDashboardPage() {
       </div>
 
       <div className="today-action-strip">
-        {canUseStaffAttendance ? <Link className="today-primary-action" to="/staff/attendance"><ClipboardCheck size={24} /><strong>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</strong><span>{language === 'th' ? 'สแกน QR เพื่อเช็กชื่อของตัวเอง' : 'Scan QR to check yourself in'}</span></Link> : null}
+        {canUseStaffAttendance ? <Link className="today-primary-action" to="/staff/attendance"><ClipboardCheck size={24} /><strong>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</strong><span>{language === 'th' ? 'แสดง QR ของฉัน หรือสแกน QR รอบเช็กชื่อ' : 'Show my QR or scan the session QR'}</span></Link> : null}
         {!isEmergencyOnly && access.can_view_staff ? <Link className="today-primary-action" to="/staff/my-group"><UsersRound size={24} /><strong>{language === 'th' ? 'รายชื่อกลุ่มของฉัน' : 'My group list'}</strong><span>{language === 'th' ? 'ค้นหารายชื่อ เบอร์ติดต่อที่อนุญาต และจุดนัดพบ' : 'Find participants, allowed contacts, and meeting point'}</span></Link> : null}
         {access.can_view_emergency ? <Link className="today-primary-action emergency" to="/staff/emergency"><ShieldAlert size={24} /><strong>{language === 'th' ? 'เหตุฉุกเฉิน' : 'Emergency'}</strong><span>{language === 'th' ? 'เบอร์ด่วนและข้อมูลสุขภาพ' : 'Hotlines and health data'}</span></Link> : null}
       </div>

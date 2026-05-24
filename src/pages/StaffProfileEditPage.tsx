@@ -150,7 +150,7 @@ export function StaffProfileEditPage() {
   return (
     <section className="page-stack">
       <Toast toast={toast} />
-      <PageHeader eyebrow="Staff Profile" title={language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit Staff Profile'} description={language === 'th' ? 'แก้ข้อมูลที่แสดงได้เอง ส่วนข้อมูลติดต่อและสุขภาพให้ส่งคำขอแก้ไข' : 'Edit safe public fields directly. Contact and medical changes require approval.'} />
+      <PageHeader eyebrow="Staff Profile" title={language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit staff profile'} description={language === 'th' ? 'แก้ข้อมูลที่แสดงได้เอง ส่วนข้อมูลติดต่อและสุขภาพให้ส่งคำขอแก้ไข' : 'Edit safe public fields directly. Contact and medical changes require approval.'} />
       {state.loading ? <LoadingSkeleton /> : null}
       {state.error ? <div className="error-state">{state.error}</div> : null}
       {state.data ? (

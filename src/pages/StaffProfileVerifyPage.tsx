@@ -124,8 +124,8 @@ export function StaffProfileVerifyPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="Staff Profile Verify"
-        title={language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit Staff Profile'}
-        description={language === 'th' ? 'หน้านี้สำหรับทีมงานรายบุคคลที่ต้องการแก้ไขโปรไฟล์ของตัวเอง ไม่ใช่บัญชีเข้าสู่ระบบทีมงานสำหรับปฏิบัติงาน' : 'This page is for individual staff profile updates, not operational staff login.'}
+        title={language === 'th' ? 'ยืนยันตัวตนเพื่อแก้ไขข้อมูลทีมงานแบบไม่ต้องเข้าสู่ระบบ' : 'Verify identity to edit staff info without signing in'}
+        description={language === 'th' ? 'ใช้สำหรับทีมงานรายบุคคลที่ต้องการแก้โปรไฟล์หรือส่งคำขอแก้ข้อมูลสำคัญ โดยไม่ใช่บัญชีเข้าสู่ระบบทีมงานสำหรับปฏิบัติงาน' : 'Use this for individual profile edits or sensitive update requests. It is separate from operational staff login.'}
         meta={(
           <>
             <HelpButton topicId="staff.profile-verify" variant="link" />

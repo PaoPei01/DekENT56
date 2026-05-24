@@ -44,8 +44,8 @@ export function StaffMobilePage() {
   return (
     <section className="page-stack staff-page">
       <div className="section-heading">
-        <p className="eyebrow">{language === 'th' ? 'หน้าทีมงานสำหรับหน้างาน' : 'Event Staff View'}</p>
-        <h1>{context.assignment?.main_group ? groupLabel(context.assignment.main_group, context.assignment.subgroup, language) : language === 'th' ? 'ทุกกลุ่ม' : 'All groups'}</h1>
+        <p className="eyebrow">{context.assignment?.main_group ? groupLabel(context.assignment.main_group, context.assignment.subgroup, language) : language === 'th' ? 'ทุกกลุ่ม' : 'All groups'}</p>
+        <h1>{language === 'th' ? 'รายชื่อกลุ่มของฉัน' : 'My group list'}</h1>
         <p>{language === 'th' ? 'ดูรายชื่อ น้องในกลุ่ม จุดนัดหมาย และข้อมูลสำคัญที่ต้องใช้ระหว่างกิจกรรม' : 'View assigned participants, meeting points, and key details for event operations.'}</p>
       </div>
 

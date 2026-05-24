@@ -90,7 +90,20 @@ export function Layout() {
           <NavLink to="/announcements">{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
           <NavLink to="/guide">{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
           <NavLink to="/edit">{language === 'th' ? 'ตรวจสอบ/แก้ไขข้อมูล' : 'Check or edit my info'}</NavLink>
-          {!user ? <NavLink to="/login">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink> : null}
+          {!user ? (
+            <details className="nav-menu">
+              <summary>
+                <UserCheck size={16} />
+                {language === 'th' ? 'ทีมงาน: ยืนยันตัวตน / QR / แก้โปรไฟล์' : 'Staff: verify, QR, or edit profile'}
+              </summary>
+              <div>
+                <span className="nav-menu-label">{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+                <NavLink to="/staff/profile/verify">{language === 'th' ? 'ยืนยันตัวตน/แก้โปรไฟล์' : 'Verify or edit profile'}</NavLink>
+                <NavLink to="/staff/profile/qr">{language === 'th' ? 'QR ส่วนตัว' : 'Personal QR'}</NavLink>
+                <NavLink to="/login">{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff login'}</NavLink>
+              </div>
+            </details>
+          ) : null}
           {user || isStaff || isAdmin ? (
             <details className={`nav-menu ${isAdmin ? 'nav-menu-wide' : ''}`}>
               <summary>
@@ -298,7 +311,7 @@ export function Layout() {
               <span className="mobile-more-section-title">{language === 'th' ? 'เครื่องมือเพิ่มเติม' : 'More tools'}</span>
               <NavLink to="/staff/profile"><UserCheck size={18} />{language === 'th' ? 'โปรไฟล์ของฉัน' : 'My profile'}</NavLink>
               <NavLink to="/staff/directory"><UsersRound size={18} />{language === 'th' ? 'ไดเรกทอรีทีมงาน' : 'Staff directory'}</NavLink>
-              <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff personal QR'}</NavLink>
+              <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัว' : 'Personal QR'}</NavLink>
               <NavLink to="/announcements"><Bell size={18} />{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
               <NavLink to="/guide"><FileText size={18} />{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
               <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
@@ -316,10 +329,10 @@ export function Layout() {
               <NavLink to="/edit"><Pencil size={18} />{language === 'th' ? 'ตรวจสอบ/แก้ไขข้อมูล' : 'Check or edit my info'}</NavLink>
             </div>
             <div className="mobile-more-section">
-              <span className="mobile-more-section-title">{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+              <span className="mobile-more-section-title">{language === 'th' ? 'ทีมงาน: ยืนยันตัวตน / QR / แก้โปรไฟล์' : 'Staff: verify, QR, or edit profile'}</span>
               <NavLink to="/login"><Shield size={18} />{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff login'}</NavLink>
-              <NavLink to="/staff/profile/verify"><UserCheck size={18} />{language === 'th' ? 'ตรวจสอบโปรไฟล์ทีมงาน' : 'Staff profile check'}</NavLink>
-              <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff personal QR'}</NavLink>
+              <NavLink to="/staff/profile/verify"><UserCheck size={18} />{language === 'th' ? 'ยืนยันตัวตน/แก้โปรไฟล์' : 'Verify or edit profile'}</NavLink>
+              <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัว' : 'Personal QR'}</NavLink>
               <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
             </div>
           </>
