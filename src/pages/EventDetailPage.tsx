@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, RefreshCw, Users } from 'lucide-react';
+import { Bell, CalendarCheck, CalendarDays, ClipboardCheck, MapPin, RefreshCw, SearchCheck, UserPlus, Users } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
@@ -31,6 +31,12 @@ function eventDate(start?: string | null, end?: string | null, language: 'th' | 
   return formatBangkokDate(start ?? end, language);
 }
 
+function registrationCopy(status: string, language: 'th' | 'en') {
+  if (status === 'registration_open' || status === 'active') return language === 'th' ? 'สมัครเข้าร่วมกิจกรรม' : 'Register';
+  if (status === 'completed' || status === 'archived') return language === 'th' ? 'ปิดรับสมัครแล้ว' : 'Registration is closed';
+  return language === 'th' ? 'ยังไม่เปิดรับสมัคร' : 'Registration is not open yet';
+}
+
 export function EventDetailPage() {
   const { language } = useLanguage();
   const { eventSlug = '' } = useParams();
@@ -38,6 +44,9 @@ export function EventDetailPage() {
   const event = state.data;
   const content = getEventContent(event?.slug ?? eventSlug);
   const title = event ? (language === 'th' ? event.name_th : event.name_en || event.name_th) : (language === 'th' ? 'รายละเอียดกิจกรรม' : 'Event details');
+  const canRegister = event ? ['registration_open', 'active'].includes(event.status) : false;
+  const canApplyStaff = event?.status === 'staff_recruiting';
+  const showEventProfileTools = event ? ['parent-orientation-staff-2569', 'entaneer-bonding-69'].includes(event.slug) : false;
 
   return (
     <section className="events-page page-stack">
@@ -85,6 +94,53 @@ export function EventDetailPage() {
                 {content.public.rehearsalDateTh ? <span><strong>{language === 'th' ? 'ซ้อม/เตรียมงาน' : 'Prep'}</strong>{content.public.rehearsalDateTh}</span> : null}
               </div>
             ) : null}
+          </Card>
+
+          <Card className="event-detail-card event-cta-hub">
+            <div>
+              <p className="eyebrow">{language === 'th' ? 'เริ่มจากตรงนี้' : 'Start here'}</p>
+              <h2>{language === 'th' ? 'เลือกสิ่งที่ต้องการทำกับกิจกรรมนี้' : 'Choose what you need for this event'}</h2>
+              <p className="muted">{language === 'th' ? 'ลิงก์เหล่านี้พาไปยังขั้นตอนหลักของกิจกรรมโดยตรง' : 'These links take you directly to the main event actions.'}</p>
+            </div>
+            <div className="event-action-card-grid">
+              {canRegister ? (
+                <Link className="event-action-card" to={eventRegisterPath(event.slug)}>
+                  <CalendarCheck size={22} />
+                  <strong>{language === 'th' ? 'สมัครเข้าร่วมกิจกรรม' : 'Register'}</strong>
+                  <span>{language === 'th' ? 'ยืนยันตัวตนและส่งคำขอลงทะเบียน' : 'Verify identity and submit registration'}</span>
+                </Link>
+              ) : (
+                <div className="event-action-card is-disabled" aria-disabled="true">
+                  <CalendarCheck size={22} />
+                  <strong>{registrationCopy(event.status, language)}</strong>
+                  <span>{language === 'th' ? 'กลับมาตรวจสอบอีกครั้งเมื่อผู้ดูแลเปิดรับสมัคร' : 'Check back when registration opens.'}</span>
+                </div>
+              )}
+              {canApplyStaff ? (
+                <Link className="event-action-card" to={eventStaffApplyPath(event.slug)}>
+                  <UserPlus size={22} />
+                  <strong>{language === 'th' ? 'สมัครเป็นทีมงาน' : 'Apply as staff'}</strong>
+                  <span>{language === 'th' ? 'กรอกใบสมัครและเลือกฝ่ายที่สนใจ' : 'Submit an application and choose preferred duties'}</span>
+                </Link>
+              ) : null}
+              <Link className="event-action-card" to={eventStaffApplicationStatusPath(event.slug)}>
+                <ClipboardCheck size={22} />
+                <strong>{language === 'th' ? 'ตรวจสถานะใบสมัครทีมงาน' : 'Check application status'}</strong>
+                <span>{language === 'th' ? 'ดูผลการสมัครหรือสถานะรอตรวจสอบ' : 'View application or review status'}</span>
+              </Link>
+              {showEventProfileTools ? (
+                <Link className="event-action-card" to={eventProfileCheckPath(event.slug)}>
+                  <SearchCheck size={22} />
+                  <strong>{language === 'th' ? 'ตรวจข้อมูลหรือกลุ่มของฉัน' : 'Check my info or group'}</strong>
+                  <span>{language === 'th' ? 'ตรวจข้อมูลของฉันโดยไม่เปิดเผยข้อมูลส่วนตัวต่อสาธารณะ' : 'Check my info without exposing private details publicly'}</span>
+                </Link>
+              ) : null}
+              <Link className="event-action-card" to={eventAnnouncementsPath(event.slug)}>
+                <Bell size={22} />
+                <strong>{language === 'th' ? 'อ่านประกาศกิจกรรม' : 'View event announcements'}</strong>
+                <span>{language === 'th' ? 'กำหนดการ จุดนัดพบ และข้อมูลล่าสุด' : 'Schedule, meeting points, and latest updates'}</span>
+              </Link>
+            </div>
           </Card>
 
           {content?.objectives?.length ? (
@@ -241,17 +297,17 @@ export function EventDetailPage() {
             </div>
             <div className="event-card-actions">
               {event.status === 'staff_recruiting' ? (
-                <Link className="btn btn-primary" to={eventStaffApplyPath(event.slug)}>{language === 'th' ? 'สมัครเป็นสตาฟ' : 'Apply as staff'}</Link>
+                <Link className="btn btn-primary" to={eventStaffApplyPath(event.slug)}>{language === 'th' ? 'สมัครเป็นทีมงาน' : 'Apply as staff'}</Link>
               ) : (
-                <Link className="btn btn-secondary" to={eventRegisterPath(event.slug)}>{language === 'th' ? 'ลงทะเบียนเข้าร่วม' : 'Register'}</Link>
+                <Link className="btn btn-secondary" to={eventRegisterPath(event.slug)}>{registrationCopy(event.status, language)}</Link>
               )}
               {event.slug === 'parent-orientation-staff-2569' ? (
                 <>
-                  <Link className="btn btn-secondary" to={eventProfileCheckPath(event.slug)}>{language === 'th' ? 'ตรวจสอบ/ขอแก้ไขข้อมูล' : 'Check/update profile'}</Link>
-                  <Link className="btn btn-secondary" to={eventStaffApplicationStatusPath(event.slug)}>{language === 'th' ? 'ตรวจสอบสถานะใบสมัคร' : 'Check application status'}</Link>
+                  <Link className="btn btn-secondary" to={eventProfileCheckPath(event.slug)}>{language === 'th' ? 'ตรวจข้อมูลของฉัน' : 'Check my info'}</Link>
+                  <Link className="btn btn-secondary" to={eventStaffApplicationStatusPath(event.slug)}>{language === 'th' ? 'ตรวจสถานะใบสมัคร' : 'Check application status'}</Link>
                 </>
               ) : null}
-              <Link className="btn btn-secondary" to={eventAnnouncementsPath(event.slug)}>{language === 'th' ? 'ประกาศกิจกรรม' : 'Announcements'}</Link>
+              <Link className="btn btn-secondary" to={eventAnnouncementsPath(event.slug)}>{language === 'th' ? 'อ่านประกาศกิจกรรม' : 'View announcements'}</Link>
               <Link className="btn btn-primary" to={legacyDefaultEventRoute('edit')}>{language === 'th' ? 'ตรวจสอบข้อมูลของฉัน' : 'Check my info'}</Link>
               {event.slug === 'entaneer-bonding-69' ? <Link className="btn btn-secondary" to={legacyDefaultEventRoute('home')}>{language === 'th' ? 'ดูรายชื่อ' : 'Participant list'}</Link> : null}
             </div>

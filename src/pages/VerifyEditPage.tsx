@@ -46,6 +46,17 @@ function fieldValue(profile: Profile, key: keyof Profile) {
   return typeof profile[key] === 'string' ? String(profile[key] ?? '') : '';
 }
 
+function normalizeEditValue(value: unknown) {
+  if (value === '' || value == null) return null;
+  if (typeof value === 'boolean') return value;
+  return String(value).trim();
+}
+
+function hasEditChanges(profile: Profile | null, form: EditableProfileFields | null) {
+  if (!profile || !form) return false;
+  return editableFields.some((field) => normalizeEditValue(profile[field]) !== normalizeEditValue(form[field]));
+}
+
 export function VerifyEditPage() {
   const { language } = useLanguage();
   const [email, setEmail] = useState('');
@@ -63,8 +74,9 @@ export function VerifyEditPage() {
   const [submitted, setSubmitted] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
 
-  const currentStep = submitted ? 3 : profile ? 2 : 1;
-  const showMobileSubmit = Boolean(profile && form);
+  const hasChanges = hasEditChanges(profile, form);
+  const currentStep = submitted ? 4 : profile && hasChanges ? 3 : profile ? 2 : 1;
+  const showMobileSubmit = Boolean(profile && form && hasChanges && !submitted);
 
   function updateForm(values: Partial<EditableProfileFields>) {
     if (!form) return;
@@ -125,7 +137,7 @@ export function VerifyEditPage() {
 
   async function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
-    if (!profile || !form || submitted || submitting) return;
+    if (!profile || !form || submitted || submitting || !hasChanges) return;
     setSubmitting(true);
     try {
       await createEditRequest(profile, form);
@@ -136,6 +148,12 @@ export function VerifyEditPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function resetChanges() {
+    if (!profile) return;
+    setForm(pickEditableFields(profile));
+    setSubmitted(false);
   }
 
   function renderInput(field: (typeof editableFields)[number]) {
@@ -183,13 +201,15 @@ export function VerifyEditPage() {
         description={language === 'th'
           ? 'กรอกอีเมลและเบอร์โทรที่ใช้ลงทะเบียนเพื่อยืนยันตัวตน จากนั้นเลือกข้อมูลที่ต้องการแก้ไข คำขอจะถูกส่งให้แอดมินตรวจสอบก่อนอัปเดตจริง'
           : 'Enter the email and phone used during registration, then edit allowed fields. Requests are reviewed by admins before updates are applied.'}
+        actions={<HelpButton topicId="participant.edit-info" variant="link" />}
       />
 
       <div className="edit-stepper" aria-label={language === 'th' ? 'ขั้นตอนการขอแก้ไขข้อมูล' : 'Edit request steps'}>
         {[
           language === 'th' ? 'ยืนยันตัวตน' : 'Verify',
-          language === 'th' ? 'ตรวจสอบข้อมูล' : 'Review',
-          language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit',
+          language === 'th' ? 'ตรวจสอบข้อมูลของฉัน' : 'Review my information',
+          language === 'th' ? 'ขอแก้ไขข้อมูล' : 'Request changes',
+          language === 'th' ? 'ส่งคำขอแล้ว' : 'Submitted',
         ].map((label, index) => {
           const step = index + 1;
           return (
@@ -206,7 +226,6 @@ export function VerifyEditPage() {
           <div className="full-span">
             <div className="section-title-row">
               <h2 className="edit-section-title">{language === 'th' ? 'ยืนยันตัวตน' : 'Identity Verification'}</h2>
-              <HelpButton topicId="participant.edit-info" variant="compact" />
             </div>
             <p className="muted">{language === 'th' ? 'ใช้ข้อมูลเดียวกับตอนลงทะเบียน หากจำเบอร์ไม่ได้ให้ติดต่อแอดมิน' : 'Use the same information you registered with. Contact an admin if you cannot remember your phone number.'}</p>
           </div>
@@ -291,6 +310,11 @@ export function VerifyEditPage() {
               <HelpButton topicId="faq.edit-approval-delay" variant="compact" />
             </div>
             <p>{language === 'th' ? 'กรอกเฉพาะช่องที่ต้องการเปลี่ยน คำขอจะรอแอดมินอนุมัติก่อนอัปเดตจริง' : 'Fill only the fields you want to change. Requests wait for admin approval.'}</p>
+            {!hasChanges ? (
+              <div className="form-hint">
+                {language === 'th' ? 'แก้ไขช่องที่ต้องการเปลี่ยน แล้วปุ่มส่งคำขอจะแสดงขึ้น' : 'Change any editable field and the submit button will appear.'}
+              </div>
+            ) : null}
             <Card className="privacy-notice">
               <strong>{language === 'th' ? 'ข้อมูลที่แก้ไขไม่ได้จากหน้านี้' : 'Protected fields'}</strong>
               <span>{language === 'th' ? 'อีเมล รหัสนักศึกษา ชื่อจริง และสาขาเป็นข้อมูลยืนยันตัวตน หากผิดให้ติดต่อแอดมิน' : 'Email, student ID, legal name, and major are protected identity fields. Contact an admin if they are incorrect.'}</span>
@@ -315,7 +339,8 @@ export function VerifyEditPage() {
                 <div className="edit-privacy-grid">{privacyFields.map(renderPrivacyToggle)}</div>
               </section>
               <div className="form-actions full-span">
-                <Button type="submit" loading={submitting} disabled={submitted} icon={<Save size={18} />}>
+                {hasChanges ? <Button type="button" variant="secondary" onClick={resetChanges}>{language === 'th' ? 'ล้างการแก้ไข' : 'Reset changes'}</Button> : null}
+                <Button type="submit" loading={submitting} disabled={submitted || !hasChanges} icon={<Save size={18} />}>
                   {submitted ? (language === 'th' ? 'ส่งคำขอแล้ว' : 'Submitted') : (language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit edit request')}
                 </Button>
               </div>
@@ -326,8 +351,8 @@ export function VerifyEditPage() {
             <details className="edit-section-card edit-collapsible edit-friend-panel">
               <summary>
                 <span>
-                  <strong>{language === 'th' ? 'เพื่อนที่คุณอาจรู้จักในกลุ่ม' : 'People You May Know in Your Group'}</strong>
-                  <small>{language === 'th' ? `พบ ${friends.length} คน · แสดงเฉพาะคนที่เปิดโปรไฟล์สาธารณะ` : `${friends.length} found · Only public profiles are shown`}</small>
+                  <strong>{language === 'th' ? 'เพื่อนในกลุ่มที่เปิดโปรไฟล์สาธารณะ' : 'Group members with public profiles'}</strong>
+                  <small>{language === 'th' ? `ตัวเลือกเสริม · พบ ${friends.length} คน · แสดงเฉพาะข้อมูลที่เจ้าของโปรไฟล์เปิดไว้` : `Optional · ${friends.length} found · Only information the owner made public is shown`}</small>
                 </span>
                 <em>{language === 'th' ? 'ตัวเลือกเสริม' : 'Optional'}</em>
               </summary>

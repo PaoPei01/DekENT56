@@ -66,9 +66,10 @@ export function PublicListPage() {
       <PageHeader
         compact
         eyebrow={t.participants}
-        title={language === 'th' ? 'ค้นหารายชื่อ' : 'Search participants'}
-        description={language === 'th' ? 'ค้นหารายชื่อ สาขา และกลุ่มของผู้เข้าร่วม โดยไม่แสดงข้อมูลส่วนตัว' : 'Search participant names, majors, and groups without showing private details.'}
+        title={language === 'th' ? 'ค้นหารายชื่อผู้เข้าร่วม' : 'Search participants'}
+        description={language === 'th' ? 'ค้นหารายชื่อ สาขา และกลุ่มของผู้เข้าร่วม โดยไม่แสดงข้อมูลส่วนตัว' : 'Search participants by name, major, and group without showing private details.'}
         meta={<strong className="count-badge">{resultText}</strong>}
+        actions={<HelpButton topicId="participant.search" variant="link" />}
       />
 
       <Card className="privacy-notice public-privacy-notice">
@@ -86,7 +87,6 @@ export function PublicListPage() {
         inputRef={searchInputRef}
         trailing={(
           <>
-            <HelpButton topicId="participant.search" variant="compact" />
             <Button type="button" variant="secondary" icon={<SlidersHorizontal size={17} />} onClick={() => setFiltersOpen(true)}>
               {language === 'th' ? 'ตัวกรอง' : 'Filters'}
             </Button>
@@ -104,7 +104,6 @@ export function PublicListPage() {
         open
         actions={(
           <>
-            <HelpButton topicId="participant.search" variant="compact" />
             {hasFilters ? <Button variant="ghost" onClick={clearFilters}>{language === 'th' ? copy.th.clearFilters : copy.en.clearFilters}</Button> : null}
           </>
         )}
@@ -206,12 +205,12 @@ export function PublicListPage() {
             </div>
             <Card className="privacy-notice">
               <strong>{language === 'th' ? 'ต้องยืนยันตัวตนก่อนดูข้อมูลเต็ม' : 'Verify identity to view full details'}</strong>
-              <span>{language === 'th' ? 'ข้อมูลติดต่อ ข้อมูลสุขภาพ และระบบแนะนำเพื่อนจะแสดงหลังยืนยันอีเมลและเบอร์โทรของตัวเองเท่านั้น' : 'Contact details, health details, and friend recommendations are available only after verifying your own email and phone.'}</span>
+              <span>{language === 'th' ? 'ข้อมูลเต็มจะแสดงเฉพาะเมื่อยืนยันอีเมลและเบอร์โทรของตัวเองเท่านั้น ระบบจะไม่เปิดข้อมูลส่วนตัวของคนอื่น' : 'Full details are shown only after verifying your own email and phone. The system will not reveal another person’s private information.'}</span>
               <HelpButton topicId="participant.edit-info" variant="compact" />
             </Card>
             <div className="form-actions">
               <Button icon={<Eye size={18} />} onClick={() => { setSelected(null); navigate('/edit'); }}>
-                {language === 'th' ? 'ดูข้อมูลเต็ม / แก้ไขข้อมูล' : 'View full details / edit'}
+                {language === 'th' ? 'ยืนยันตัวตนเพื่อดูข้อมูลของฉัน' : 'Verify to view my information'}
               </Button>
             </div>
             <MobileSafeAreaSpacer />
