@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   getStoredThemePreference,
@@ -27,6 +27,10 @@ function applyDocumentTheme(preference: ThemePreference, theme: EffectiveTheme) 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themePreference, setThemePreferenceState] = useState<ThemePreference>(() => getStoredThemePreference() ?? 'system');
   const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>(() => resolveEffectiveTheme(themePreference));
+  const setThemePreference = useCallback((preference: ThemePreference) => {
+    setStoredThemePreference(preference);
+    setThemePreferenceState(preference);
+  }, []);
 
   useEffect(() => {
     const nextTheme = resolveEffectiveTheme(themePreference);
@@ -41,17 +45,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [themePreference]);
 
   const value = useMemo(() => {
-    const setThemePreference = (preference: ThemePreference) => {
-      setStoredThemePreference(preference);
-      setThemePreferenceState(preference);
-    };
     return {
       themePreference,
       effectiveTheme,
       setThemePreference,
       isDark: effectiveTheme === 'dark',
     };
-  }, [effectiveTheme, themePreference]);
+  }, [effectiveTheme, setThemePreference, themePreference]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

@@ -3,6 +3,7 @@ import { Bell, CalendarDays, Database, FileText, HeartPulse, Home, Languages, Lo
 import { useEffect, useState } from 'react';
 import { MobileMoreMenu } from './mobile/MobileMoreMenu';
 import { RoleAwareBottomNav } from './mobile/RoleAwareBottomNav';
+import { RouteErrorBoundary } from './RouteErrorBoundary';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useLanguage } from '../context/LanguageContext';
 import { copy } from '../lib/copy';
@@ -63,6 +64,21 @@ export function Layout() {
   const uiCopy = language === 'th' ? copy.th : copy.en;
   const langButtonLabel = language === 'th' ? 'ไทย' : 'EN';
   const switchLanguageLabel = language === 'th' ? 'EN' : 'ไทย';
+  const mobileCopy = {
+    publicHome: language === 'th' ? 'หน้าแรก' : 'Home',
+    publicSearch: language === 'th' ? 'ค้นหา' : 'Search',
+    publicAnnouncements: language === 'th' ? 'ประกาศ' : 'Info',
+    publicMe: language === 'th' ? 'ของฉัน' : 'Me',
+    publicStaff: language === 'th' ? 'ทีมงาน' : 'Staff',
+    staffHome: language === 'th' ? 'ทีมงาน' : 'Staff',
+    staffCheckIn: language === 'th' ? 'เช็กชื่อ' : 'Check-in',
+    staffGroup: language === 'th' ? 'กลุ่ม' : 'Group',
+    emergency: language === 'th' ? 'ฉุกเฉิน' : 'Emergency',
+    more: language === 'th' ? 'เพิ่มเติม' : 'More',
+    adminHome: language === 'th' ? 'แอดมิน' : 'Admin',
+    adminPeople: language === 'th' ? 'รายชื่อ' : 'People',
+    adminStaff: language === 'th' ? 'ทีมงาน' : 'Staff',
+  };
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -171,58 +187,60 @@ export function Layout() {
         </button>
       </nav>
       <main className="page-shell">
-        <Outlet />
+        <RouteErrorBoundary resetKey={location.pathname}>
+          <Outlet />
+        </RouteErrorBoundary>
       </main>
       <RoleAwareBottomNav label={language === 'th' ? 'เมนูหลักมือถือ' : 'Mobile primary navigation'}>
         {!isAdmin && !isStaff ? (
           <>
             <NavLink to="/">
               <Home size={19} />
-              <span>{t('navigation.home')}</span>
+              <span>{mobileCopy.publicHome}</span>
             </NavLink>
             <button type="button" onClick={openPublicSearch}>
               <Search size={19} />
-              <span>{t('common.search')}</span>
+              <span>{mobileCopy.publicSearch}</span>
             </button>
             <NavLink to="/announcements">
               <Bell size={19} />
-              <span>{t('navigation.announcements')}</span>
+              <span>{mobileCopy.publicAnnouncements}</span>
             </NavLink>
           </>
         ) : null}
         {!isAdmin && !isStaff ? (
           <NavLink to="/me">
             <Pencil size={19} />
-            <span>{t('navigation.editInfo')}</span>
+            <span>{mobileCopy.publicMe}</span>
           </NavLink>
         ) : null}
         {!user && !isAdmin && !isStaff ? (
           <NavLink to="/staff/start">
             <Shield size={19} />
-            <span>{t('navigation.staff')}</span>
+            <span>{mobileCopy.publicStaff}</span>
           </NavLink>
         ) : null}
         {isAdmin ? (
           <>
             <NavLink to="/admin">
               <Shield size={19} />
-              <span>{language === 'th' ? 'ศูนย์ควบคุม' : 'Dashboard'}</span>
+              <span>{mobileCopy.adminHome}</span>
             </NavLink>
             <NavLink to="/admin/people-groups">
               <UsersRound size={19} />
-              <span>{language === 'th' ? 'รายชื่อ/กลุ่ม' : 'People'}</span>
+              <span>{mobileCopy.adminPeople}</span>
             </NavLink>
             <NavLink to="/admin/staff-ops">
               <UserCheck size={19} />
-              <span>{t('navigation.staff')}</span>
+              <span>{mobileCopy.adminStaff}</span>
             </NavLink>
             <NavLink to="/admin/emergency">
               <HeartPulse size={19} />
-              <span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span>
+              <span>{mobileCopy.emergency}</span>
             </NavLink>
             <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
-              <span>{t('navigation.more')}</span>
+              <span>{mobileCopy.more}</span>
             </button>
           </>
         ) : null}
@@ -230,34 +248,34 @@ export function Layout() {
           <>
             <NavLink to="/staff">
               <Shield size={19} />
-              <span>{language === 'th' ? 'หน้าทีมงาน' : 'Staff'}</span>
+              <span>{mobileCopy.staffHome}</span>
             </NavLink>
             {canAttend ? (
               <NavLink to="/staff/attendance">
                 <UserCheck size={19} />
-                <span>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</span>
+                <span>{mobileCopy.staffCheckIn}</span>
               </NavLink>
             ) : null}
             {access?.can_view_staff ? (
               <NavLink to="/staff/my-group">
                 <UsersRound size={19} />
-                <span>{language === 'th' ? 'กลุ่มของฉัน' : 'My group'}</span>
+                <span>{mobileCopy.staffGroup}</span>
               </NavLink>
             ) : null}
             {canEmergency ? (
               <NavLink to="/staff/emergency">
                 <HeartPulse size={19} />
-                <span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span>
+                <span>{mobileCopy.emergency}</span>
               </NavLink>
             ) : (
               <NavLink to="/announcements">
                 <Bell size={19} />
-                <span>{language === 'th' ? 'ประกาศ' : 'Announcements'}</span>
+                <span>{mobileCopy.publicAnnouncements}</span>
               </NavLink>
             )}
             <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
-              <span>{t('navigation.more')}</span>
+              <span>{mobileCopy.more}</span>
             </button>
           </>
         ) : null}

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { AppLanguage } from '../lib/i18n';
 import { copy, detectInitialLanguage, isThaiLanguage, setStoredLanguage, translate } from '../lib/i18n';
@@ -15,6 +15,10 @@ const LanguageContext = createContext<LanguageValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<AppLanguage>(() => detectInitialLanguage());
+  const setLanguage = useCallback((next: AppLanguage) => {
+    setStoredLanguage(next);
+    setLanguageState(next);
+  }, []);
   const value = useMemo(
     () => {
       const translateKey = (key: string, params?: Record<string, string | number>) => translate(language, key, params);
@@ -26,10 +30,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           return Reflect.get(target, property, receiver);
         },
       }) as LanguageValue['t'];
-      const setLanguage = (next: AppLanguage) => {
-        setStoredLanguage(next);
-        setLanguageState(next);
-      };
       return {
         language,
         setLanguage,
@@ -38,7 +38,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         t,
       };
     },
-    [language],
+    [language, setLanguage],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
