@@ -220,6 +220,19 @@ export function EventStaffApplyPage() {
       .join('\n');
   }
 
+  function clearIdentityScopedHealthInfo() {
+    setIdentityLookup(null);
+    setExistingApplication(null);
+    setHasHealthNotice('');
+    setChronicCondition('');
+    setFoodAllergy('');
+    setDrugAllergy('');
+    setHealthNote('');
+    setHealthPrefilledFromProfile(false);
+    setHealthCurrentConfirmed(false);
+    clearHealthValidationErrors();
+  }
+
   function existingApplicationFromResult(submitted: EventSubmissionResult): ApplicantExistingApplicationResult {
     return {
       exists: true,
@@ -706,9 +719,9 @@ export function EventStaffApplyPage() {
                 <h3>{language === 'th' ? 'ยืนยันตัวตน' : 'Identity verification'}</h3>
                 <p className="muted">{language === 'th' ? 'กรอกรหัสนักศึกษาและ CMU Mail เพื่อค้นหาข้อมูลของคุณ' : 'Enter your student ID and CMU Mail to find your information.'}</p>
               </div>
-              <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} placeholder="เช่น 680610xxx" hint={language === 'th' ? 'ใช้สำหรับค้นหาข้อมูลของคุณ' : 'Used to find your information.'} value={studentId} onChange={(eventInput) => { setStudentId(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.student_id} required />
-              <Input label={language === 'th' ? 'CMU Mail ปัจจุบัน' : 'Current CMU Mail'} placeholder="yourname@cmu.ac.th" hint={language === 'th' ? 'ต้องเป็นอีเมลที่ลงท้ายด้วย @cmu.ac.th เท่านั้น' : 'Must end with @cmu.ac.th.'} type="email" value={email} onChange={(eventInput) => { setEmail(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.email} required />
-              <Input label={language === 'th' ? 'เบอร์โทรปัจจุบัน' : 'Current phone'} placeholder="08x-xxx-xxxx" hint={language === 'th' ? 'ใช้สำหรับติดต่อประสานงานเท่านั้น ไม่ใช้เป็นเงื่อนไขหลักในการยืนยันตัวตน' : 'Used only for event coordination, not as the main identity condition.'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(eventInput) => setPhone(eventInput.target.value)} error={errors.phone} required />
+              <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} placeholder="เช่น 680610xxx" hint={language === 'th' ? 'ใช้สำหรับค้นหาข้อมูลของคุณ' : 'Used to find your information.'} value={studentId} onChange={(eventInput) => { setStudentId(eventInput.target.value); clearIdentityScopedHealthInfo(); }} error={errors.student_id} required />
+              <Input label={language === 'th' ? 'CMU Mail ปัจจุบัน' : 'Current CMU Mail'} placeholder="yourname@cmu.ac.th" hint={language === 'th' ? 'ต้องเป็นอีเมลที่ลงท้ายด้วย @cmu.ac.th เท่านั้น' : 'Must end with @cmu.ac.th.'} type="email" value={email} onChange={(eventInput) => { setEmail(eventInput.target.value); clearIdentityScopedHealthInfo(); }} error={errors.email} required />
+              <Input label={language === 'th' ? 'เบอร์โทรปัจจุบัน' : 'Current phone'} placeholder="08x-xxx-xxxx" hint={language === 'th' ? 'ใช้สำหรับติดต่อประสานงานเท่านั้น ไม่ใช้เป็นเงื่อนไขหลักในการยืนยันตัวตน' : 'Used only for event coordination, not as the main identity condition.'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(eventInput) => { setPhone(eventInput.target.value); clearIdentityScopedHealthInfo(); }} error={errors.phone} required />
               <div className="full-span event-card-actions">
                 <Button type="button" variant="secondary" loading={checkingIdentity} onClick={() => void checkIdentity()}>{checkingIdentity ? (language === 'th' ? 'กำลังตรวจสอบข้อมูล...' : 'Checking...') : (language === 'th' ? 'ตรวจสอบข้อมูล' : 'Check identity')}</Button>
                 <Link className="btn btn-secondary" to={eventProfileCheckPath(eventSlug)}>{language === 'th' ? 'ตรวจ/ขอแก้ไขข้อมูล' : 'Check/update profile'}</Link>

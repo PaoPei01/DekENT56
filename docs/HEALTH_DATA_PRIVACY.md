@@ -28,3 +28,12 @@ Health and allergy information is private operational data. Public pages must no
 - Health data exports contain contact and health information and should be shared only with authorized university or event units.
 - Admin screens should show only the submitted application snapshot unless a specific admin health-profile management tool is intentionally built.
 - Public event pages, profile-check pages, and application-status pages must not reveal private health profile data.
+
+## Submitted Snapshot Fields
+
+When an applicant reports health or allergy information, the submitted snapshot records:
+
+- `confirmed_current`
+- `confirmed_at`
+- `prefilled_from_health_profile`
+- `health_profile_source`

@@ -1195,6 +1195,12 @@ export function AdminEventApplicationsPage() {
                     {healthEntries(detailRow).map((entry) => (
                       <DetailRow key={entry.label} label={entry.label} value={text(entry.value)} />
                     ))}
+                    {healthDetails(detailRow).confirmed_current === true ? (
+                      <DetailRow
+                        label={language === 'th' ? 'การยืนยันข้อมูลสุขภาพ' : 'Health confirmation'}
+                        value={language === 'th' ? 'ผู้สมัครยืนยันว่าข้อมูลนี้เป็นปัจจุบันแล้ว' : 'The applicant confirmed this health information is up to date.'}
+                      />
+                    ) : null}
                   </div>
                 </Card>
                 {(isMeaningfulValue(applicantNote(detailRow)) || isMeaningfulValue(detailRow.review_note)) ? (
