@@ -2,7 +2,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Camera, CheckCircle2, Keyboard, ShieldAlert } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import type { StaffAttendanceScanResult } from '../../lib/attendanceTypes';
+import { staffAttendanceStatusLabel, type StaffAttendanceScanResult } from '../../lib/attendanceTypes';
 import { adminScanStaffPersonalQr, parseStaffPersonalQrToken } from '../../services/staffAttendance';
 import { errorMessage } from '../../utils/error';
 import { Button } from '../ui/Button';
@@ -190,7 +190,7 @@ export function StaffQrScannerModal({ open, onClose, sessionId, onScanSuccess }:
             <div>
               <strong>{resultMessage(result.code, language)}</strong>
               <span>{result.staff?.display_name ?? ''}</span>
-              {result.record?.status ? <em>{statusLabel(result.record.status, language)}</em> : null}
+              {result.record?.status ? <em>{staffAttendanceStatusLabel(result.record.status, language)}</em> : null}
             </div>
           </Card>
         ) : null}
@@ -228,16 +228,5 @@ function resultMessage(code: string, language: 'th' | 'en') {
     qr_expired: { th: 'QR รอบเช็กชื่อหมดอายุแล้ว', en: 'Session QR has expired' },
     admin_required: { th: 'ต้องเป็นแอดมินเท่านั้น', en: 'Admin access required' },
   };
-  return messages[code]?.[language] ?? (language === 'th' ? 'ดำเนินการแล้ว' : 'Done');
-}
-
-function statusLabel(status: string, language: 'th' | 'en') {
-  const labels: Record<string, { th: string; en: string }> = {
-    present: { th: 'มาแล้ว', en: 'Present' },
-    late: { th: 'มาสาย', en: 'Late' },
-    checked_out: { th: 'เช็กออก', en: 'Checked out' },
-    absent: { th: 'ขาด', en: 'Absent' },
-    excused: { th: 'ขออนุญาต', en: 'Excused' },
-  };
-  return labels[status]?.[language] ?? status;
+  return messages[code]?.[language] ?? (language === 'th' ? 'เช็กชื่อสำเร็จ' : 'Check-in successful');
 }

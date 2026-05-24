@@ -2,7 +2,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Camera, CheckCircle2, Keyboard, ShieldAlert } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import type { StaffAttendanceScanResult, VerifiedStaffAttendanceIdentity } from '../../lib/attendanceTypes';
+import { staffAttendanceStatusLabel, type StaffAttendanceScanResult, type VerifiedStaffAttendanceIdentity } from '../../lib/attendanceTypes';
 import { formatBangkokDateTime } from '../../lib/dateTime';
 import {
   parseStaffAttendanceSessionToken,
@@ -183,7 +183,7 @@ export function SessionQrScannerModal({ open, onClose, verifiedStaffIdentity, us
             <div>
               <strong>{resultMessage(result.code, language)}</strong>
               <span>{result.session?.title ?? ''}</span>
-              {result.record?.scanned_at ? <em>{formatBangkokDateTime(result.record.scanned_at, language)} · {statusLabel(result.record.status, language)}</em> : null}
+              {result.record?.scanned_at ? <em>{formatBangkokDateTime(result.record.scanned_at, language)} · {staffAttendanceStatusLabel(result.record.status, language)}</em> : null}
             </div>
           </Card>
         ) : null}
@@ -217,14 +217,5 @@ function resultMessage(code: string, language: 'th' | 'en') {
     session_closed: { th: 'รอบเช็กชื่อนี้ปิดแล้ว', en: 'Session is closed' },
     qr_expired: { th: 'QR หมดอายุแล้ว', en: 'QR has expired' },
   };
-  return messages[code]?.[language] ?? (language === 'th' ? 'ดำเนินการแล้ว' : 'Done');
-}
-
-function statusLabel(status: string, language: 'th' | 'en') {
-  const labels: Record<string, { th: string; en: string }> = {
-    present: { th: 'มาแล้ว', en: 'Present' },
-    late: { th: 'มาสาย', en: 'Late' },
-    checked_out: { th: 'เช็กออก', en: 'Checked out' },
-  };
-  return labels[status]?.[language] ?? status;
+  return messages[code]?.[language] ?? (language === 'th' ? 'เช็กชื่อสำเร็จ' : 'Check-in successful');
 }

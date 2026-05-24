@@ -40,7 +40,7 @@ export function EventAnnouncementsPage() {
       {!state.loading && !event ? (
         <EmptyState
           title={language === 'th' ? 'ไม่พบกิจกรรมนี้' : 'Event not found'}
-          description={language === 'th' ? 'กิจกรรมนี้อาจยังไม่เปิดเผย หรือใช้ลิงก์ไม่ถูกต้อง' : 'This event may not be public yet or the link is incorrect.'}
+          description={language === 'th' ? 'ไม่พบข้อมูลกิจกรรม กรุณาตรวจสอบลิงก์อีกครั้ง' : 'Could not find this event. Please check the link again.'}
           action={<Link className="btn btn-primary" to="/events">{language === 'th' ? 'ดูกิจกรรมทั้งหมด' : 'View events'}</Link>}
         />
       ) : null}
@@ -49,9 +49,9 @@ export function EventAnnouncementsPage() {
         <Card className="event-announcement-head" variant="soft">
           <Megaphone size={26} />
           <div>
-            <p className="eyebrow">{language === 'th' ? 'ประกาศสาธารณะ' : 'Public updates'}</p>
+            <p className="eyebrow">{language === 'th' ? 'ประกาศกิจกรรม' : 'Event updates'}</p>
             <h2>{eventTitle(event, language)}</h2>
-            <p>{language === 'th' ? 'แสดงเฉพาะประกาศที่เปิดเป็น Public สำหรับกิจกรรมนี้ รวมถึงประกาศกลางที่เกี่ยวข้อง' : 'Only public-visible updates for this event are shown, including relevant global announcements.'}</p>
+            <p>{language === 'th' ? 'รวมประกาศและอัปเดตสำคัญของกิจกรรมนี้' : 'Important announcements and updates for this event.'}</p>
           </div>
         </Card>
       ) : null}
@@ -94,8 +94,8 @@ export function EventAnnouncementsPage() {
 
       {!state.loading && event && !rows.length ? (
         <EmptyState
-          title={language === 'th' ? 'ยังไม่มีประกาศสาธารณะของกิจกรรมนี้' : 'No public announcements yet'}
-          description={language === 'th' ? 'ถ้ามีประกาศสำหรับทีมงานหรือแอดมิน ระบบจะไม่แสดงในหน้านี้' : 'Staff-only or admin-only announcements are not shown here.'}
+          title={language === 'th' ? 'ยังไม่มีประกาศ' : 'No announcements yet'}
+          description={language === 'th' ? 'โปรดติดตามประกาศและอัปเดตจากผู้ดูแลกิจกรรม' : 'Please check back later for updates from the event team.'}
         />
       ) : null}
     </section>

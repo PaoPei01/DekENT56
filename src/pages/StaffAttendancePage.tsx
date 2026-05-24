@@ -11,7 +11,7 @@ import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useEventContext } from '../context/EventContext';
 import { useLanguage } from '../context/LanguageContext';
-import type { MyStaffAttendanceData, VerifiedStaffAttendanceIdentity } from '../lib/attendanceTypes';
+import { attendanceMethodLabel, staffAttendanceStatusLabel, type MyStaffAttendanceData, type VerifiedStaffAttendanceIdentity } from '../lib/attendanceTypes';
 import { attendanceEventLabel } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { groupLabel } from '../lib/grouping';
@@ -22,7 +22,7 @@ import {
   identityFromAttendanceResult,
   saveVerifiedStaffIdentity,
 } from '../lib/verifiedStaffIdentity';
-import { fetchMyStaffAttendance, getMyStaffPersonalQr, verifyStaffAttendanceIdentity } from '../services/staffAttendance';
+import { fetchMyStaffAttendance, fetchStaffAttendanceHistoryByVerifiedToken, getMyStaffPersonalQr, verifyStaffAttendanceIdentity } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
 
 const StaffPersonalQrModal = lazy(() => import('../components/attendance/StaffPersonalQrModal').then((module) => ({ default: module.StaffPersonalQrModal })));
@@ -30,18 +30,6 @@ const SessionQrScannerModal = lazy(() => import('../components/attendance/Sessio
 
 function displayName(profile: { nickname_th?: string | null; nickname?: string | null; nickname_en?: string | null; name_th?: string | null; name_en?: string | null; email?: string | null } | null | undefined) {
   return profile?.nickname_th || profile?.nickname || profile?.nickname_en || profile?.name_th || profile?.name_en || profile?.email || '-';
-}
-
-function statusLabel(status: string | null | undefined, language: 'th' | 'en') {
-  const labels: Record<string, { th: string; en: string }> = {
-    present: { th: 'มาแล้ว', en: 'Present' },
-    late: { th: 'มาสาย', en: 'Late' },
-    absent: { th: 'ขาด', en: 'Absent' },
-    excused: { th: 'ขออนุญาต', en: 'Excused' },
-    checked_out: { th: 'เช็กออก', en: 'Checked out' },
-    cancelled: { th: 'ยกเลิก', en: 'Cancelled' },
-  };
-  return status ? labels[status]?.[language] ?? status : language === 'th' ? 'ยังไม่เช็ก' : 'Not checked';
 }
 
 function authIdentityFromData(data: MyStaffAttendanceData | null, personalQrPayload: string): VerifiedStaffAttendanceIdentity | null {
@@ -70,6 +58,7 @@ export function StaffAttendancePage() {
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState('');
+  const [historyError, setHistoryError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -84,16 +73,30 @@ export function StaffAttendancePage() {
   const loadAttendance = useCallback(async () => {
     setLoading(true);
     setError('');
+    setHistoryError('');
     try {
       const { data: userData } = await supabase.auth.getUser();
       setIsAuthenticated(Boolean(userData.user));
-      if (!userData.user) {
-        setData(null);
-        setLoading(false);
+      if (userData.user) {
+        const nextData = await fetchMyStaffAttendance();
+        setData(nextData);
         return;
       }
-      const nextData = await fetchMyStaffAttendance();
-      setData(nextData);
+
+      const rememberedIdentity = getVerifiedStaffIdentity();
+      setVerifiedIdentity(rememberedIdentity);
+      if (!rememberedIdentity?.verified_staff_token) {
+        setData(null);
+        return;
+      }
+
+      try {
+        const nextData = await fetchStaffAttendanceHistoryByVerifiedToken(rememberedIdentity.verified_staff_token);
+        setData(nextData);
+      } catch {
+        setData(null);
+        setHistoryError(language === 'th' ? 'ยังไม่สามารถโหลดประวัติการเช็กชื่อได้ กรุณาลองอัปเดตสถานะอีกครั้ง' : 'Could not load attendance history. Please refresh status again.');
+      }
     } catch (err) {
       setError(errorMessage(err, language === 'th' ? 'โหลดข้อมูลเช็กชื่อไม่สำเร็จ' : 'Could not load attendance'));
     } finally {
@@ -117,6 +120,14 @@ export function StaffAttendancePage() {
       }
       saveVerifiedStaffIdentity(identity);
       setVerifiedIdentity(identity);
+      try {
+        const nextData = await fetchStaffAttendanceHistoryByVerifiedToken(identity.verified_staff_token);
+        setData(nextData);
+        setHistoryError('');
+      } catch {
+        setData(null);
+        setHistoryError(language === 'th' ? 'ยังไม่สามารถโหลดประวัติการเช็กชื่อได้ กรุณาลองอัปเดตสถานะอีกครั้ง' : 'Could not load attendance history. Please refresh status again.');
+      }
       setToast({ type: 'success', message: language === 'th' ? 'ยืนยันตัวตนสำเร็จ' : 'Identity verified' });
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ยืนยันตัวตนไม่สำเร็จ' : 'Verification failed') });
@@ -141,6 +152,8 @@ export function StaffAttendancePage() {
   function clearIdentity() {
     clearVerifiedStaffIdentity();
     setVerifiedIdentity(null);
+    setData(null);
+    setHistoryError('');
     setEmail('');
     setPhone('');
     setToast({ type: 'success', message: language === 'th' ? 'ล้างข้อมูลที่จำไว้แล้ว' : 'Remembered identity cleared' });
@@ -163,6 +176,7 @@ export function StaffAttendancePage() {
   }
 
   const showVerification = !isAuthenticated && !verifiedIdentity;
+  const canShowHistory = !showVerification;
 
   return (
     <section className="page-stack staff-page staff-attendance-home staff-attendance-simple">
@@ -245,28 +259,58 @@ export function StaffAttendancePage() {
       {latest ? (
         <Card className="privacy-notice" variant="success">
           <strong>{language === 'th' ? 'สถานะล่าสุด' : 'Latest status'}</strong>
-          <span>{[latestEventLabel, latest.session?.title ?? '-', statusLabel(latest.status, language), formatBangkokDateTime(latest.scanned_at ?? latest.updated_at, language)].filter(Boolean).join(' · ')}</span>
+          <span>
+            {[
+              staffAttendanceStatusLabel(latest.status, language),
+              latest.session?.title ?? '-',
+              formatBangkokDateTime(latest.scanned_at ?? latest.updated_at, language),
+              attendanceMethodLabel(latest.method, language),
+            ].filter(Boolean).join(' · ')}
+          </span>
+          {latestEventLabel ? <small>{latestEventLabel}</small> : null}
         </Card>
       ) : null}
 
-      {isAuthenticated ? (
+      {!showVerification && !latest ? (
+        <Card className="privacy-notice" variant="soft">
+          <strong>{language === 'th' ? 'สถานะล่าสุด' : 'Latest status'}</strong>
+          <span>{language === 'th' ? 'ยังไม่พบประวัติการเช็กชื่อ' : 'No attendance record yet'}</span>
+        </Card>
+      ) : null}
+
+      {historyError ? (
+        <Card className="privacy-notice" variant="warning">
+          <strong>{language === 'th' ? 'โหลดประวัติไม่สำเร็จ' : 'Could not load history'}</strong>
+          <span>{historyError}</span>
+          <Button variant="secondary" icon={<RefreshCw size={16} />} onClick={() => void loadAttendance()}>
+            {language === 'th' ? 'อัปเดตสถานะ' : 'Refresh status'}
+          </Button>
+        </Card>
+      ) : null}
+
+      {canShowHistory ? (
         <section className="page-stack">
           <div className="staff-section-head">
             <h2><History size={19} />{language === 'th' ? 'ประวัติของฉัน' : 'My history'}</h2>
-            <span>{records.length} {language === 'th' ? 'รายการ' : 'records'}</span>
+            <div className="action-row">
+              <span>{records.length} {language === 'th' ? 'รายการ' : 'records'}</span>
+              <Button variant="secondary" size="sm" icon={<RefreshCw size={16} />} onClick={() => void loadAttendance()}>
+                {language === 'th' ? 'อัปเดตสถานะ' : 'Refresh status'}
+              </Button>
+            </div>
           </div>
           <ResponsiveDataTable
             rows={records}
             getKey={(row) => row.id}
-            emptyText={language === 'th' ? 'ยังไม่มีประวัติการเช็กชื่อ' : 'No attendance history yet'}
+            emptyText={language === 'th' ? 'ยังไม่พบประวัติการเช็กชื่อ' : 'No attendance record yet'}
             mobileTitle={(row) => row.session?.event_id ? attendanceEventLabel(row.session, events, language) : row.session?.title ?? '-'}
-            mobileSubtitle={(row) => row.session?.event_id ? `${row.session.title} · ${statusLabel(row.status, language)}` : statusLabel(row.status, language)}
+            mobileSubtitle={(row) => row.session?.event_id ? `${row.session.title} · ${staffAttendanceStatusLabel(row.status, language)}` : staffAttendanceStatusLabel(row.status, language)}
             mobileMeta={(row) => formatBangkokDateTime(row.scanned_at ?? row.updated_at, language)}
             columns={[
               { key: 'session', header: language === 'th' ? 'รอบ' : 'Session', render: (row) => <div className="participant-admin-cell"><strong>{row.session?.title ?? '-'}</strong>{row.session?.event_id ? <span>{attendanceEventLabel(row.session, events, language)}</span> : null}</div> },
-              { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
+              { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{staffAttendanceStatusLabel(row.status, language)}</span> },
               { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatBangkokDateTime(row.scanned_at ?? row.updated_at, language) },
-              { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => row.method },
+              { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => attendanceMethodLabel(row.method, language) },
             ]}
           />
         </section>
@@ -292,7 +336,7 @@ export function StaffAttendancePage() {
             useAuthStaff={isAuthenticated}
             onScanSuccess={async (result) => {
               setToast({ type: result.success ? 'success' : 'error', message: scanResultMessage(result.code, language) });
-              if (isAuthenticated) await loadAttendance();
+              if (result.success) await loadAttendance();
             }}
           />
         </Suspense>
@@ -312,5 +356,5 @@ function scanResultMessage(code: string, language: 'th' | 'en') {
     qr_expired: { th: 'QR หมดอายุแล้ว', en: 'QR has expired' },
     not_in_target_scope: { th: 'คุณไม่มีสิทธิ์เช็กชื่อรอบนี้', en: 'You are not allowed for this session' },
   };
-  return messages[code]?.[language] ?? (language === 'th' ? 'ดำเนินการแล้ว' : 'Done');
+  return messages[code]?.[language] ?? (language === 'th' ? 'เช็กชื่อสำเร็จ' : 'Check-in successful');
 }

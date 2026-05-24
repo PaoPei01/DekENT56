@@ -75,6 +75,14 @@ export async function fetchMyStaffAttendance(): Promise<MyStaffAttendanceData> {
   return data as MyStaffAttendanceData;
 }
 
+export async function fetchStaffAttendanceHistoryByVerifiedToken(verifiedStaffToken: string): Promise<MyStaffAttendanceData> {
+  const { data, error } = await supabase.rpc('get_staff_attendance_history_by_verified_token', {
+    input_verified_staff_token: verifiedStaffToken,
+  });
+  if (error) throw error;
+  return data as MyStaffAttendanceData;
+}
+
 export async function scanStaffAttendanceSessionQr(token: string, deviceInfo: Record<string, unknown> = {}): Promise<StaffAttendanceScanResult> {
   const { data, error } = await supabase.rpc('scan_staff_attendance_session_qr', {
     input_token: token,

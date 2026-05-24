@@ -499,7 +499,7 @@ export function EventStaffApplyPage() {
       {event && !isParentOrientationStaff ? (
         <EmptyState
           title={language === 'th' ? 'กิจกรรมนี้ยังไม่เปิดรับสมัครสตาฟ' : 'Staff applications are not open for this event'}
-          description={language === 'th' ? 'ตอนนี้เปิด pilot สำหรับงานปฐมนิเทศผู้ปกครองเท่านั้น' : 'The pilot application flow is currently enabled only for Parent Orientation.'}
+          description={language === 'th' ? 'ยังไม่มีแบบฟอร์มสมัครทีมงานสำหรับกิจกรรมนี้' : 'There is no staff application form for this event yet.'}
           action={<Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'กลับไปหน้ากิจกรรม' : 'Back to event'}</Link>}
         />
       ) : null}
@@ -523,17 +523,17 @@ export function EventStaffApplyPage() {
               <CheckCircle2 size={28} />
               <strong>
                 {result.already_applied
-                  ? (language === 'th' ? 'คุณได้ส่งใบสมัครแล้ว' : 'Application already submitted')
+                  ? (language === 'th' ? 'คุณส่งใบสมัครแล้ว' : 'You have already submitted an application')
                   : autoPassEligible
-                    ? (language === 'th' ? 'สมัครสำเร็จและผ่านการคัดเลือกเบื้องต้นแล้ว' : 'Application submitted and preliminarily accepted')
-                    : (language === 'th' ? 'ส่งใบสมัครสำเร็จ รอผู้ดูแลตรวจสอบข้อมูลเพิ่มเติม' : 'Application submitted. Additional admin review is required.')}
+                    ? (language === 'th' ? 'สมัครสำเร็จ' : 'Application submitted')
+                    : (language === 'th' ? 'ส่งใบสมัครแล้ว' : 'Application submitted')}
               </strong>
               <span>
                 {result.already_applied
-                  ? (result.message_th ?? (language === 'th' ? 'คุณได้ส่งใบสมัครสำหรับกิจกรรมนี้แล้ว ไม่จำเป็นต้องส่งซ้ำ' : 'You have already applied for this event.'))
+                  ? (language === 'th' ? 'ไม่จำเป็นต้องส่งซ้ำ สามารถตรวจสอบสถานะได้จากปุ่มด้านล่าง' : 'You have already submitted an application.')
                   : autoPassEligible
-                    ? (language === 'th' ? 'ระบบตรวจสอบแล้วว่าข้อมูลของคุณยืนยันตัวตนสำเร็จและไม่มีคำร้องแก้ไขข้อมูล จึงถือว่าผ่านการคัดเลือกเบื้องต้นสำหรับกิจกรรมนี้' : 'Your identity was verified and no data correction issue was found, so your application is preliminarily accepted for this event.')
-                    : (language === 'th' ? 'ระบบได้รับใบสมัครของคุณแล้ว และจะให้ผู้ดูแลตรวจสอบข้อมูลเพิ่มเติม' : 'Your application has been received and will need additional admin review.')}
+                    ? (language === 'th' ? 'ระบบได้รับใบสมัครของคุณแล้ว และบันทึกสถานะเรียบร้อย' : 'Your information has been received.')
+                    : (language === 'th' ? 'ระบบได้รับข้อมูลของคุณแล้ว โปรดติดตามสถานะจากหน้านี้' : 'Your information has been received.')}
               </span>
               <div className="event-fact-grid">
                 <span><strong>{language === 'th' ? 'ชื่อ-นามสกุล' : 'Name'}</strong>{applicantDisplayName}</span>
@@ -547,7 +547,7 @@ export function EventStaffApplyPage() {
               <span><strong>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</strong>: {result.assignment?.assigned_label_th ?? result.application?.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรรเพิ่มเติม' : 'Pending admin assignment')}</span>
               {autoPassEligible && result.application?.status !== 'approved' ? (
                 <Card variant="warning">
-                  <p className="muted">{language === 'th' ? 'ระบบระบุว่าคุณเข้าเงื่อนไขผ่านอัตโนมัติ แต่สถานะในฐานข้อมูลอาจรอการซิงก์/ตรวจสอบจากผู้ดูแล' : 'You meet the auto-pass condition, but the stored status may still need admin sync/review.'}</p>
+                  <p className="muted">{language === 'th' ? 'ระบบได้รับใบสมัครแล้ว หากมีข้อมูลที่ต้องตรวจเพิ่มเติม ผู้ดูแลจะตรวจสอบภายหลัง' : 'Your application has been received. The team will review any details if needed.'}</p>
                 </Card>
               ) : null}
               {renderLineGroupCard()}
@@ -564,8 +564,8 @@ export function EventStaffApplyPage() {
           ) : existingApplication?.already_applied ? (
             <div className="edit-success-card" role="status">
               <CheckCircle2 size={28} />
-              <strong>{language === 'th' ? 'คุณได้ส่งใบสมัครแล้ว' : 'Application already submitted'}</strong>
-              <span>{existingApplication.message_th ?? (language === 'th' ? 'คุณได้ส่งใบสมัครสำหรับกิจกรรมนี้แล้ว ไม่จำเป็นต้องส่งซ้ำ' : 'You have already applied for this event.')}</span>
+              <strong>{language === 'th' ? 'คุณส่งใบสมัครแล้ว' : 'You have already submitted an application'}</strong>
+              <span>{language === 'th' ? 'ไม่จำเป็นต้องส่งซ้ำ สามารถตรวจสอบสถานะได้จากปุ่มด้านล่าง' : 'You have already submitted an application.'}</span>
               <div className="event-fact-grid">
                 <span><strong>{language === 'th' ? 'สถานะใบสมัคร' : 'Application status'}</strong>{applicationStatusLabel(existingApplication.application?.status ?? 'submitted')}</span>
                 <span><strong>{language === 'th' ? 'สถานะการยืนยันตัวตน' : 'Identity status'}</strong>{identityStatusLabel(existingApplication.application?.identity_status ?? 'pending_identity_review', language)}</span>
@@ -574,7 +574,7 @@ export function EventStaffApplyPage() {
                 <span><strong>{language === 'th' ? 'รหัสใบสมัคร' : 'Application ID'}</strong>{existingApplication.application?.application_id ?? '-'}</span>
               </div>
               <Card variant="soft">
-                <p className="muted">{language === 'th' ? 'พบใบสมัครเดิมของคุณในระบบ ระบบจะแสดงข้อมูลใบสมัครเดิมแทนการส่งซ้ำ' : 'An existing application was found. The app shows the existing application instead of submitting again.'}</p>
+                <p className="muted">{language === 'th' ? 'พบใบสมัครเดิมของคุณแล้ว' : 'Your existing application was found.'}</p>
               </Card>
               {renderLineGroupCard()}
               <div className="event-card-actions">
@@ -602,9 +602,9 @@ export function EventStaffApplyPage() {
                 <>
               <div className="event-form-section full-span">
                 <h3>{language === 'th' ? 'ยืนยันตัวตน' : 'Identity verification'}</h3>
-                <p className="muted">{language === 'th' ? 'กรอกรหัสนักศึกษาและ CMU Mail เพื่อค้นหาข้อมูลในฐานข้อมูลกลาง' : 'Enter your student ID and CMU Mail to search the Central People Database.'}</p>
+                <p className="muted">{language === 'th' ? 'กรอกรหัสนักศึกษาและ CMU Mail เพื่อค้นหาข้อมูลของคุณ' : 'Enter your student ID and CMU Mail to find your information.'}</p>
               </div>
-              <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} placeholder="เช่น 680610xxx" hint={language === 'th' ? 'ใช้สำหรับค้นหาข้อมูลจากฐานข้อมูลกลาง' : 'Used to find your record in the Central People Database.'} value={studentId} onChange={(eventInput) => { setStudentId(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.student_id} required />
+              <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} placeholder="เช่น 680610xxx" hint={language === 'th' ? 'ใช้สำหรับค้นหาข้อมูลของคุณ' : 'Used to find your information.'} value={studentId} onChange={(eventInput) => { setStudentId(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.student_id} required />
               <Input label={language === 'th' ? 'CMU Mail ปัจจุบัน' : 'Current CMU Mail'} placeholder="yourname@cmu.ac.th" hint={language === 'th' ? 'ต้องเป็นอีเมลที่ลงท้ายด้วย @cmu.ac.th เท่านั้น' : 'Must end with @cmu.ac.th.'} type="email" value={email} onChange={(eventInput) => { setEmail(eventInput.target.value); setIdentityLookup(null); setExistingApplication(null); }} error={errors.email} required />
               <Input label={language === 'th' ? 'เบอร์โทรปัจจุบัน' : 'Current phone'} placeholder="08x-xxx-xxxx" hint={language === 'th' ? 'ใช้สำหรับติดต่อประสานงานเท่านั้น ไม่ใช้เป็นเงื่อนไขหลักในการยืนยันตัวตน' : 'Used only for event coordination, not as the main identity condition.'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(eventInput) => setPhone(eventInput.target.value)} error={errors.phone} required />
               <div className="full-span event-card-actions">
@@ -612,7 +612,7 @@ export function EventStaffApplyPage() {
                 <Link className="btn btn-secondary" to={eventProfileCheckPath(eventSlug)}>{language === 'th' ? 'ตรวจ/ขอแก้ไขข้อมูล' : 'Check/update profile'}</Link>
               </div>
               <Card className="full-span" variant="soft">
-                <p className="muted">{language === 'th' ? 'หาก CMU Mail ในฐานข้อมูลเดิมไม่ถูกต้อง สามารถส่งใบสมัครได้ตามปกติ ระบบจะให้ผู้ดูแลตรวจสอบตัวตนเพิ่มเติมภายหลัง' : 'If the old CMU Mail is incorrect, you can still submit. Admins will review identity later.'}</p>
+                <p className="muted">{language === 'th' ? 'หาก CMU Mail เดิมไม่ถูกต้อง ยังสามารถส่งใบสมัครได้ โดยผู้ดูแลจะตรวจสอบเพิ่มเติม' : 'If your previous CMU Mail is incorrect, you can still apply. The team will review it.'}</p>
               </Card>
               {errors.identity ? <small className="field-error full-span" role="alert">{errors.identity}</small> : null}
               {identityLookup ? (
@@ -637,7 +637,7 @@ export function EventStaffApplyPage() {
                   )}
                   {identityLookup.identity_status !== 'verified' ? (
                     <>
-                      <p className="muted">{language === 'th' ? 'หาก CMU Mail ในฐานข้อมูลเดิมไม่ถูกต้อง สามารถส่งใบสมัครได้ตามปกติ ระบบจะให้ผู้ดูแลตรวจสอบตัวตนเพิ่มเติมภายหลัง' : 'If the old CMU Mail is incorrect, you can still submit. Admins will review identity later.'}</p>
+                      <p className="muted">{language === 'th' ? 'หาก CMU Mail เดิมไม่ถูกต้อง ยังสามารถส่งใบสมัครได้ โดยผู้ดูแลจะตรวจสอบเพิ่มเติม' : 'If your previous CMU Mail is incorrect, you can still apply. The team will review it.'}</p>
                       <Button type="button" variant="secondary" onClick={() => setShowUpdateModal(true)}>{language === 'th' ? 'รายงานข้อมูลไม่ถูกต้อง / ขอแก้ไขข้อมูล' : 'Report incorrect data'}</Button>
                     </>
                   ) : null}

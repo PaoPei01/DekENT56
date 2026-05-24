@@ -17,7 +17,7 @@ import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useEventContext } from '../context/EventContext';
 import { useAsync } from '../hooks/useAsync';
-import type { StaffAttendanceAdminRow, StaffAttendanceStatus } from '../lib/attendanceTypes';
+import { attendanceMethodLabel, staffAttendanceStatusLabel, type StaffAttendanceAdminRow, type StaffAttendanceStatus } from '../lib/attendanceTypes';
 import { attendanceEventIsLegacy, attendanceEventLabel, attendanceQrState, attendanceQrStateLabel } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { groupLabel } from '../lib/grouping';
@@ -35,11 +35,11 @@ import {
 import { errorMessage } from '../utils/error';
 
 const manualStatuses: Array<{ value: StaffAttendanceStatus; th: string; en: string }> = [
-  { value: 'present', th: 'มาแล้ว', en: 'Present' },
+  { value: 'present', th: 'เช็กชื่อแล้ว', en: 'Checked in' },
   { value: 'late', th: 'มาสาย', en: 'Late' },
-  { value: 'absent', th: 'ขาด', en: 'Absent' },
-  { value: 'excused', th: 'ขออนุญาต', en: 'Excused' },
-  { value: 'checked_out', th: 'เช็กออก', en: 'Checked out' },
+  { value: 'absent', th: 'ยังไม่เช็กชื่อ', en: 'Not checked in' },
+  { value: 'excused', th: 'แจ้งไว้แล้ว', en: 'Excused' },
+  { value: 'checked_out', th: 'เช็กออกแล้ว', en: 'Checked out' },
 ];
 
 const StaffQrScannerModal = lazy(() => import('../components/attendance/StaffQrScannerModal').then((module) => ({ default: module.StaffQrScannerModal })));
@@ -48,7 +48,7 @@ function statusText(status: string | undefined | null, language: 'th' | 'en') {
   const found = manualStatuses.find((item) => item.value === status);
   if (found) return language === 'th' ? found.th : found.en;
   if (status === 'cancelled') return language === 'th' ? 'ยกเลิก' : 'Cancelled';
-  return language === 'th' ? 'ยังไม่เช็ก' : 'Not checked';
+  return language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in';
 }
 
 export function AdminStaffAttendanceSessionPage() {
@@ -208,7 +208,7 @@ export function AdminStaffAttendanceSessionPage() {
 
       <div className="stats-grid">
         <DashboardStatCard label={language === 'th' ? 'ทีมงานทั้งหมด' : 'Total'} value={summary?.total_targeted ?? 0} icon={<ShieldCheck size={20} />} />
-        <DashboardStatCard label={language === 'th' ? 'มาแล้ว' : 'Present'} value={summary?.present ?? 0} icon={<CheckCircle2 size={20} />} />
+        <DashboardStatCard label={language === 'th' ? 'เช็กชื่อแล้ว' : 'Checked in'} value={summary?.present ?? 0} icon={<CheckCircle2 size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'มาสาย' : 'Late'} value={summary?.late ?? 0} icon={<Clock size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} value={summary?.missing ?? 0} icon={<XCircle size={20} />} />
       </div>
@@ -303,7 +303,7 @@ export function AdminStaffAttendanceSessionPage() {
         onChange={setSearch}
         placeholder={language === 'th' ? 'ชื่อ เบอร์ อีเมล หน้าที่' : 'Name, phone, email, role'}
         resultText={`${roster.length} ${language === 'th' ? 'คน' : 'people'}`}
-        trailing={<Select label={language === 'th' ? 'สถานะ' : 'Status'} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} options={[{ value: 'missing', label: language === 'th' ? 'ยังไม่เช็ก' : 'Missing' }, ...manualStatuses.map((item) => ({ value: item.value, label: language === 'th' ? item.th : item.en }))]} />}
+        trailing={<Select label={language === 'th' ? 'สถานะ' : 'Status'} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} options={[{ value: 'missing', label: language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in' }, ...manualStatuses.map((item) => ({ value: item.value, label: language === 'th' ? item.th : item.en }))]} />}
       />
 
       <Card className="toolbar desktop-filter-panel">
@@ -311,7 +311,7 @@ export function AdminStaffAttendanceSessionPage() {
           <Search size={18} />
           <Input label={language === 'th' ? 'ค้นหาทีมงาน' : 'Search staff'} value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <Select label={language === 'th' ? 'สถานะ' : 'Status'} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} options={[{ value: 'missing', label: language === 'th' ? 'ยังไม่เช็ก' : 'Missing' }, ...manualStatuses.map((item) => ({ value: item.value, label: language === 'th' ? item.th : item.en }))]} />
+        <Select label={language === 'th' ? 'สถานะ' : 'Status'} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} options={[{ value: 'missing', label: language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in' }, ...manualStatuses.map((item) => ({ value: item.value, label: language === 'th' ? item.th : item.en }))]} />
       </Card>
 
       <ResponsiveDataTable
@@ -334,9 +334,9 @@ export function AdminStaffAttendanceSessionPage() {
           { key: 'name', header: language === 'th' ? 'ทีมงาน' : 'Staff', render: (row) => <div className="participant-admin-cell"><strong>{staffAttendanceDisplayName(row)}</strong><span>{row.name_th || row.name_en || row.email}</span></div> },
           { key: 'role', header: language === 'th' ? 'หน้าที่' : 'Role', render: (row) => row.primary_role || row.position || '-' },
           { key: 'group', header: language === 'th' ? 'กลุ่ม' : 'Group', render: (row) => groupLabel(row.main_group, row.subgroup, language) },
-          { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.record?.status ?? 'missing'}`}>{statusText(row.record?.status, language)}</span> },
+          { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.record?.status ?? 'missing'}`}>{staffAttendanceStatusLabel(row.record?.status, language)}</span> },
           { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatBangkokDateTime(row.record?.scanned_at ?? null, language) },
-          { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => row.record?.method ?? '-' },
+          { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => attendanceMethodLabel(row.record?.method, language) },
           { key: 'actions', header: language === 'th' ? 'Manual' : 'Manual', render: (row) => (
             <div className="attendance-row-actions">
               {manualStatuses.slice(0, 4).map((item) => (
@@ -382,5 +382,5 @@ function attendanceScanMessage(code: string, language: 'th' | 'en') {
     not_in_target_scope: { th: 'ทีมงานคนนี้ไม่อยู่ในกลุ่มเป้าหมาย', en: 'This staff member is not in the target scope' },
     admin_required: { th: 'ต้องเป็นแอดมินเท่านั้น', en: 'Admin access required' },
   };
-  return messages[code]?.[language] ?? (language === 'th' ? 'ดำเนินการแล้ว' : 'Done');
+  return messages[code]?.[language] ?? (language === 'th' ? 'เช็กชื่อสำเร็จ' : 'Check-in successful');
 }

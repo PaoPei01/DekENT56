@@ -75,7 +75,7 @@ export function EventDetailPage() {
       {!state.loading && !state.error && !event ? (
         <EmptyState
           title={language === 'th' ? 'ไม่พบกิจกรรมนี้' : 'Event not found'}
-          description={language === 'th' ? 'ลิงก์นี้อาจไม่ถูกต้อง หรือกิจกรรมยังไม่เปิดเผย' : 'This link may be incorrect or the event is not public yet.'}
+          description={language === 'th' ? 'ไม่พบข้อมูลกิจกรรม กรุณาตรวจสอบลิงก์อีกครั้ง' : 'Could not find this event. Please check the link again.'}
           action={<Link className="btn btn-primary" to="/events">{language === 'th' ? 'ดูกิจกรรมทั้งหมด' : 'View events'}</Link>}
         />
       ) : null}
@@ -302,7 +302,7 @@ export function EventDetailPage() {
               <h2>{event.status === 'staff_recruiting' ? (language === 'th' ? 'สมัครเป็นสตาฟกิจกรรมนี้' : 'Apply as staff') : (language === 'th' ? 'ดูข้อมูลกิจกรรมปัจจุบัน' : 'Open current event tools')}</h2>
               <p>{event.slug === 'entaneer-bonding-69'
                 ? (language === 'th' ? 'หน้ารายชื่อและแก้ไขข้อมูลเดิมยังใช้งานได้ตามปกติ' : 'The existing participant list and edit flow continue to work normally.')
-                : (language === 'th' ? 'ใบสมัครนี้เป็น pilot ของระบบหลายกิจกรรม และต้องรอผู้ดูแลตรวจสอบ' : 'This is a multi-event pilot application and requires admin review.')}</p>
+                : (language === 'th' ? 'ส่งใบสมัครแล้วติดตามสถานะได้จากหน้ากิจกรรมนี้' : 'Submit your application and check the status from this event page.')}</p>
             </div>
             <div className="event-card-actions">
               {event.status === 'staff_recruiting' ? (

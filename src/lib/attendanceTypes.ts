@@ -199,3 +199,30 @@ export type StaffAttendanceIdentityResult = {
     primary_role: string | null;
   } | null;
 };
+
+export function staffAttendanceStatusLabel(status: StaffAttendanceStatus | string | null | undefined, language: 'th' | 'en') {
+  const labels: Record<string, { th: string; en: string }> = {
+    present: { th: 'เช็กชื่อแล้ว', en: 'Checked in' },
+    late: { th: 'มาสาย', en: 'Late' },
+    absent: { th: 'ยังไม่เช็กชื่อ', en: 'Not checked in' },
+    excused: { th: 'แจ้งไว้แล้ว', en: 'Excused' },
+    checked_out: { th: 'เช็กออกแล้ว', en: 'Checked out' },
+    cancelled: { th: 'ยกเลิก', en: 'Cancelled' },
+  };
+  return status ? labels[status]?.[language] ?? status : language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in';
+}
+
+export function attendanceMethodLabel(method: StaffAttendanceMethod | string | null | undefined, language: 'th' | 'en') {
+  const labels: Record<string, { th: string; en: string }> = {
+    admin_scan: { th: 'แอดมินสแกน QR', en: 'Admin scanned QR' },
+    personal_qr: { th: 'แอดมินสแกน QR', en: 'Admin scanned QR' },
+    admin_scan_staff_qr: { th: 'แอดมินสแกน QR', en: 'Admin scanned QR' },
+    session_qr: { th: 'สแกน QR รอบเช็กชื่อ', en: 'Session QR scan' },
+    verified_qr: { th: 'สแกน QR รอบเช็กชื่อ', en: 'Session QR scan' },
+    verified_camera_scan: { th: 'สแกน QR รอบเช็กชื่อ', en: 'Session QR scan' },
+    manual: { th: 'เช็กชื่อโดยผู้ดูแล', en: 'Manual check-in' },
+    import: { th: 'นำเข้าข้อมูล', en: 'Imported' },
+    system: { th: 'บันทึกโดยระบบ', en: 'System' },
+  };
+  return method ? labels[method]?.[language] ?? method : language === 'th' ? 'ไม่ระบุวิธี' : 'Unknown method';
+}

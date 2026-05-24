@@ -112,8 +112,8 @@ export function AdminStaffAttendancePage() {
       <div className="stats-grid">
         <DashboardStatCard label={language === 'th' ? 'จำนวนรอบ' : 'Sessions'} value={sessions.length} icon={<CalendarClock size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'ทีมงานในรอบทั้งหมด' : 'Targeted staff'} value={totals.total} icon={<UsersRound size={20} />} />
-        <DashboardStatCard label={language === 'th' ? 'มาแล้ว' : 'Present'} value={totals.present} />
-        <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} value={totals.missing} />
+        <DashboardStatCard label={language === 'th' ? 'เช็กชื่อแล้ว' : 'Checked in'} value={totals.present} />
+        <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in'} value={totals.missing} />
       </div>
 
       <Card className="attendance-event-context-card" variant="soft">
@@ -138,7 +138,7 @@ export function AdminStaffAttendancePage() {
         emptyText={language === 'th' ? 'ยังไม่มีรอบเช็กชื่อ' : 'No attendance sessions yet'}
         mobileTitle={(row) => row.title}
         mobileSubtitle={(row) => `${attendanceEventBadgeLabel(row, events, language)} · ${statusLabel(row.status, language)}`}
-        mobileMeta={(row) => `${formatBangkokDateTime(row.starts_at, language)} · ${language === 'th' ? 'มาแล้ว' : 'Present'} ${row.summary?.present ?? 0} · ${language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} ${row.summary?.missing ?? 0}`}
+        mobileMeta={(row) => `${formatBangkokDateTime(row.starts_at, language)} · ${language === 'th' ? 'เช็กชื่อแล้ว' : 'Checked in'} ${row.summary?.present ?? 0} · ${language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in'} ${row.summary?.missing ?? 0}`}
         mobileActions={(row) => <Link className="btn btn-primary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'เปิดรายละเอียด' : 'Open detail'}</Link>}
         columns={[
           { key: 'title', header: language === 'th' ? 'รอบเช็กชื่อ' : 'Session', render: (row) => <div className="participant-admin-cell"><strong>{row.title}</strong><span>{attendanceEventLabel(row, events, language)}</span></div> },

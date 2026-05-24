@@ -887,6 +887,14 @@ Use this checklist before real event operations and after every production-readi
 
 ## Accessibility
 
+- [ ] Public announcements empty state says only `ยังไม่มีประกาศ` with a short description.
+- [ ] No public page mentions `Visible`, `Audience`, `Public`, `Staff-only`, or `Admin-only` as troubleshooting text.
+- [ ] Staff application pages do not mention pilot, multi-event internals, backend, database status, or sync.
+- [ ] Staff attendance page shows `สถานะล่าสุด` after check-in.
+- [ ] Staff attendance history is visible for authenticated staff.
+- [ ] Staff attendance history is visible for verified non-auth staff after email/phone verification.
+- [ ] Admin scan, manual check-in, and session QR scan produce consistent staff-facing labels.
+- [ ] Attendance labels use `เช็กชื่อแล้ว`, `มาสาย`, `ยังไม่เช็กชื่อ`, and `เช็กออกแล้ว`.
 - [ ] Public participant page says it shows only safe public information and hides contact/health/private details.
 - [ ] Public edit CTA reads naturally as `ตรวจสอบหรือขอแก้ไขข้อมูลของฉัน`.
 - [ ] Admin dashboard labels use plain Thai: `คำขอที่รอตรวจสอบ`, `ข้อมูลที่ต้องดูแลเป็นพิเศษ`, `สรุปจำนวนตามสาขา`.

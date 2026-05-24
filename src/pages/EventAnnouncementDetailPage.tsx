@@ -33,15 +33,15 @@ export function EventAnnouncementDetailPage() {
       {!state.loading && !event ? (
         <EmptyState
           title={language === 'th' ? 'ไม่พบกิจกรรมนี้' : 'Event not found'}
-          description={language === 'th' ? 'กิจกรรมนี้อาจยังไม่เปิดเผย หรือใช้ลิงก์ไม่ถูกต้อง' : 'This event may not be public yet or the link is incorrect.'}
+          description={language === 'th' ? 'ไม่พบข้อมูลกิจกรรม กรุณาตรวจสอบลิงก์อีกครั้ง' : 'Could not find this event. Please check the link again.'}
           action={<Link className="btn btn-primary" to="/events">{language === 'th' ? 'ดูกิจกรรมทั้งหมด' : 'View events'}</Link>}
         />
       ) : null}
 
       {event && !state.loading && !item ? (
         <EmptyState
-          title={language === 'th' ? 'ไม่พบประกาศสาธารณะ' : 'Public announcement not found'}
-          description={language === 'th' ? 'ประกาศนี้อาจถูกปิดการแสดงผล หรือเป็นประกาศสำหรับทีมงาน/แอดมินเท่านั้น' : 'This announcement may be hidden or limited to staff/admin audiences.'}
+          title={language === 'th' ? 'ไม่พบประกาศ' : 'Announcement not found'}
+          description={language === 'th' ? 'ประกาศนี้อาจถูกลบหรือยังไม่พร้อมแสดงผล' : 'This announcement may have been removed or is not available yet.'}
           action={<Link className="btn btn-secondary" to={eventPath(eventSlug)}>{language === 'th' ? 'กลับหน้ากิจกรรม' : 'Back to event'}</Link>}
         />
       ) : null}

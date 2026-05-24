@@ -144,7 +144,7 @@ const attendanceFlows = [
   },
   {
     title: { th: 'แอดมินเช็กชื่อแบบ Manual', en: 'Admin manual check-in' },
-    steps: { th: 'เปิดรอบเช็กชื่อ → ค้นหาชื่อทีมงาน → กด มาแล้ว/มาสาย/ขาด/ลา', en: 'Open session → Search staff → Mark present/late/absent/excused' },
+    steps: { th: 'เปิดรอบเช็กชื่อ → ค้นหาชื่อทีมงาน → กดเช็กชื่อแล้ว/มาสาย/ยังไม่เช็กชื่อ/แจ้งไว้แล้ว', en: 'Open session → Search staff → Mark checked in/late/not checked in/excused' },
   },
   {
     title: { th: 'แอดมินสแกน QR ส่วนตัวทีมงาน', en: 'Admin scans staff personal QR' },
@@ -182,14 +182,14 @@ const previewCards: PreviewCard[] = [
     badge: { th: 'เช็กชื่อเช้าวันกิจกรรม', en: 'Morning check-in' },
     rows: [
       { th: 'สแกน QR รอบเช็กชื่อ', en: 'Scan attendance session QR' },
-      { th: 'สถานะ: มาแล้ว', en: 'Status: Present' },
+      { th: 'สถานะ: เช็กชื่อแล้ว', en: 'Status: Checked in' },
     ],
   },
   {
     title: { th: 'หน้า Admin Attendance', en: 'Admin Attendance' },
     badge: { th: 'สรุปสด', en: 'Live summary' },
     rows: [
-      { th: 'ทั้งหมด 226 · มาแล้ว 180 · มาสาย 7', en: 'Total 226 · Present 180 · Late 7' },
+      { th: 'ทั้งหมด 226 · เช็กชื่อแล้ว 180 · มาสาย 7', en: 'Total 226 · Checked in 180 · Late 7' },
       { th: 'Manual และสแกน QR ส่วนตัวทีมงาน', en: 'Manual and personal QR scan tools' },
     ],
   },
