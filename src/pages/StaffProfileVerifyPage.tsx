@@ -158,7 +158,6 @@ export function StaffProfileVerifyPage() {
                 <Card className="privacy-notice full-span" variant="soft">
                   <strong>{language === 'th' ? 'โปรไฟล์พื้นฐานแบบปลอดภัย' : 'Safe Public Lite profile'}</strong>
                   <span>{language === 'th' ? 'โปรไฟล์พื้นฐานของพี่อาจแสดงให้น้องเห็น เช่น ชื่อเล่นและหน้าที่ แต่ช่องทางติดต่อจะซ่อนไว้จนกว่าพี่จะเลือกเปิดเอง' : 'Your basic staff profile may be visible to participants, but contact channels stay hidden until you choose to show them.'}</span>
-                  <HelpButton topicId="staff.profile-verify" variant="compact" />
                 </Card>
                 <Card className="privacy-notice full-span" variant="soft">
                   <strong>{language === 'th' ? 'การอัปโหลดรูป' : 'Profile photo upload'}</strong>

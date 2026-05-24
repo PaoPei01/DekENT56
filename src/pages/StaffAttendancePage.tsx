@@ -212,7 +212,6 @@ export function StaffAttendancePage() {
                   <p className="eyebrow">{language === 'th' ? 'เลือกวิธีเช็กชื่อ' : 'Choose check-in method'}</p>
                   <h2>{language === 'th' ? 'วันนี้ใครเป็นคนสแกน?' : 'Who is scanning today?'}</h2>
                 </div>
-                <HelpButton topicId="staff-attendance.overview" variant="compact" />
               </div>
             </div>
             <div className="help-chip-row">

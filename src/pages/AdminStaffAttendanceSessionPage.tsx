@@ -200,7 +200,6 @@ export function AdminStaffAttendanceSessionPage() {
         actions={(
           <>
             <Link className="btn btn-secondary" to="/admin/staff/attendance">{language === 'th' ? 'ทุกรอบ' : 'All sessions'}</Link>
-            <HelpButton topicId="admin-attendance.export" variant="compact" />
             <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportStaffAttendanceCsv(state.data?.roster ?? [], `${session.title}.csv`)}>CSV</Button>
             <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={state.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>
           </>
@@ -223,7 +222,6 @@ export function AdminStaffAttendanceSessionPage() {
             : (language === 'th' ? 'QR และข้อมูลเช็กชื่อในหน้านี้อ้างอิงกิจกรรมนี้' : 'The QR and attendance records on this page belong to this event.')}</p>
         </div>
         <div className="attendance-event-context-actions">
-          <HelpButton topicId="attendance.event-attendance" variant="compact" />
           <span className={`status-pill ${isLegacySession ? 'status-draft' : 'status-active'}`}>{isLegacySession ? (language === 'th' ? 'Legacy/default' : 'Legacy/default') : eventLabel}</span>
         </div>
       </Card>
@@ -267,7 +265,6 @@ export function AdminStaffAttendanceSessionPage() {
                 <p className="eyebrow">{language === 'th' ? 'เครื่องมือเช็กชื่อ' : 'Check-in tools'}</p>
                 <h2>{language === 'th' ? 'Manual และ QR ส่วนตัวทีมงาน' : 'Manual and staff personal QR'}</h2>
               </div>
-              <HelpButton topicId="admin-attendance.manual-checkin" variant="compact" />
             </div>
             <p>{language === 'th' ? 'ใช้เมื่อทีมงานสแกนเองไม่ได้ หรือใช้ QR ส่วนตัวเพื่อเช็กชื่อแทนอย่างรวดเร็ว' : 'Use manual controls or a staff personal QR when staff cannot self check-in.'}</p>
           </div>

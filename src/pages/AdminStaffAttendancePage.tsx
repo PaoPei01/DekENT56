@@ -125,7 +125,6 @@ export function AdminStaffAttendancePage() {
             : 'The session list is filtered by this event, and new sessions will be attached to it automatically.'}</p>
         </div>
         <div className="attendance-event-context-actions">
-          <HelpButton topicId="attendance.event-attendance" variant="compact" />
           <EventSwitcher compact />
         </div>
       </Card>
@@ -157,7 +156,6 @@ export function AdminStaffAttendancePage() {
           <Card className="privacy-notice full-span" variant="soft">
             <strong>{language === 'th' ? 'เวลาทั้งหมดเป็นเวลาไทย' : 'All times use Thailand local time'}</strong>
             <span>{language === 'th' ? 'กรอกเวลาตามเครื่องของคุณ ไม่ต้องบวกหรือลบ 7 ชั่วโมงเอง' : 'Enter the time from your device. Do not add or subtract 7 hours manually.'}</span>
-            <HelpButton topicId="admin-attendance.create-session" variant="compact" />
           </Card>
           <Input label={language === 'th' ? 'ชื่อรอบ' : 'Title'} value={form.title ?? ''} onChange={(event) => setForm({ ...form, title: event.target.value })} required />
           <div className="field">

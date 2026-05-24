@@ -135,7 +135,6 @@ export function DocumentGeneratePage() {
           <Card className="document-missing-card">
             <div className="section-title-row">
               <h2>ข้อมูลที่ยังขาด</h2>
-              <HelpButton topicId="documents.generate" variant="compact" />
             </div>
             {missing.length ? (
               <div className="document-missing-groups">

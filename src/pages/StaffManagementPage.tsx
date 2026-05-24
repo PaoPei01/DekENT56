@@ -8,6 +8,7 @@ import { MobileFilterSheet } from '../components/mobile/MobileFilterSheet';
 import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { ExportActions } from '../components/ui/ExportActions';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
@@ -15,6 +16,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { copy } from '../lib/copy';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorCatalog, majorCodeOptions, majorLabel, normalizeMajor } from '../lib/major';
@@ -37,6 +39,7 @@ function blankMedical(staffProfileId: string): StaffMedicalInfo {
 
 export function StaffManagementPage() {
   const { language } = useLanguage();
+  const commonCopy = copy[language];
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState('');
   const [mainGroup, setMainGroup] = useState('');
@@ -164,8 +167,13 @@ export function StaffManagementPage() {
           <Link className="btn btn-primary" to="/admin/staff/import"><FileSpreadsheet size={18} />{language === 'th' ? 'นำเข้า Excel' : 'Import Excel'}</Link>
           <Link className="btn btn-secondary" to="/admin/staff/operations"><BarChart3 size={18} />{language === 'th' ? 'โควตาทีมงาน' : 'Staff Ops'}</Link>
           <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={syncRoster} disabled={syncing}>{language === 'th' ? 'ซิงค์ข้อมูลพี่กลุ่ม' : 'Sync Staff Roster'}</Button>
-          <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportStaffCsv(rows)}>CSV</Button>
-          <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportStaffXlsx(rows)}>Excel</Button>
+          <ExportActions
+            label={commonCopy.export}
+            actions={[
+              { label: 'CSV', icon: <Download size={16} aria-hidden="true" />, onClick: () => exportStaffCsv(rows) },
+              { label: 'Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => exportStaffXlsx(rows) },
+            ]}
+          />
         </div>
       </Card>
 

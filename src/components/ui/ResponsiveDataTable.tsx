@@ -53,7 +53,11 @@ export function ResponsiveDataTable<T>({
   const mobileColumns = columns.filter((column) => column.key !== 'actions' && !column.mobileHidden);
   const mobilePrimaryColumns = mobileColumns.filter((column) => column.priority === 'primary');
   const mobileSecondaryColumns = mobileColumns.filter((column) => column.priority === 'secondary');
-  const mobileDetailColumns = mobileColumns.filter((column) => !column.priority || column.priority === 'detail');
+  const fallbackSummaryColumns = !mobileTitle && !mobileSubtitle && !mobileMeta && !mobilePrimaryColumns.length && !mobileSecondaryColumns.length
+    ? mobileColumns.slice(0, 2)
+    : [];
+  const fallbackSummaryKeys = new Set(fallbackSummaryColumns.map((column) => column.key));
+  const mobileDetailColumns = mobileColumns.filter((column) => !fallbackSummaryKeys.has(column.key) && (!column.priority || column.priority === 'detail'));
   const actionColumn = columns.find((column) => column.key === 'actions');
 
   return (
@@ -114,7 +118,7 @@ export function ResponsiveDataTable<T>({
             ) : null}
             {!mobileTitle && !mobileSubtitle && !mobileMeta && !mobilePrimaryColumns.length && !mobileSecondaryColumns.length && !mobileDetailColumns.length ? (
               <div className="mobile-row-summary-grid">
-                {mobileColumns.slice(0, 2).map((column) => (
+                {fallbackSummaryColumns.map((column) => (
                   <div key={column.key}>
                   <span>{column.mobileLabel ?? column.header}</span>
                   <div>{column.render(row)}</div>

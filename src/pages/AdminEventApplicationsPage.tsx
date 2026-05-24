@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ExportActions } from '../components/ui/ExportActions';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -16,6 +17,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { getApplicationStatusLabel, getApplicationStatusTone, STAFF_APPLICATION_STATUSES, type StaffApplicationStatus } from '../lib/applicationStatus';
+import { copy } from '../lib/copy';
 import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { eventPath } from '../lib/eventRoutes';
@@ -150,6 +152,7 @@ function downloadBlob(filename: string, blob: Blob) {
 
 export function AdminEventApplicationsPage() {
   const { language } = useLanguage();
+  const commonCopy = copy[language];
   const { eventId = '' } = useParams();
   const eventState = useAsync(() => fetchAdminEventById(eventId), [eventId]);
   const applicationsState = useAsync(() => fetchAdminEventStaffApplications(eventId), [eventId]);
@@ -705,11 +708,14 @@ export function AdminEventApplicationsPage() {
               <p className="eyebrow">{language === 'th' ? 'ดาวน์โหลดข้อมูลผู้สมัคร' : 'Download applications'}</p>
             </div>
             <div className="event-card-actions">
-              <Button variant="secondary" icon={<Download size={17} />} onClick={() => requestExcelExport('all')}>{language === 'th' ? 'ดาวน์โหลด Excel ทั้งหมด' : 'Download all Excel'}</Button>
-              <Button variant="secondary" icon={<Download size={17} />} onClick={() => requestExcelExport('filtered')}>{language === 'th' ? 'ดาวน์โหลด Excel ตามตัวกรองปัจจุบัน' : 'Download current filtered Excel'}</Button>
-              {filters.assignedDuty && filters.assignedDuty !== '__missing' ? (
-                <Button variant="secondary" icon={<Download size={17} />} onClick={() => requestExcelExport('by_assigned_duty', filters.assignedDuty)}>{language === 'th' ? 'ดาวน์โหลด Excel ฝ่ายนี้' : 'Download this duty Excel'}</Button>
-              ) : null}
+              <ExportActions
+                label={commonCopy.export}
+                actions={[
+                  { label: language === 'th' ? 'Excel ทั้งหมด' : 'All Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('all') },
+                  { label: language === 'th' ? 'Excel ตามตัวกรองปัจจุบัน' : 'Current filtered Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('filtered') },
+                  ...(filters.assignedDuty && filters.assignedDuty !== '__missing' ? [{ label: language === 'th' ? 'Excel ฝ่ายนี้' : 'This duty Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('by_assigned_duty', filters.assignedDuty) }] : []),
+                ]}
+              />
             </div>
           </Card>
 

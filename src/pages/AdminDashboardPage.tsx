@@ -11,6 +11,7 @@ import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { DashboardStatCard } from '../components/ui/DashboardStatCard';
+import { ExportActions } from '../components/ui/ExportActions';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -20,6 +21,7 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useAsync } from '../hooks/useAsync';
 import { useLanguage } from '../context/LanguageContext';
+import { copy } from '../lib/copy';
 import { fieldLabel, fieldLabels } from '../lib/constants';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
@@ -31,6 +33,7 @@ import { errorMessage } from '../utils/error';
 
 export function AdminDashboardPage() {
   const { language, t } = useLanguage();
+  const commonCopy = copy[language];
   const [search, setSearch] = useState('');
   const [major, setMajor] = useState('');
   const [group, setGroup] = useState('');
@@ -146,8 +149,13 @@ export function AdminDashboardPage() {
         actions={(
           <>
             <HelpButton topicId="admin.dashboard" variant="compact" />
-            <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportProfilesCsv(profiles)}>CSV</Button>
-            <Button variant="secondary" icon={<Download size={18} />} onClick={() => void exportProfilesXlsx(profiles)}>Excel</Button>
+            <ExportActions
+              label={commonCopy.export}
+              actions={[
+                { label: 'CSV', icon: <Download size={16} aria-hidden="true" />, onClick: () => exportProfilesCsv(profiles) },
+                { label: 'Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => void exportProfilesXlsx(profiles) },
+              ]}
+            />
           </>
         )}
       />
@@ -242,7 +250,6 @@ export function AdminDashboardPage() {
         resultText={language === 'th' ? `${profiles.length.toLocaleString('th-TH')} รายการ` : `${profiles.length.toLocaleString('en-US')} results`}
         trailing={(
           <>
-            <HelpButton topicId="admin.participants" variant="compact" />
             <Button variant="secondary" icon={<SlidersHorizontal size={17} />} onClick={() => setFilterOpen(true)}>{language === 'th' ? 'ตัวกรอง' : 'Filters'}</Button>
           </>
         )}
@@ -254,7 +261,7 @@ export function AdminDashboardPage() {
         className="desktop-filter-panel"
         title={language === 'th' ? 'ค้นหาและกรองรายชื่อ' : 'Search and filters'}
         description={language === 'th' ? `แสดงผล ${profiles.length.toLocaleString('th-TH')} รายการ` : `${profiles.length.toLocaleString('en-US')} results`}
-        actions={<><HelpButton topicId="admin.participants" variant="compact" /><Button variant="ghost" onClick={clearFilters}>{language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}</Button></>}
+        actions={<Button variant="ghost" onClick={clearFilters}>{commonCopy.clearFilters}</Button>}
         chips={activeFilterChips.length ? (
           <div className="filter-chip-row">
             {activeFilterChips.map((chip) => <span className="filter-chip" key={chip}>{chip}</span>)}

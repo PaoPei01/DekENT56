@@ -90,6 +90,54 @@
   align-items: center;
 }
 
+.export-actions {
+  position: relative;
+  width: fit-content;
+}
+
+.export-actions summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.export-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.export-actions-menu {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  display: grid;
+  min-width: 180px;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--shadow-soft);
+}
+
+.export-actions-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.export-actions-menu button:hover,
+.export-actions-menu button:focus-visible {
+  background: rgba(40, 104, 232, 0.08);
+}
+
 .major-summary-disclosure > summary {
   min-height: 44px;
   cursor: pointer;

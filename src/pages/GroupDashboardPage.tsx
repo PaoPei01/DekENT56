@@ -11,11 +11,13 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { DashboardStatCard } from '../components/ui/DashboardStatCard';
+import { ExportActions } from '../components/ui/ExportActions';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { copy } from '../lib/copy';
 import { autoAssignGroups, calculateGroupStats, groupLabel, rebalanceGroups } from '../lib/grouping';
 import { groupKey, groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { getMajorCode, majorLabel } from '../lib/major';
@@ -37,6 +39,7 @@ function assignmentFromProfile(profile: GroupProfile): Pick<GroupAssignment, 'pr
 
 export function GroupDashboardPage() {
   const { language } = useLanguage();
+  const commonCopy = copy[language];
   const state = useAsync(fetchGroupProfiles, []);
   const settingsState = useAsync(fetchGroupSettings, []);
   const [drafts, setDrafts] = useState<Record<string, Pick<GroupAssignment, 'profile_id' | 'main_group' | 'subgroup' | 'notes'>>>({});
@@ -208,12 +211,13 @@ export function GroupDashboardPage() {
           <Button variant="danger" icon={<Trash2 size={18} />} onClick={() => setClearDialogOpen(true)} disabled={assignedCount === 0}>
             {language === 'th' ? 'ลบการจัดกลุ่มทั้งหมด' : 'Clear all groups'}
           </Button>
-          <Button variant="secondary" icon={<Download size={18} />} onClick={() => exportGroupsCsv(profiles)}>
-            CSV
-          </Button>
-          <Button variant="secondary" icon={<Download size={18} />} onClick={exportAudit}>
-            Audit + Excel
-          </Button>
+          <ExportActions
+            label={commonCopy.export}
+            actions={[
+              { label: 'CSV', icon: <Download size={16} aria-hidden="true" />, onClick: () => exportGroupsCsv(profiles) },
+              { label: 'Audit + Excel', icon: <Download size={16} aria-hidden="true" />, onClick: exportAudit },
+            ]}
+          />
         </div>
         {locked ? <Badge status="approved">{language === 'th' ? 'ล็อกแล้ว' : 'Locked'}</Badge> : auditReady ? <Badge status="approved">{language === 'th' ? 'Audit พร้อมล็อก' : 'Audit ready'}</Badge> : <Badge status="pending">{language === 'th' ? 'ต้อง Audit ก่อนล็อก' : 'Audit required before lock'}</Badge>}
       </Card>
@@ -402,7 +406,6 @@ export function GroupDashboardPage() {
       <StickyBottomBar label={language === 'th' ? 'ปุ่มจัดกลุ่มด่วน' : 'Quick group actions'}>
         <Button icon={<Shuffle size={18} />} onClick={generate} disabled={locked}>{language === 'th' ? 'จัดกลุ่ม' : 'Auto'}</Button>
         <Button variant="secondary" onClick={save} disabled={!hasDrafts || locked}>{language === 'th' ? 'บันทึก' : 'Save'}</Button>
-        <Button variant="secondary" icon={<Download size={18} />} onClick={exportAudit}>Audit</Button>
       </StickyBottomBar>
     </section>
   );
