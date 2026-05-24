@@ -79,6 +79,20 @@ Use this checklist before real event operations and after every production-readi
 
 ## Public
 
+- [ ] Open `/#/demo`.
+- [ ] Open `/#/demo/staff`.
+- [ ] Open `/#/demo/system`.
+- [ ] Open `/#/demo/attendance`.
+- [ ] Open `/#/demo/emergency`.
+- [ ] Confirm `/#/demo/documents` does not exist and redirects or falls back safely.
+- [ ] Confirm no Parent Orientation content appears in Demo Mode.
+- [ ] Confirm no document feature, document template, document generation, or document history appears in Demo Mode.
+- [ ] Confirm every demo page says `โหมดสาธิต`, `Demo Mode`, and that all data is mock data.
+- [ ] Confirm demo pages use mock data only and no real student, staff, participant, contact, health, or incident data.
+- [ ] Confirm demo actions use local state only and do not call Supabase write operations.
+- [ ] Confirm demo pages work on mobile without horizontal scroll.
+- [ ] Confirm demo pages are readable in dark theme.
+
 - [ ] Open `/`.
 - [ ] Participant list loads.
 - [ ] Search by Thai name.
