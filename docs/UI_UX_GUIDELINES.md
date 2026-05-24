@@ -131,6 +131,8 @@ Preferred wording:
 - Convert color usage by component group, not by broad search-and-replace.
 - QR codes, scanner targets, and document previews must remain high contrast and readable in every theme.
 - Shared components should prefer `--surface`, `--surface-soft`, `--text`, `--text-muted`, `--border`, `--primary`, `--primary-soft`, and status tokens instead of hardcoded white/black/light-blue values.
+- For dark mode, prefer `--surface-elevated`, `--text-strong`, `--primary-soft-text`, `--success-soft-text`, `--warning-soft-text`, and `--danger-soft-text` where contrast matters.
+- Form controls must use `--input-bg`, `--input-text`, `--input-placeholder`, and `--input-border` so placeholders, disabled states, and focus rings remain readable in both themes.
 - When polishing dark mode, start with shared surfaces and high-impact route shells: cards, forms, filters, tables, modals, drawers, toasts, bottom navigation, status badges, duty cards, QR/scanner panels, and export/update-request modals.
 - Keep dark-mode fixes semantic. Do not blanket-invert screenshots, QR canvases, document previews, maps, or imported content.
 - Keep theme controls compact and out of the mobile bottom nav.

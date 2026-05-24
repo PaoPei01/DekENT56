@@ -926,8 +926,15 @@
 
 .skeleton {
   height: 92px;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), rgba(222, 233, 250, 0.72), rgba(255, 255, 255, 0.55));
+  background:
+    linear-gradient(
+      90deg,
+      var(--surface-soft),
+      color-mix(in srgb, var(--primary) 12%, var(--surface-muted)),
+      var(--surface-soft)
+    );
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite linear;
 }
@@ -2777,10 +2784,10 @@
   gap: 0.35rem;
   min-width: 44px;
   min-height: 44px;
-  border: 1px solid rgba(132, 155, 190, 0.24);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--accent-strong);
+  background: var(--surface-soft);
+  color: var(--primary-soft-text);
   font: inherit;
   font-weight: 900;
   cursor: pointer;
@@ -2788,7 +2795,8 @@
 }
 
 .help-button:hover {
-  background: rgba(40, 104, 232, 0.08);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
 }
 
 .help-button-link,
@@ -3242,19 +3250,19 @@
 :root[data-theme="dark"] .status-present,
 :root[data-theme="dark"] .status-checked_out {
   background: var(--success-soft);
-  color: var(--success);
+  color: var(--success-soft-text);
 }
 
 :root[data-theme="dark"] .status-rejected,
 :root[data-theme="dark"] .status-absent {
   background: var(--danger-soft);
-  color: var(--danger);
+  color: var(--danger-soft-text);
 }
 
 :root[data-theme="dark"] .status-pending,
 :root[data-theme="dark"] .status-waitlisted {
   background: var(--warning-soft);
-  color: var(--warning);
+  color: var(--warning-soft-text);
 }
 
 @media (max-width: 390px) {

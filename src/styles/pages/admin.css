@@ -359,10 +359,10 @@
 .friend-card {
   display: grid;
   gap: 0.35rem;
-  border: 1px solid rgba(132, 155, 190, 0.18);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 0.85rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-soft);
 }
 
 .friend-card span,
@@ -386,8 +386,8 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.45rem 0.75rem;
-  color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.74);
+  color: var(--text-muted);
+  background: var(--surface-soft);
   font-weight: 900;
   white-space: nowrap;
   scroll-snap-align: start;
@@ -399,26 +399,31 @@
   width: 1.65rem;
   height: 1.65rem;
   border-radius: 999px;
-  color: var(--accent-strong);
-  background: rgba(40, 104, 232, 0.1);
+  color: var(--text);
+  background: var(--surface-muted);
   font-size: 0.82rem;
 }
 
 .edit-step-active {
-  border-color: rgba(40, 104, 232, 0.28);
-  color: var(--accent-strong);
-  background: rgba(40, 104, 232, 0.1);
+  border-color: color-mix(in srgb, var(--primary) 38%, transparent);
+  color: var(--primary-soft-text);
+  background: var(--primary-soft);
+}
+
+.edit-step-active b {
+  color: var(--primary-contrast);
+  background: var(--primary);
 }
 
 .edit-step-done {
-  border-color: rgba(25, 122, 70, 0.2);
-  color: #197a46;
-  background: var(--success-surface);
+  border-color: color-mix(in srgb, var(--success) 34%, transparent);
+  color: var(--success-soft-text);
+  background: var(--success-soft);
 }
 
 .edit-step-done b {
-  color: #fff;
-  background: #197a46;
+  color: var(--text-inverse);
+  background: var(--success);
 }
 
 .edit-verify-card,
@@ -434,8 +439,10 @@
 }
 
 .edit-profile-summary {
-  border-color: rgba(25, 122, 70, 0.18);
-  background: linear-gradient(135deg, var(--success-surface), rgba(255, 255, 255, 0.88));
+  border-color: color-mix(in srgb, var(--success) 28%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--success) 12%, transparent), transparent 38%),
+    linear-gradient(135deg, var(--success-soft), var(--surface));
 }
 
 .edit-privacy-grid {
@@ -447,10 +454,10 @@
 .edit-privacy-grid > span,
 .edit-privacy-grid .check-field {
   min-height: 52px;
-  border: 1px solid rgba(132, 155, 190, 0.16);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface-soft);
 }
 
 .edit-privacy-grid > span {
@@ -460,7 +467,7 @@
 }
 
 .edit-privacy-grid strong {
-  color: #17243a;
+  color: var(--text-strong);
 }
 
 .edit-form-section {
@@ -483,17 +490,17 @@
 }
 
 .edit-inline-error {
-  border: 1px solid rgba(201, 52, 68, 0.18);
+  border: 1px solid color-mix(in srgb, var(--danger) 34%, transparent);
   border-radius: 16px;
   padding: 0.75rem;
-  color: #9f2434;
-  background: var(--danger-surface);
+  color: var(--danger-soft-text);
+  background: var(--danger-soft);
   font-weight: 800;
 }
 
 .edit-success-card {
-  border-color: rgba(25, 122, 70, 0.18);
-  background: var(--success-surface);
+  border-color: color-mix(in srgb, var(--success) 34%, transparent);
+  background: var(--success-soft);
 }
 
 .edit-success-card h2 {
@@ -511,7 +518,7 @@
   gap: 0.75rem;
   min-height: 48px;
   cursor: pointer;
-  color: #17243a;
+  color: var(--text-strong);
   font-weight: 950;
 }
 

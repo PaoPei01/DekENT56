@@ -61,6 +61,10 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Scanner camera controls remain visible in light and dark mode.
 - [ ] Status badges use text labels and do not rely on color alone.
 - [ ] Inputs, selects, modals, toasts, tables/cards, and bottom nav are readable in dark mode.
+- [ ] `/me` uses dark cards, readable hero text, readable stepper pills, and readable verification inputs in dark mode.
+- [ ] No shared card or hero shows a light gray background with light text in dark mode.
+- [ ] Status badges use readable soft-token text in dark mode for success, warning, danger, and info states.
+- [ ] Sticky action bars and mobile sheets use dark surfaces and do not hide primary buttons.
 - [ ] Focus ring remains visible in light and dark mode.
 - [ ] Phase 4 route matrix is checked in Thai and English.
 - [ ] Phase 4 route matrix is checked in system light, system dark, manual light, and manual dark.

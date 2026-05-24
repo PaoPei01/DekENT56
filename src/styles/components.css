@@ -13,8 +13,8 @@
   width: fit-content;
   border-radius: 999px;
   padding: 0.55rem 0.85rem;
-  color: var(--accent-strong);
-  background: rgba(40, 104, 232, 0.1);
+  color: var(--primary-soft-text);
+  background: var(--primary-soft);
 }
 
 .toolbar {
@@ -271,12 +271,28 @@
 textarea {
   width: 100%;
   min-height: 48px;
-  border: 1px solid var(--field-border);
+  border: 1px solid var(--input-border);
   border-radius: 999px;
   padding: 0.75rem 1rem;
-  color: var(--text);
-  background: var(--field-bg);
+  color: var(--input-text);
+  background: var(--input-bg);
   transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder);
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled,
+textarea:disabled {
+  border-color: var(--border);
+  color: var(--text-subtle);
+  background: var(--surface-muted);
+  cursor: not-allowed;
 }
 
 .field input:focus,
@@ -288,7 +304,7 @@ textarea:focus {
 }
 
 .field small {
-  color: var(--text-soft);
+  color: var(--text-muted);
 }
 
 .btn {
@@ -338,7 +354,8 @@ textarea:focus {
 
 .btn:disabled {
   cursor: not-allowed;
-  opacity: 0.62;
+  opacity: 0.74;
+  box-shadow: none;
 }
 
 .btn-primary {
@@ -350,16 +367,22 @@ textarea:focus {
 .btn-secondary {
   color: var(--button-secondary-text);
   background: var(--button-secondary-bg);
+  border: 1px solid var(--border);
 }
 
 .btn-danger {
-  color: var(--primary-contrast);
+  color: var(--text-inverse);
   background: var(--danger);
 }
 
 .btn-ghost {
-  color: var(--text);
+  color: var(--text-muted);
   background: transparent;
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  background: var(--surface-muted);
 }
 
 .btn:hover {
@@ -399,7 +422,7 @@ textarea:focus {
   gap: 0.75rem;
   min-height: 150px;
   border-color: color-mix(in srgb, var(--group-color, var(--accent)), transparent 82%);
-  background: linear-gradient(180deg, var(--group-soft, var(--surface)), rgba(255, 255, 255, 0.82));
+  background: linear-gradient(180deg, var(--group-soft, var(--surface-soft)), var(--surface));
 }
 
 .participant-card-clickable {
@@ -614,7 +637,8 @@ textarea:focus {
   border-radius: 24px;
   padding: 0.75rem;
   padding-bottom: max(0.75rem, var(--safe-bottom));
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-elevated);
+  color: var(--text);
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
 }
@@ -669,12 +693,12 @@ textarea:focus {
   display: grid;
   gap: 0.35rem;
   min-height: 112px;
-  border: 1px solid rgba(132, 155, 190, 0.18);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 1rem;
   color: inherit;
   text-align: left;
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
   cursor: pointer;
 }
@@ -684,19 +708,19 @@ textarea:focus {
 }
 
 .action-card-primary {
-  border-color: rgba(40, 104, 232, 0.22);
-  background: rgba(40, 104, 232, 0.08);
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-soft);
 }
 
 .action-card-danger,
 .danger-zone {
-  border-color: rgba(211, 47, 47, 0.28) !important;
-  background: rgba(255, 245, 245, 0.86) !important;
+  border-color: color-mix(in srgb, var(--danger) 38%, transparent) !important;
+  background: var(--danger-soft) !important;
 }
 
 .action-card-emergency {
-  border-color: rgba(190, 18, 60, 0.28);
-  background: rgba(255, 241, 242, 0.9);
+  border-color: color-mix(in srgb, var(--danger) 38%, transparent);
+  background: var(--danger-soft);
 }
 
 .event-card-grid {
@@ -865,10 +889,10 @@ textarea:focus {
   width: fit-content;
   max-width: 100%;
   gap: 0.35rem;
-  border: 1px solid rgba(132, 155, 190, 0.2);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 0.3rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface-soft);
   box-shadow: var(--shadow-soft);
 }
 
@@ -884,7 +908,7 @@ textarea:focus {
 
 .event-detail-tabs button.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--primary-contrast);
   box-shadow: 0 10px 22px rgba(40, 104, 232, 0.24);
 }
 
@@ -908,10 +932,10 @@ textarea:focus {
   min-height: 78px;
   align-items: center;
   gap: 0.75rem;
-  border: 1px solid rgba(132, 155, 190, 0.22);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 0.85rem;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface);
   color: var(--text);
   text-decoration: none;
 }
@@ -939,8 +963,8 @@ textarea:focus {
 }
 
 .event-operation-action-primary {
-  border-color: rgba(40, 104, 232, 0.28);
-  background: rgba(40, 104, 232, 0.08);
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-soft);
 }
 
 .event-form-card {
@@ -1032,16 +1056,16 @@ textarea:focus {
   align-items: flex-start;
   gap: 0.65rem;
   padding: 0.8rem;
-  border: 1px solid rgba(132, 155, 190, 0.22);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-soft);
 }
 
 .checkbox-row input {
   width: 1.15rem;
   height: 1.15rem;
   margin-top: 0.1rem;
-  accent-color: #2563eb;
+  accent-color: var(--primary);
 }
 
 .event-list-section {
@@ -1077,10 +1101,10 @@ textarea:focus {
   grid-template-columns: minmax(110px, 150px) minmax(0, 1fr) auto;
   gap: 0.65rem;
   align-items: center;
-  border: 1px solid rgba(132, 155, 190, 0.18);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 0.7rem 0.8rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-soft);
 }
 
 .event-timeline-item time {
@@ -1531,7 +1555,7 @@ th {
 }
 
 .mobile-detail-secondary div {
-  color: #26364f;
+  color: var(--text-muted);
 }
 
 .mobile-detail-detail {
@@ -1560,7 +1584,7 @@ th {
   padding: 0.35rem 0.68rem;
   font-size: 0.84rem;
   font-weight: 900;
-  color: var(--accent-strong);
+  color: var(--primary-soft-text);
   background: var(--primary-soft);
   overflow-wrap: anywhere;
 }
@@ -1573,17 +1597,17 @@ th {
 }
 
 .badge-pending {
-  color: var(--warning);
+  color: var(--warning-soft-text);
   background: var(--warning-soft);
 }
 
 .badge-approved {
-  color: var(--success);
+  color: var(--success-soft-text);
   background: var(--success-soft);
 }
 
 .badge-rejected {
-  color: var(--danger);
+  color: var(--danger-soft-text);
   background: var(--danger-soft);
 }
 
@@ -1749,9 +1773,9 @@ th {
 
 :root[data-theme="dark"] .health-flags span {
   background: var(--warning-soft);
-  color: var(--warning);
+  color: var(--warning-soft-text);
 }
 
 :root[data-theme="dark"] .health-flags em {
-  color: var(--warning);
+  color: var(--warning-soft-text);
 }

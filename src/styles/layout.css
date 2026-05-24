@@ -198,15 +198,15 @@
   min-height: 40px;
   border-radius: 999px;
   padding: 0.55rem 0.85rem !important;
-  color: var(--accent-strong) !important;
+  color: var(--primary-soft-text) !important;
   background: var(--primary-soft);
   font-weight: 900;
   white-space: nowrap;
 }
 
 .staff-login-link-active {
-  color: #14683c !important;
-  background: rgba(39, 174, 96, 0.13);
+  color: var(--success-soft-text) !important;
+  background: var(--success-soft);
 }
 
 .account-menu {
@@ -356,9 +356,9 @@
 
 .public-staff-card {
   padding: 0.9rem;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border: 1px solid var(--border);
   border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-soft);
 }
 
 .public-staff-body {
@@ -436,13 +436,13 @@
   height: 38px;
   border-radius: 999px;
   padding: 0 !important;
-  color: var(--accent-strong) !important;
-  background: rgba(40, 104, 232, 0.08);
+  color: var(--primary-soft-text) !important;
+  background: var(--primary-soft);
 }
 
 .auth-signed-in {
-  color: #14683c !important;
-  background: rgba(39, 174, 96, 0.12) !important;
+  color: var(--success-soft-text) !important;
+  background: var(--success-soft) !important;
 }
 
 .auth-account-card {
@@ -520,10 +520,13 @@
   align-items: start;
   gap: 1rem;
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--border);
   border-radius: 28px;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--primary) 10%, transparent), transparent 38%),
+    linear-gradient(135deg, var(--surface-elevated), var(--surface));
   box-shadow: var(--shadow-soft);
 }
 
@@ -548,6 +551,7 @@
   line-height: 1.15;
   word-break: normal;
   overflow-wrap: normal;
+  color: var(--text-strong);
 }
 
 .page-header h1 {
@@ -618,14 +622,14 @@
   padding: 1rem 1.25rem;
   border-radius: 999px;
   background: var(--primary-soft);
-  color: var(--accent-strong);
+  color: var(--primary-soft-text);
 }
 
 .eyebrow {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent-strong) !important;
+  color: var(--primary-soft-text) !important;
   font-weight: 800;
 }
 
@@ -634,6 +638,7 @@
 .toast {
   border: 1px solid var(--line);
   background: var(--panel);
+  color: var(--text);
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px) saturate(1.2);
 }
@@ -645,11 +650,13 @@
 
 .card-elevated {
   background: var(--panel-strong);
+  color: var(--text);
   box-shadow: var(--shadow);
 }
 
 .card-soft {
   background: var(--soft-surface);
+  color: var(--text);
   box-shadow: var(--shadow-soft);
 }
 

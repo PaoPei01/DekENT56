@@ -155,20 +155,31 @@ Use semantic variables instead of hardcoded light colors:
 - `--surface`
 - `--surface-soft`
 - `--surface-muted`
+- `--surface-elevated`
 - `--text`
+- `--text-strong`
 - `--text-muted`
 - `--text-subtle`
+- `--text-inverse`
 - `--border`
 - `--border-strong`
 - `--primary`
 - `--primary-contrast`
 - `--primary-soft`
+- `--primary-soft-text`
 - `--success`
 - `--success-soft`
+- `--success-soft-text`
 - `--warning`
 - `--warning-soft`
+- `--warning-soft-text`
 - `--danger`
 - `--danger-soft`
+- `--danger-soft-text`
+- `--input-bg`
+- `--input-text`
+- `--input-placeholder`
+- `--input-border`
 - `--shadow-soft`
 
 Compatibility aliases such as `--accent`, `--accent-strong`, `--panel`, `--panel-strong`, `--text-soft`, and `--line` remain available for existing CSS.
@@ -178,10 +189,11 @@ Compatibility aliases such as `--accent`, `--accent-strong`, `--panel`, `--panel
 For new or edited components:
 
 - Use `var(--surface)` or `var(--panel)` for card/sheet backgrounds.
-- Use `var(--text)` for primary text and `var(--text-muted)` or `var(--text-soft)` for secondary text.
+- Use `var(--text-strong)` for headings, `var(--text)` for primary text, and `var(--text-muted)` or `var(--text-soft)` for secondary text.
 - Use `var(--border)` for borders.
 - Use `var(--primary)` and `var(--primary-soft)` for selected/active states.
-- Use status tokens for success/warning/danger surfaces.
+- Use status surface and text tokens together, such as `--warning-soft` with `--warning-soft-text`.
+- Use input tokens for form controls instead of card tokens.
 - Keep QR codes explicitly black on white; do not inherit dark backgrounds inside QR canvases.
 - Do not use color inversion as a dark-mode strategy.
 
