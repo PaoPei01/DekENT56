@@ -419,3 +419,23 @@
   height: 18px;
   accent-color: var(--accent);
 }
+
+:root[data-theme="dark"] .staff-card,
+:root[data-theme="dark"] .staff-panel,
+:root[data-theme="dark"] .staff-surface,
+:root[data-theme="dark"] .staff-profile-card,
+:root[data-theme="dark"] .staff-directory-card,
+:root[data-theme="dark"] .attendance-card,
+:root[data-theme="dark"] .attendance-status-line,
+:root[data-theme="dark"] .duty-checkbox-grid label {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .offline-banner,
+:root[data-theme="dark"] .attendance-summary-strip {
+  border-color: color-mix(in srgb, var(--warning) 34%, transparent);
+  background: var(--warning-soft);
+  color: var(--warning);
+}

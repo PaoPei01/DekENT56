@@ -3,6 +3,7 @@ import { Bell, CalendarDays, Database, FileText, HeartPulse, Home, Languages, Lo
 import { useEffect, useState } from 'react';
 import { MobileMoreMenu } from './mobile/MobileMoreMenu';
 import { RoleAwareBottomNav } from './mobile/RoleAwareBottomNav';
+import { ThemeSwitcher } from './ThemeSwitcher';
 import { useLanguage } from '../context/LanguageContext';
 import { copy } from '../lib/copy';
 import { supabase } from '../lib/supabase';
@@ -15,7 +16,7 @@ type SessionUser = {
 };
 
 export function Layout() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, toggleLanguage, t } = useLanguage();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [access, setAccess] = useState<StaffAccessContext | null>(null);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
@@ -59,6 +60,8 @@ export function Layout() {
   const canAttend = Boolean(isStaff || access?.can_mark_attendance);
   const canEmergency = Boolean(access?.can_view_emergency || access?.is_admin);
   const loginCopy = language === 'th' ? copy.th : copy.en;
+  const langButtonLabel = language === 'th' ? 'ไทย' : 'EN';
+  const switchLanguageLabel = language === 'th' ? 'EN' : 'ไทย';
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -86,11 +89,11 @@ export function Layout() {
         </Link>
         <div className="nav-links">
           <NavLink to="/">{t.participants}</NavLink>
-          <NavLink to="/events">{language === 'th' ? 'กิจกรรม' : 'Events'}</NavLink>
-          <NavLink to="/announcements">{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
-          <NavLink to="/guide">{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
-          <NavLink to="/me">{language === 'th' ? 'ข้อมูลของฉัน' : 'My information'}</NavLink>
-          {!user ? <NavLink to="/staff/start">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink> : null}
+          <NavLink to="/events">{t('navigation.events')}</NavLink>
+          <NavLink to="/announcements">{t('navigation.announcements')}</NavLink>
+          <NavLink to="/guide">{t('navigation.guide')}</NavLink>
+          <NavLink to="/me">{t('navigation.editInfo')}</NavLink>
+          {!user ? <NavLink to="/staff/start">{t('navigation.staff')}</NavLink> : null}
           {user || isStaff || isAdmin ? (
             <details className={`nav-menu ${isAdmin ? 'nav-menu-wide' : ''}`}>
               <summary>
@@ -103,9 +106,9 @@ export function Layout() {
                   <span className="nav-menu-label">{language === 'th' ? 'ภาพรวม' : 'Overview'}</span>
                   <NavLink to="/admin">{language === 'th' ? 'ศูนย์ควบคุมระบบ' : 'Admin Command Center'}</NavLink>
                   <NavLink to="/admin/dashboard">{t.dashboard}</NavLink>
-                  <NavLink to="/admin/events">{language === 'th' ? 'กิจกรรม' : 'Events'}</NavLink>
-                  <NavLink to="/admin/announcements">{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
-                  <NavLink to="/guide">{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
+                  <NavLink to="/admin/events">{t('navigation.events')}</NavLink>
+                  <NavLink to="/admin/announcements">{t('navigation.announcements')}</NavLink>
+                  <NavLink to="/guide">{t('navigation.guide')}</NavLink>
 
                   <span className="nav-menu-label">{language === 'th' ? 'รายชื่อและกลุ่ม' : 'People & Groups'}</span>
                   <NavLink to="/admin/people-groups">{language === 'th' ? 'รายชื่อและกลุ่ม' : 'People & Groups'}</NavLink>
@@ -118,7 +121,7 @@ export function Layout() {
 
                   <span className="nav-menu-label">{language === 'th' ? 'งานทีมงาน' : 'Staff Operations'}</span>
                   <NavLink to="/admin/staff-ops">{language === 'th' ? 'งานทีมงาน' : 'Staff Operations'}</NavLink>
-                  <NavLink to="/admin/staff">{language === 'th' ? 'ทีมงาน' : 'Staff'}</NavLink>
+                  <NavLink to="/admin/staff">{t('navigation.staff')}</NavLink>
                   <NavLink to="/admin/staff/attendance">{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}</NavLink>
                   <NavLink to="/admin/staff/operations">{language === 'th' ? 'โควตา/งานทีมงาน' : 'Staff Quota / Operations'}</NavLink>
                   <NavLink to="/admin/staff/import">{language === 'th' ? 'นำเข้าสตาฟ' : 'Import Staff'}</NavLink>
@@ -157,9 +160,10 @@ export function Layout() {
               </div>
             </details>
           ) : null}
-          <button className="language-toggle" type="button" aria-label={language === 'th' ? 'เปลี่ยนภาษาเป็นอังกฤษ' : 'Switch language to Thai'} onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}>
-            {language === 'th' ? 'EN' : 'TH'}
+          <button className="language-toggle" type="button" aria-label="เปลี่ยนภาษา / Change language" title={`${language === 'th' ? 'เปลี่ยนภาษาเป็น' : 'Change language to'} ${switchLanguageLabel}`} onClick={toggleLanguage}>
+            {langButtonLabel}
           </button>
+          <ThemeSwitcher compact />
         </div>
         <button className="mobile-top-menu-button" type="button" aria-label={language === 'th' ? 'เปิดเมนู' : 'Open menu'} onClick={() => setMobileMoreOpen(true)}>
           <Menu size={22} />
@@ -173,28 +177,28 @@ export function Layout() {
           <>
             <NavLink to="/">
               <Home size={19} />
-              <span>{language === 'th' ? 'หน้าหลัก' : 'Home'}</span>
+              <span>{t('navigation.home')}</span>
             </NavLink>
             <button type="button" onClick={openPublicSearch}>
               <Search size={19} />
-              <span>{language === 'th' ? 'ค้นหา' : 'Search'}</span>
+              <span>{t('common.search')}</span>
             </button>
             <NavLink to="/announcements">
               <Bell size={19} />
-              <span>{language === 'th' ? 'ประกาศ' : 'Announcements'}</span>
+              <span>{t('navigation.announcements')}</span>
             </NavLink>
           </>
         ) : null}
         {!isAdmin && !isStaff ? (
           <NavLink to="/me">
             <Pencil size={19} />
-            <span>{language === 'th' ? 'ข้อมูลของฉัน' : 'My info'}</span>
+            <span>{t('navigation.editInfo')}</span>
           </NavLink>
         ) : null}
         {!user && !isAdmin && !isStaff ? (
           <NavLink to="/staff/start">
             <Shield size={19} />
-            <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+            <span>{t('navigation.staff')}</span>
           </NavLink>
         ) : null}
         {isAdmin ? (
@@ -209,7 +213,7 @@ export function Layout() {
             </NavLink>
             <NavLink to="/admin/staff-ops">
               <UserCheck size={19} />
-              <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+              <span>{t('navigation.staff')}</span>
             </NavLink>
             <NavLink to="/admin/emergency">
               <HeartPulse size={19} />
@@ -217,7 +221,7 @@ export function Layout() {
             </NavLink>
             <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
-              <span>{language === 'th' ? 'เพิ่มเติม' : 'More'}</span>
+              <span>{t('navigation.more')}</span>
             </button>
           </>
         ) : null}
@@ -252,7 +256,7 @@ export function Layout() {
             )}
             <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
-              <span>{language === 'th' ? 'เพิ่มเติม' : 'More'}</span>
+              <span>{t('navigation.more')}</span>
             </button>
           </>
         ) : null}
@@ -292,7 +296,8 @@ export function Layout() {
               <NavLink to="/admin/data-health"><ShieldCheck size={18} />{language === 'th' ? 'ตรวจสุขภาพข้อมูล' : 'Data Health'}</NavLink>
               <NavLink to="/admin/system-readiness"><ShieldCheck size={18} />{language === 'th' ? 'ตรวจความพร้อมระบบ' : 'System Readiness'}</NavLink>
               <NavLink to="/admin/logs"><Search size={18} />{language === 'th' ? 'ประวัติ' : 'Logs'}</NavLink>
-              <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
+              <div className="mobile-more-control"><ThemeSwitcher /></div>
+              <button type="button" aria-label="เปลี่ยนภาษา / Change language" onClick={toggleLanguage}><Languages size={18} />{language === 'th' ? 'เปลี่ยนภาษาเป็น EN' : 'Change language to ไทย'}</button>
               {user ? <button type="button" onClick={() => void signOut()}><LogOut size={18} />{language === 'th' ? 'ออกจากระบบ' : 'Sign out'}</button> : null}
             </div>
           </>
@@ -312,7 +317,8 @@ export function Layout() {
               <NavLink to="/staff/profile/qr"><UserCheck size={18} />{language === 'th' ? 'QR ส่วนตัว' : 'Personal QR'}</NavLink>
               <NavLink to="/announcements"><Bell size={18} />{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
               <NavLink to="/guide"><FileText size={18} />{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
-              <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
+              <div className="mobile-more-control"><ThemeSwitcher /></div>
+              <button type="button" aria-label="เปลี่ยนภาษา / Change language" onClick={toggleLanguage}><Languages size={18} />{language === 'th' ? 'เปลี่ยนภาษาเป็น EN' : 'Change language to ไทย'}</button>
               {user ? <button type="button" onClick={() => void signOut()}><LogOut size={18} />{language === 'th' ? 'ออกจากระบบ' : 'Sign out'}</button> : null}
             </div>
           </>
@@ -320,16 +326,17 @@ export function Layout() {
           <>
             <div className="mobile-more-section">
               <span className="mobile-more-section-title">{language === 'th' ? 'เมนูหลัก' : 'Main'}</span>
-              <NavLink to="/"><Home size={18} />{language === 'th' ? 'รายชื่อผู้เข้าร่วม' : 'Participants'}</NavLink>
-              <NavLink to="/events"><CalendarDays size={18} />{language === 'th' ? 'กิจกรรม' : 'Events'}</NavLink>
-              <NavLink to="/announcements"><Bell size={18} />{language === 'th' ? 'ประกาศ' : 'Announcements'}</NavLink>
-              <NavLink to="/guide"><FileText size={18} />{language === 'th' ? 'คู่มือ' : 'Guide'}</NavLink>
-              <NavLink to="/me"><Pencil size={18} />{language === 'th' ? 'ข้อมูลของฉัน' : 'My information'}</NavLink>
+              <NavLink to="/"><Home size={18} />{t.participants}</NavLink>
+              <NavLink to="/events"><CalendarDays size={18} />{t('navigation.events')}</NavLink>
+              <NavLink to="/announcements"><Bell size={18} />{t('navigation.announcements')}</NavLink>
+              <NavLink to="/guide"><FileText size={18} />{t('navigation.guide')}</NavLink>
+              <NavLink to="/me"><Pencil size={18} />{t('navigation.editInfo')}</NavLink>
             </div>
             <div className="mobile-more-section">
-              <span className="mobile-more-section-title">{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+              <span className="mobile-more-section-title">{t('navigation.staff')}</span>
               <NavLink to="/staff/start"><UserCheck size={18} />{language === 'th' ? 'เริ่มต้นสำหรับทีมงาน' : 'Staff start'}</NavLink>
-              <button type="button" onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}><Languages size={18} />{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}</button>
+              <div className="mobile-more-control"><ThemeSwitcher /></div>
+              <button type="button" aria-label="เปลี่ยนภาษา / Change language" onClick={toggleLanguage}><Languages size={18} />{language === 'th' ? 'เปลี่ยนภาษาเป็น EN' : 'Change language to ไทย'}</button>
             </div>
           </>
         )}

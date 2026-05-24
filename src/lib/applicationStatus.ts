@@ -1,3 +1,5 @@
+import { translate, type AppLanguage } from './i18n';
+
 export const STAFF_APPLICATION_STATUSES = ['submitted', 'under_review', 'approved', 'waitlisted', 'rejected', 'withdrawn'] as const;
 
 export type StaffApplicationStatus = (typeof STAFF_APPLICATION_STATUSES)[number];
@@ -11,7 +13,18 @@ const labels: Record<StaffApplicationStatus, { th: string; en: string }> = {
   withdrawn: { th: 'ถอนใบสมัคร', en: 'Withdrawn' },
 };
 
-export function getApplicationStatusLabel(status: string, language: 'th' | 'en') {
+const translationKeys: Record<StaffApplicationStatus, string> = {
+  submitted: 'statuses.submitted',
+  under_review: 'statuses.underReview',
+  approved: 'statuses.approved',
+  waitlisted: 'statuses.waitlisted',
+  rejected: 'statuses.rejected',
+  withdrawn: 'statuses.withdrawn',
+};
+
+export function getApplicationStatusLabel(status: string, language: AppLanguage) {
+  const key = translationKeys[status as StaffApplicationStatus];
+  if (key) return translate(language, key);
   return labels[status as StaffApplicationStatus]?.[language] ?? status;
 }
 

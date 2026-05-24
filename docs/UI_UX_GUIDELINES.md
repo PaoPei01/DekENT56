@@ -114,10 +114,27 @@ Preferred wording:
 
 - Keep Thai-first copy natural and concise; English should be simple and consistent.
 - Extend the existing `LanguageContext` and `src/lib/i18n.ts` instead of creating a second language system.
+- Validate stored language values before using them.
+- Browser/device language detection should run only when there is no manual language preference.
+- Browser/device language detection should choose Thai when any browser language starts with `th`; otherwise choose English.
+- Manual language override must remain obvious and reversible.
+- Store manual language preference in `tfbp_language`.
+- Keep `src/lib/translations.ts` organized by namespaces such as `common`, `navigation`, `identity`, `staffApplication`, and `statuses`.
+- Prefer shared translation keys for navigation, common buttons, status labels, identity labels, staff-application status copy, event chrome, and announcement section labels.
+- Leave database-owned content in the database. Event names, announcement bodies, person names, uploaded document names, admin notes, and applicant notes must not be auto-translated.
+- Missing translation keys must fall back safely to Thai or the key string, never crash the UI.
 - Store only preference values for language/theme in localStorage; never store personal data for UI preferences.
 - Do not auto-translate database content such as names, announcements, event descriptions, or document data unless localized fields are explicitly available.
-- Future dark mode should use semantic CSS variables and tested component surfaces. Do not rely on color inversion.
+- Future theme support should use `system`, `light`, and `dark` as preference concepts, with resolved theme applied to the document root.
+- Theme preference should be stored in `tfbp_theme` and applied through `data-theme` plus `data-theme-preference` on the document root.
+- Dark mode should use semantic CSS variables and tested component surfaces. Do not rely on color inversion.
+- Convert color usage by component group, not by broad search-and-replace.
 - QR codes, scanner targets, and document previews must remain high contrast and readable in every theme.
+- Shared components should prefer `--surface`, `--surface-soft`, `--text`, `--text-muted`, `--border`, `--primary`, `--primary-soft`, and status tokens instead of hardcoded white/black/light-blue values.
+- When polishing dark mode, start with shared surfaces and high-impact route shells: cards, forms, filters, tables, modals, drawers, toasts, bottom navigation, status badges, duty cards, QR/scanner panels, and export/update-request modals.
+- Keep dark-mode fixes semantic. Do not blanket-invert screenshots, QR canvases, document previews, maps, or imported content.
+- Keep theme controls compact and out of the mobile bottom nav.
+- Admin-only technical language may mention migrations/RPCs when needed; public and staff recovery copy should avoid Auth, RPC, token, database error, JSON, RLS, invalid input syntax, and function does not exist.
 
 ## Accessibility
 

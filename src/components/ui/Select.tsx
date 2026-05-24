@@ -8,13 +8,13 @@ type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export function Select({ label, options, placeholder, id, className = '', ...props }: SelectProps) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const selectId = id ?? props.name ?? label;
   return (
     <label className={`field ${className}`} htmlFor={selectId}>
       <span>{label}</span>
       <select id={selectId} {...props}>
-        <option value="">{placeholder ?? (language === 'th' ? 'โปรดเลือก' : 'Please select')}</option>
+        <option value="">{placeholder ?? t('common.pleaseSelect')}</option>
         {options.map((option) => {
           const value = typeof option === 'string' ? option : option.value;
           const optionLabel = typeof option === 'string' ? option : option.label;

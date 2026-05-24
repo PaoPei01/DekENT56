@@ -88,3 +88,21 @@ button.event-action-card {
   border-color: color-mix(in srgb, var(--group-color, var(--accent)) 42%, transparent);
   background: color-mix(in srgb, var(--group-soft, var(--accent)) 34%, white);
 }
+
+:root[data-theme="dark"] .participant-portal-hero {
+  border-color: var(--border);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 58%),
+    var(--surface);
+}
+
+:root[data-theme="dark"] .participant-card-badges .major-badge {
+  color: var(--text);
+  background: var(--surface-muted);
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .participant-card-badges .group-badge {
+  color: var(--text);
+  background: color-mix(in srgb, var(--group-color, var(--primary)) 20%, var(--surface-soft));
+}

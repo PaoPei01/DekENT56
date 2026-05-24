@@ -14,18 +14,18 @@ import { eventPath } from '../lib/eventRoutes';
 import { checkStaffApplicationStatus, type StaffApplicationStatusResult } from '../services/events';
 import { errorMessage } from '../utils/error';
 
-function assignmentMethodLabel(method: string | null | undefined, language: 'th' | 'en') {
-  const labels: Record<string, { th: string; en: string }> = {
-    auto_quota: { th: 'ระบบจัดตามโควต้า', en: 'Auto quota' },
-    manual_admin: { th: 'ผู้ดูแลปรับเอง', en: 'Manual admin' },
-    fallback_general: { th: 'สำรองเข้าฝ่ายทั่วไป', en: 'General fallback' },
-    pending: { th: 'รอจัดสรร', en: 'Pending' },
+function assignmentMethodLabel(method: string | null | undefined, t: (key: string) => string) {
+  const keys: Record<string, string> = {
+    auto_quota: 'assignmentMethods.autoQuota',
+    manual_admin: 'assignmentMethods.manualAdmin',
+    fallback_general: 'assignmentMethods.fallbackGeneral',
+    pending: 'assignmentMethods.pending',
   };
-  return method ? labels[method]?.[language] ?? method : (language === 'th' ? 'ยังไม่จัดฝ่าย' : 'Not assigned');
+  return method ? (keys[method] ? t(keys[method]) : method) : t('assignmentMethods.notAssigned');
 }
 
 export function EventStaffApplicationStatusPage() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { eventSlug = '' } = useParams();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -41,10 +41,10 @@ export function EventStaffApplicationStatusPage() {
       const nextResult = await checkStaffApplicationStatus({ eventSlug, email, phone });
       setResult(nextResult);
       if (!nextResult.success) {
-        setToast({ type: 'error', message: language === 'th' ? 'ไม่พบสถานะจากอีเมลและเบอร์โทรนี้' : 'No application status found for this email and phone.' });
+        setToast({ type: 'error', message: t('staffApplication.noStatusFoundToast') });
       }
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ตรวจสอบสถานะไม่สำเร็จ' : 'Could not check application status') });
+      setToast({ type: 'error', message: errorMessage(err, t('staffApplication.statusCheckFailed')) });
     } finally {
       setLoading(false);
     }
@@ -58,22 +58,22 @@ export function EventStaffApplicationStatusPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="Staff Application"
-        title={language === 'th' ? 'ตรวจสอบสถานะใบสมัคร' : 'Check application status'}
-        description={language === 'th' ? 'กรอกอีเมลและเบอร์โทรที่ใช้สมัคร เพื่อดูสถานะของใบสมัครของคุณเท่านั้น' : 'Enter the email and phone used to apply. Only your own application status will be shown.'}
-        meta={<Link className="btn btn-secondary" to={eventPath(eventSlug)}>{language === 'th' ? 'กลับหน้ากิจกรรม' : 'Back to event'}</Link>}
+        title={t('staffApplication.checkStatusTitle')}
+        description={t('staffApplication.checkStatusDescription')}
+        meta={<Link className="btn btn-secondary" to={eventPath(eventSlug)}>{t('common.backToEvent')}</Link>}
       />
 
       <Card className="event-status-check-card">
         <div>
-          <p className="eyebrow">{language === 'th' ? 'ยืนยันตัวตนผู้สมัคร' : 'Applicant verification'}</p>
-          <h2>{language === 'th' ? 'ตรวจจากอีเมลและเบอร์โทร' : 'Check by email and phone'}</h2>
-          <p>{language === 'th' ? 'ระบบจะไม่แสดงข้อมูลใบสมัคร หากอีเมลและเบอร์โทรไม่ตรงกับข้อมูลที่สมัครไว้' : 'No application information is shown unless both email and phone match the application identity.'}</p>
+          <p className="eyebrow">{t('staffApplication.applicantVerification')}</p>
+          <h2>{t('staffApplication.checkByEmailPhone')}</h2>
+          <p>{t('staffApplication.statusPrivacyHint')}</p>
         </div>
         <form className="form-grid" onSubmit={submit}>
-          <Input label={language === 'th' ? 'อีเมลที่ใช้สมัคร' : 'Application email'} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          <Input label={language === 'th' ? 'เบอร์โทรที่ใช้สมัคร' : 'Application phone'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required />
+          <Input label={t('staffApplication.applicationEmail')} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <Input label={t('staffApplication.applicationPhone')} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required />
           <Button type="submit" size="lg" fullWidth loading={loading}>
-            {language === 'th' ? 'ตรวจสอบสถานะ' : 'Check status'}
+            {t('staffApplication.checkStatus')}
           </Button>
         </form>
       </Card>
@@ -90,24 +90,24 @@ export function EventStaffApplicationStatusPage() {
             </div>
             <Card variant="soft">
               <div className="application-detail-grid">
-                <span>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</span>
-                <strong>{application.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรรเพิ่มเติม' : 'Pending admin assignment')}</strong>
-                <span>{language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'}</span>
-                <strong>{assignmentMethodLabel(application.assignment_method, language)}</strong>
+                <span>{t('staffApplication.preliminaryAssignedDuty')}</span>
+                <strong>{application.assigned_duty_label_th ?? t('staffApplication.pendingAdminAssignment')}</strong>
+                <span>{t('staffApplication.assignmentMethod')}</span>
+                <strong>{assignmentMethodLabel(application.assignment_method, t)}</strong>
                 {application.assignment_note ? (
                   <>
-                    <span>{language === 'th' ? 'หมายเหตุ' : 'Note'}</span>
+                    <span>{t('common.note')}</span>
                     <strong>{application.assignment_note}</strong>
                   </>
                 ) : null}
               </div>
-              <p className="muted">{language === 'th' ? 'ตำแหน่งที่แสดงเป็นการจัดสรรเบื้องต้น อาจมีการปรับเปลี่ยนตามความเหมาะสมโดยผู้ดูแล' : 'This is a preliminary assignment and may be adjusted later by admins.'}</p>
+              <p className="muted">{t('staffApplication.preliminaryAssignmentHint')}</p>
             </Card>
             {application.status === 'approved' && application.final_duty ? (
-              <p><strong>{language === 'th' ? 'หน้าที่จริง:' : 'Final duty:'}</strong> {application.final_duty}</p>
+              <p><strong>{t('staffApplication.finalDuty')}:</strong> {application.final_duty}</p>
             ) : null}
             {application.identity_status && application.identity_status !== 'verified' ? (
-              <p className="muted">{language === 'th' ? 'ใบสมัครนี้ยังรอตรวจสอบตัวตนเพิ่มเติม' : 'This application is still pending identity review.'}</p>
+              <p className="muted">{t('staffApplication.pendingIdentityReviewNote')}</p>
             ) : null}
             {application.review_note ? <p>{application.review_note}</p> : null}
           </div>
@@ -118,9 +118,9 @@ export function EventStaffApplicationStatusPage() {
         <Card className="event-status-result-card" variant="warning">
           <RefreshCw size={28} />
           <div>
-            <p className="eyebrow">{language === 'th' ? 'ไม่พบข้อมูล' : 'No result'}</p>
-            <h2>{language === 'th' ? 'ไม่พบสถานะใบสมัคร' : 'Application status not found'}</h2>
-            <p>{language === 'th' ? 'กรุณาตรวจสอบว่าใช้อีเมลและเบอร์โทรเดียวกับตอนสมัคร ระบบจะไม่เปิดเผยข้อมูลของผู้สมัครคนอื่น' : 'Please use the same email and phone from your application. Other applicants are never shown.'}</p>
+            <p className="eyebrow">{t('common.noResult')}</p>
+            <h2>{t('staffApplication.statusNotFoundTitle')}</h2>
+            <p>{t('staffApplication.statusNotFoundDescription')}</p>
           </div>
         </Card>
       ) : null}

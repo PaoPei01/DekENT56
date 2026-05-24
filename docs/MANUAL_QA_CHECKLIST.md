@@ -7,6 +7,7 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Supabase project points to the intended environment.
 - [ ] Latest migrations are applied.
 - [ ] `docs/MULTI_EVENT_RELEASE_GATE.md` is reviewed for this release.
+- [ ] `docs/LOCALIZATION_THEME_AUDIT.md` is reviewed before language detection or theme changes.
 - [ ] `docs/STAGING_MIGRATION_RUNBOOK.md` has been followed on staging.
 - [ ] Staging backup identifier is recorded before migration checks.
 - [ ] Multi-event staging runbook has been followed if testing multi-event foundation.
@@ -20,6 +21,57 @@ Use this checklist before real event operations and after every production-readi
 - [ ] At least one group assignment exists.
 - [ ] At least one active staff attendance session can be created.
 - [ ] Test on iPhone SE width, common Android width, tablet, desktop.
+
+## Localization and Theme Future QA
+
+- [ ] Browser language detection defaults `th-TH` browsers to Thai on first visit.
+- [ ] Browser language detection defaults `en-US` browsers to English on first visit.
+- [ ] Unsupported browser languages fall back safely to English.
+- [ ] Manual language override persists after reload.
+- [ ] Invalid stored language values are ignored safely.
+- [ ] `tfbp_language=th` opens Thai after reload.
+- [ ] `tfbp_language=en` opens English after reload.
+- [ ] Legacy `language=th` or `language=en` is still respected if `tfbp_language` is missing.
+- [ ] Auto-detected language is not written to localStorage until the user toggles language manually.
+- [ ] Desktop language switcher shows the current language as `ไทย` or `EN`.
+- [ ] Mobile More menu language switch persists after reload.
+- [ ] Main navigation labels switch language.
+- [ ] Staff application status labels switch language where centralized labels are used.
+- [ ] Language preference storage contains only a preference value, not personal data.
+- [ ] System light theme preference resolves to readable light mode.
+- [ ] System dark theme preference resolves to readable dark mode.
+- [ ] `tfbp_theme=system` follows the OS/browser color scheme.
+- [ ] `tfbp_theme=light` forces light mode after reload.
+- [ ] `tfbp_theme=dark` forces dark mode after reload.
+- [ ] Invalid `tfbp_theme` values fall back safely to system.
+- [ ] Document root receives `data-theme="light"` or `data-theme="dark"`.
+- [ ] Document root receives `data-theme-preference="system"`, `"light"`, or `"dark"`.
+- [ ] Manual light override persists after reload.
+- [ ] Manual dark override persists after reload.
+- [ ] Theme switcher works in desktop navigation.
+- [ ] Theme switcher works in mobile More menu.
+- [ ] System theme changes update the app while preference is `system`.
+- [ ] Public pages remain readable in dark mode.
+- [ ] `/events`, `/events/entaneer-bonding-69`, `/events/parent-orientation-staff-2569/staff/apply`, and `/events/parent-orientation-staff-2569/profile-check` are readable in dark mode.
+- [ ] Staff pages remain readable in dark mode.
+- [ ] Admin tables and filters remain readable in dark mode.
+- [ ] `/admin/events`, `/admin/events/:eventId`, `/admin/events/:eventId/applications`, `/admin/people`, and `/admin/system-readiness` are readable in dark mode.
+- [ ] Document previews remain readable and are not inverted.
+- [ ] QR codes remain black on white and scan reliably.
+- [ ] Scanner camera controls remain visible in light and dark mode.
+- [ ] Status badges use text labels and do not rely on color alone.
+- [ ] Inputs, selects, modals, toasts, tables/cards, and bottom nav are readable in dark mode.
+- [ ] Focus ring remains visible in light and dark mode.
+- [ ] Phase 4 route matrix is checked in Thai and English.
+- [ ] Phase 4 route matrix is checked in system light, system dark, manual light, and manual dark.
+- [ ] Phase 4 route matrix is checked at 375px, 390px, 430px, 768px, 1024px, and 1440px.
+- [ ] `/events`, `/events/parent-orientation-staff-2569`, `/events/parent-orientation-staff-2569/staff/apply`, `/events/parent-orientation-staff-2569/profile-check`, and `/events/parent-orientation-staff-2569/staff/application-status` have translated major labels and readable dark surfaces.
+- [ ] `/announcements` and `/guide` have readable card/list surfaces in dark mode.
+- [ ] `/staff/attendance` and `/admin/staff/attendance` have readable QR/scanner/manual-entry surfaces in dark mode.
+- [ ] `/admin/events`, `/admin/events/:eventId`, `/admin/events/:eventId/applications`, `/admin/people`, `/admin/system-readiness`, and `/admin/documents` have readable admin panels, tables, forms, modals, and export warnings in dark mode.
+- [ ] Language and theme controls remain compact in desktop navigation and mobile More menu.
+- [ ] Mobile More menu fits 375px width without horizontal overflow.
+- [ ] Remaining untranslated page-specific strings, if any, are documented rather than mass migrated.
 
 ## Public
 

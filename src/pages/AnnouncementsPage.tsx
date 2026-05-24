@@ -11,7 +11,7 @@ import { fetchPublicAnnouncements, fetchStaffAnnouncements } from '../services/a
 import { fetchStaffAccessContext } from '../services/staff';
 
 export function AnnouncementsPage() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const state = useAsync(async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return fetchPublicAnnouncements();
@@ -29,19 +29,19 @@ export function AnnouncementsPage() {
   const critical = rows.find((item) => item.priority === 'critical');
   const pinned = rows.filter((item) => item.is_pinned);
   const sections = [
-    ['banner', language === 'th' ? 'แบนเนอร์สำคัญ' : 'Banners'],
-    ['schedule', language === 'th' ? 'กำหนดการ' : 'Schedule'],
-    ['map', language === 'th' ? 'แผนที่' : 'Maps'],
-    ['traffic', language === 'th' ? 'จราจร' : 'Traffic'],
-    ['emergency', language === 'th' ? 'ฉุกเฉิน' : 'Emergency'],
+    ['banner', t('announcements.banners')],
+    ['schedule', t('announcements.schedule')],
+    ['map', t('announcements.maps')],
+    ['traffic', t('announcements.traffic')],
+    ['emergency', t('announcements.emergency')],
     ['faq', 'FAQ'],
-    ['document', language === 'th' ? 'เอกสาร' : 'Documents'],
-    ['update', language === 'th' ? 'อัปเดตล่าสุด' : 'Latest updates'],
+    ['document', t('announcements.documents')],
+    ['update', t('announcements.latestUpdates')],
   ];
   const shownIds = new Set<string>();
   return (
     <section className="page-stack">
-      <PageHeader eyebrow="Event Info" title={language === 'th' ? 'ประกาศและข้อมูลกิจกรรม' : 'Announcements'} description={language === 'th' ? 'รวมกำหนดการ แผนที่ จุดลงทะเบียน จราจร และข้อมูลสำคัญ' : 'Schedules, maps, registration points, traffic plans, and important updates.'} />
+      <PageHeader eyebrow="Event Info" title={t('announcements.title')} description={t('announcements.description')} />
       {state.loading ? <LoadingSkeleton /> : null}
       {state.error ? <div className="error-state">{state.error}</div> : null}
       {critical ? <Card className="critical-announcement"><AnnouncementCard item={critical} /></Card> : null}
@@ -65,13 +65,13 @@ export function AnnouncementsPage() {
       })}
       {!state.loading && !state.error && !rows.length ? (
         <EmptyState
-          title={language === 'th' ? 'ยังไม่มีประกาศที่เปิดให้แสดง' : 'No visible announcements yet'}
-          description={language === 'th' ? 'ถ้าเพิ่งสร้างประกาศ ให้ตรวจว่าเลือก Visible, Audience เป็น Public หรือ Staff และยังไม่เลยช่วงเวลาแสดงผล' : 'If you just created one, check visibility, audience, and display dates.'}
+          title={t('announcements.emptyTitle')}
+          description={t('announcements.emptyDescription')}
         />
       ) : null}
       {rows.filter((item) => !shownIds.has(item.id) && item.priority !== 'critical' && !item.is_pinned).length ? (
         <Card>
-          <h2>{language === 'th' ? 'ประกาศอื่น ๆ' : 'Other announcements'}</h2>
+          <h2>{t('announcements.other')}</h2>
           <div className="announcement-grid">
             {rows.filter((item) => !shownIds.has(item.id) && item.priority !== 'critical' && !item.is_pinned).map((item) => <Link key={item.id} to={`/announcements/${item.id}`}><AnnouncementCard item={item} compact /></Link>)}
           </div>

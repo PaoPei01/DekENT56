@@ -21,25 +21,25 @@ function isValidCmuEmail(value: string) {
   return !/\s/.test(value.trim()) && cmuEmailPattern.test(clean);
 }
 
-function safeFullName(person: PersonApplicationLookupResult['safe_person'] | undefined, fallback?: string) {
+function safeFullName(person: PersonApplicationLookupResult['safe_person'] | undefined, missingLabel: string, fallback?: string) {
   return person?.name_th
     || person?.name_en
     || person?.full_name_th
     || person?.full_name_en
     || fallback?.trim()
-    || 'ไม่พบชื่อ-นามสกุลในระบบ';
+    || missingLabel;
 }
 
-function safeNickname(person: PersonApplicationLookupResult['safe_person'] | undefined) {
+function safeNickname(person: PersonApplicationLookupResult['safe_person'] | undefined, missingLabel: string) {
   return person?.display_nickname
     || person?.nickname
     || person?.nickname_th
     || person?.nickname_en
-    || 'ไม่พบชื่อเล่นในระบบ';
+    || missingLabel;
 }
 
 export function EventProfileCheckPage() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { eventSlug = '' } = useParams();
   const eventState = useAsync(() => fetchEventBySlug(eventSlug), [eventSlug]);
   const [studentId, setStudentId] = useState('');
@@ -57,20 +57,20 @@ export function EventProfileCheckPage() {
 
   async function checkProfile() {
     if (!studentId.trim() || !isValidCmuEmail(email)) {
-      setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกรหัสนักศึกษาและ CMU Mail ที่ลงท้ายด้วย @cmu.ac.th' : 'Please enter student ID and a valid CMU Mail.' });
+      setToast({ type: 'error', message: t('identity.validIdentityRequired') });
       return;
     }
     try {
       setLoading(true);
       const result = await lookupPersonForApplication({ eventSlug, studentId, email, phone, nameTh, nameEn });
       if (result.success === false) {
-        setToast({ type: 'error', message: result.message_th ?? (language === 'th' ? 'ตรวจสอบข้อมูลไม่สำเร็จ' : 'Could not check profile') });
+        setToast({ type: 'error', message: result.message_th ?? t('identity.profileCheckFailed') });
         return;
       }
       setLookup(result);
-      setToast({ type: result.identity_status === 'verified' ? 'success' : 'info', message: result.message_th ?? (language === 'th' ? 'ตรวจสอบข้อมูลแล้ว' : 'Profile checked') });
+      setToast({ type: result.identity_status === 'verified' ? 'success' : 'info', message: result.message_th ?? t('identity.profileChecked') });
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ตรวจสอบข้อมูลไม่สำเร็จ' : 'Could not check profile') });
+      setToast({ type: 'error', message: errorMessage(err, t('identity.profileCheckFailed')) });
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ export function EventProfileCheckPage() {
 
   async function submitRequest() {
     if (!studentId.trim() || !isValidCmuEmail(email)) {
-      setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกรหัสนักศึกษาและ CMU Mail ให้ถูกต้อง' : 'Please enter valid identity details.' });
+      setToast({ type: 'error', message: t('identity.validIdentityDetailsRequired') });
       return;
     }
     try {
@@ -95,12 +95,12 @@ export function EventProfileCheckPage() {
         evidenceNote: note,
       });
       if (!result.success) {
-        setToast({ type: 'error', message: result.message_th ?? (language === 'th' ? 'ส่งคำร้องไม่สำเร็จ' : 'Could not submit request') });
+        setToast({ type: 'error', message: result.message_th ?? t('identity.updateRequestFailed') });
         return;
       }
-      setToast({ type: 'success', message: language === 'th' ? 'ส่งคำร้องแก้ไขข้อมูลแล้ว' : 'Update request submitted' });
+      setToast({ type: 'success', message: t('identity.updateRequestSubmitted') });
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ส่งคำร้องไม่สำเร็จ' : 'Could not submit request') });
+      setToast({ type: 'error', message: errorMessage(err, t('identity.updateRequestFailed')) });
     } finally {
       setSaving(false);
     }
@@ -111,32 +111,32 @@ export function EventProfileCheckPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="Profile Check"
-        title={language === 'th' ? 'ตรวจสอบข้อมูลของฉัน' : 'Check My Profile'}
-        description={language === 'th' ? 'ตรวจข้อมูลที่พบในฐานข้อมูลบุคคล และส่งคำร้องแก้ไขได้หากข้อมูลไม่ถูกต้อง' : 'Check the safe data found in the People Database and request corrections if needed.'}
-        actions={<Button variant="secondary" icon={<RefreshCw size={18} />} onClick={eventState.reload}>{language === 'th' ? 'รีเฟรช' : 'Refresh'}</Button>}
+        title={t('identity.profileCheckTitle')}
+        description={t('identity.profileCheckDescription')}
+        actions={<Button variant="secondary" icon={<RefreshCw size={18} />} onClick={eventState.reload}>{t('common.refresh')}</Button>}
       />
 
       {eventState.loading ? <LoadingSkeleton /> : null}
-      {eventState.error ? <EmptyState title={language === 'th' ? 'โหลดกิจกรรมไม่สำเร็จ' : 'Could not load event'} action={<Button variant="secondary" onClick={eventState.reload}>{language === 'th' ? 'ลองใหม่' : 'Retry'}</Button>} /> : null}
+      {eventState.error ? <EmptyState title={t('events.couldNotLoadEvent')} action={<Button variant="secondary" onClick={eventState.reload}>{t('common.retry')}</Button>} /> : null}
 
       {event ? (
         <Card className="event-form-card">
           <div>
             <p className="eyebrow">{language === 'th' ? event.name_th : event.name_en || event.name_th}</p>
-            <h2>{language === 'th' ? 'ยืนยันข้อมูลด้วยรหัสนักศึกษาและ CMU Mail' : 'Verify with student ID and CMU Mail'}</h2>
-            <p className="muted">{language === 'th' ? 'หน้านี้ไม่แสดงอีเมลหรือเบอร์โทรเดิมแบบเต็ม และไม่แสดงข้อมูลสุขภาพ' : 'This page never shows full old email/phone or health data.'}</p>
+            <h2>{t('identity.verifyWithStudentIdAndCmuMail')}</h2>
+            <p className="muted">{t('identity.privacyProfileHint')}</p>
           </div>
           <div className="form-grid">
-            <Input label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} value={studentId} onChange={(input) => setStudentId(input.target.value)} required />
-            <Input label={language === 'th' ? 'CMU Mail ปัจจุบัน' : 'Current CMU Mail'} type="email" value={email} onChange={(input) => setEmail(input.target.value)} required />
-            <Input label={language === 'th' ? 'เบอร์โทรที่ติดต่อได้' : 'Current phone'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(input) => setPhone(input.target.value)} />
-            <Input label={language === 'th' ? 'ชื่อ-นามสกุล' : 'Full name'} value={nameTh} onChange={(input) => setNameTh(input.target.value)} />
-            <Input label={language === 'th' ? 'ชื่อภาษาอังกฤษ (ถ้ามี)' : 'English name (optional)'} value={nameEn} onChange={(input) => setNameEn(input.target.value)} />
-            <Input label={language === 'th' ? 'สาขา' : 'Major'} value={major} onChange={(input) => setMajor(input.target.value)} />
+            <Input label={t('identity.studentId')} value={studentId} onChange={(input) => setStudentId(input.target.value)} required />
+            <Input label={t('identity.currentCmuMail')} type="email" value={email} onChange={(input) => setEmail(input.target.value)} required />
+            <Input label={t('identity.reachablePhone')} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(input) => setPhone(input.target.value)} />
+            <Input label={t('identity.fullName')} value={nameTh} onChange={(input) => setNameTh(input.target.value)} />
+            <Input label={t('identity.englishNameOptional')} value={nameEn} onChange={(input) => setNameEn(input.target.value)} />
+            <Input label={t('identity.major')} value={major} onChange={(input) => setMajor(input.target.value)} />
           </div>
           <div className="event-card-actions">
-            <Button loading={loading} onClick={() => void checkProfile()}>{language === 'th' ? 'ตรวจสอบข้อมูล' : 'Check profile'}</Button>
-            <Link className="btn btn-secondary" to={eventStaffApplyPath(event.slug)}>{language === 'th' ? 'ไปสมัครสตาฟ' : 'Apply as staff'}</Link>
+            <Button loading={loading} onClick={() => void checkProfile()}>{t('identity.checkData')}</Button>
+            <Link className="btn btn-secondary" to={eventStaffApplyPath(event.slug)}>{t('events.applyAsStaff')}</Link>
           </div>
         </Card>
       ) : null}
@@ -144,30 +144,30 @@ export function EventProfileCheckPage() {
       {lookup ? (
         <Card className="event-detail-card" variant={lookup.identity_status === 'verified' ? 'success' : 'warning'}>
           <div>
-            <p className="eyebrow">{language === 'th' ? 'ผลการตรวจสอบ' : 'Lookup result'}</p>
-            <h2>{language === 'th' ? 'ข้อมูลที่พบในระบบ' : 'Data found in the system'}</h2>
-            <p className="muted">{lookup.message_th ?? (language === 'th' ? 'ข้อมูลบางรายการอาจไม่เป็นปัจจุบัน หากพบข้อมูลผิด สามารถส่งคำร้องแก้ไขได้' : 'Some details may be outdated. You can request corrections if needed.')}</p>
+            <p className="eyebrow">{t('identity.lookupResult')}</p>
+            <h2>{t('identity.dataFoundInSystem')}</h2>
+            <p className="muted">{lookup.message_th ?? t('identity.outdatedDataHint')}</p>
           </div>
           {lookup.safe_person ? (
             <div className="event-fact-grid">
-              <span><strong>{language === 'th' ? 'ชื่อ-นามสกุล' : 'Full name'}</strong>{safeFullName(lookup.safe_person, nameTh)}</span>
-              <span><strong>{language === 'th' ? 'ชื่อเล่น' : 'Nickname'}</strong>{safeNickname(lookup.safe_person)}</span>
-              <span><strong>{language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'}</strong>{lookup.safe_person.student_id ?? '-'}</span>
-              <span><strong>{language === 'th' ? 'สาขา' : 'Major'}</strong>{lookup.safe_person.major ?? '-'}</span>
-              <span><strong>{language === 'th' ? 'CMU Mail ในระบบ' : 'System CMU Mail'}</strong>{lookup.safe_person.masked_email ?? '-'}</span>
-              <span><strong>{language === 'th' ? 'เบอร์โทรในระบบ' : 'System phone'}</strong>{lookup.safe_person.masked_phone ?? '-'}</span>
+              <span><strong>{t('common.fullName')}</strong>{safeFullName(lookup.safe_person, t('identity.missingFullName'), nameTh)}</span>
+              <span><strong>{t('common.nickname')}</strong>{safeNickname(lookup.safe_person, t('identity.missingNickname'))}</span>
+              <span><strong>{t('identity.studentId')}</strong>{lookup.safe_person.student_id ?? '-'}</span>
+              <span><strong>{t('common.major')}</strong>{lookup.safe_person.major ?? '-'}</span>
+              <span><strong>{t('identity.systemCmuMail')}</strong>{lookup.safe_person.masked_email ?? '-'}</span>
+              <span><strong>{t('identity.systemPhone')}</strong>{lookup.safe_person.masked_phone ?? '-'}</span>
             </div>
           ) : (
-            <p>{language === 'th' ? 'ไม่พบข้อมูลจากรหัสนักศึกษานี้ แต่คุณยังสามารถส่งคำร้องให้ผู้ดูแลตรวจสอบได้' : 'No record was found for this student ID. You can submit a request for admin review.'}</p>
+            <p>{t('identity.noStudentRecord')}</p>
           )}
           {lookup.identity_status !== 'verified' ? (
             <div className="page-stack">
-              <p className="muted">{language === 'th' ? 'หาก CMU Mail ในฐานข้อมูลเดิมไม่ถูกต้อง สามารถส่งใบสมัครได้ตามปกติ ระบบจะให้ผู้ดูแลตรวจสอบตัวตนเพิ่มเติมภายหลัง' : 'If old CMU Mail is incorrect, you can still apply and admins will review identity later.'}</p>
+              <p className="muted">{t('identity.oldCmuMailHint')}</p>
               <label className="field">
-                <span>{language === 'th' ? 'หมายเหตุสำหรับผู้ดูแล' : 'Note for admin'}</span>
+                <span>{t('identity.noteForAdmin')}</span>
                 <textarea rows={3} value={note} onChange={(input) => setNote(input.target.value)} />
               </label>
-              <Button loading={saving} onClick={() => void submitRequest()}>{language === 'th' ? 'ส่งคำร้องแก้ไขข้อมูล' : 'Submit update request'}</Button>
+              <Button loading={saving} onClick={() => void submitRequest()}>{t('identity.submitCorrectionRequest')}</Button>
             </div>
           ) : null}
         </Card>
@@ -175,8 +175,8 @@ export function EventProfileCheckPage() {
 
       <Card className="event-actions-card" variant="soft">
         <div className="event-card-actions">
-          <Link className="btn btn-secondary" to={eventPath(eventSlug)}>{language === 'th' ? 'กลับหน้ากิจกรรม' : 'Back to event'}</Link>
-          <Link className="btn btn-primary" to={eventStaffApplyPath(eventSlug)}>{language === 'th' ? 'สมัครเป็นสตาฟ' : 'Apply as staff'}</Link>
+          <Link className="btn btn-secondary" to={eventPath(eventSlug)}>{t('common.backToEvent')}</Link>
+          <Link className="btn btn-primary" to={eventStaffApplyPath(eventSlug)}>{t('events.applyAsStaff')}</Link>
         </div>
       </Card>
     </section>

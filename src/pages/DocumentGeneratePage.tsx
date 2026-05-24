@@ -13,6 +13,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useEventContext } from '../context/EventContext';
+import { useLanguage } from '../context/LanguageContext';
 import { buildDocumentData, documentTypeLabel, downloadBlob, findMissingFields, renderDocxBlob, renderPreviewHtml } from '../lib/documentGeneration';
 import { documentScopeLabel, documentScopeTone } from '../lib/documentEventContext';
 import type { DocumentType } from '../lib/documentTypes';
@@ -22,6 +23,7 @@ import { errorMessage } from '../utils/error';
 
 export function DocumentGeneratePage() {
   const { currentEventId } = useEventContext();
+  const { language } = useLanguage();
   const state = useAsync(() => fetchDocumentCenterData(currentEventId), [currentEventId]);
   const [templateId, setTemplateId] = useState('');
   const [documentType, setDocumentType] = useState<DocumentType>('project_approval');
@@ -81,22 +83,32 @@ export function DocumentGeneratePage() {
         preview_html: html,
         event_id: currentEventId,
       });
-      setToast({ type: 'success', message: `สร้างและดาวน์โหลดเอกสาร v${reserved.version} แล้ว` });
+      setToast({ type: 'success', message: language === 'th' ? `สร้างและดาวน์โหลดเอกสาร v${reserved.version} แล้ว` : `Generated and downloaded document v${reserved.version}` });
       await state.reload();
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, 'สร้างเอกสารไม่สำเร็จ กรุณาตรวจเทมเพลตและสิทธิ์ Storage แล้วลองอีกครั้ง') });
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'สร้างเอกสารไม่สำเร็จ กรุณาตรวจเทมเพลตและลองอีกครั้ง' : 'Could not generate the document. Check the template and try again.') });
     } finally {
       setGenerating(false);
     }
   }
 
+  const documentTypeOptions = [
+    { value: 'project_approval', label: language === 'th' ? 'เอกสารขออนุมัติโครงการ' : 'Project approval' },
+    { value: 'venue_request', label: language === 'th' ? 'หนังสือขอใช้สถานที่' : 'Venue request' },
+    { value: 'equipment_borrow', label: language === 'th' ? 'เอกสารยืมอุปกรณ์' : 'Equipment borrow request' },
+    { value: 'support_request', label: language === 'th' ? 'หนังสือขอความอนุเคราะห์' : 'Support request' },
+    { value: 'invitation_letter', label: language === 'th' ? 'หนังสือเชิญ' : 'Invitation letter' },
+    { value: 'closing_report', label: language === 'th' ? 'รายงานสรุปโครงการ' : 'Closing report' },
+    { value: 'custom', label: language === 'th' ? 'กำหนดเอง' : 'Custom' },
+  ];
+
   return (
     <section className="page-stack">
       <Toast toast={toast} />
       <PageHeader
-        eyebrow="ศูนย์เอกสาร"
-        title="สร้างไฟล์เอกสาร"
-        description="เลือกเทมเพลต ตรวจข้อมูลที่ยังขาด ดูตัวอย่างก่อนสร้างไฟล์ และดาวน์โหลดเอกสารพร้อมใช้งาน"
+        eyebrow={language === 'th' ? 'ศูนย์เอกสาร' : 'Document Center'}
+        title={language === 'th' ? 'สร้างและดาวน์โหลดเอกสาร' : 'Generate and download'}
+        description={language === 'th' ? 'เลือกเทมเพลต ตรวจข้อมูลที่ยังขาด ดูตัวอย่างก่อนสร้างไฟล์ และดาวน์โหลดเอกสารพร้อมใช้งาน' : 'Choose a template, check missing information, preview the document, and download a ready-to-use DOCX file.'}
         meta={<EventSwitcher compact />}
         actions={<HelpButton topicId="documents.generate" variant="link" />}
       />
@@ -105,46 +117,38 @@ export function DocumentGeneratePage() {
         <>
           <DocumentEventContextCard />
           <Card className="form-grid two-col">
-            <Select label="ประเภทเอกสาร" value={documentType} onChange={(event) => { setDocumentType(event.target.value as DocumentType); setTemplateId(''); setPreviewHtml(''); }} options={[
-              { value: 'project_approval', label: 'เอกสารขออนุมัติโครงการ' },
-              { value: 'venue_request', label: 'หนังสือขอใช้สถานที่' },
-              { value: 'equipment_borrow', label: 'เอกสารยืมอุปกรณ์' },
-              { value: 'support_request', label: 'หนังสือขอความอนุเคราะห์' },
-              { value: 'invitation_letter', label: 'หนังสือเชิญ' },
-              { value: 'closing_report', label: 'รายงานสรุปโครงการ' },
-              { value: 'custom', label: 'กำหนดเอง' },
-            ]} />
-            <Select label="เทมเพลตเอกสาร" value={templateId} onChange={(event) => { setTemplateId(event.target.value); setPreviewHtml(''); }} options={templates.map((item) => ({ value: item.id, label: item.name }))} placeholder="เลือกเทมเพลต" />
-            <Input label="ชื่อเอกสาร" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={template?.name ?? documentTypeLabel(documentType)} />
+            <Select label={language === 'th' ? 'ประเภทเอกสาร' : 'Document type'} value={documentType} onChange={(event) => { setDocumentType(event.target.value as DocumentType); setTemplateId(''); setPreviewHtml(''); }} options={documentTypeOptions} />
+            <Select label={language === 'th' ? 'เทมเพลตเอกสาร' : 'Document template'} value={templateId} onChange={(event) => { setTemplateId(event.target.value); setPreviewHtml(''); }} options={templates.map((item) => ({ value: item.id, label: item.name }))} placeholder={language === 'th' ? 'เลือกเทมเพลต' : 'Choose template'} />
+            <Input label={language === 'th' ? 'ชื่อเอกสาร' : 'Document title'} value={title} onChange={(event) => setTitle(event.target.value)} placeholder={template?.name ?? documentTypeLabel(documentType)} />
             <div className="document-readiness">
-              <Badge status={missing.length ? 'pending' : 'approved'}>{missing.length ? `ขาด ${missing.length} ช่อง` : 'ข้อมูลพร้อม'}</Badge>
-              {template ? <Badge status={documentScopeTone(template.event_id, currentEventId)}>{documentScopeLabel(template.event_id, currentEventId, 'th')}</Badge> : null}
-              <span>{template ? `${template.placeholders.length} ช่องข้อมูล · ${missing.length ? 'ยังไม่พร้อมเต็มที่' : 'พร้อมสร้าง'}` : 'ยังไม่ได้เลือกเทมเพลต'}</span>
+              <Badge status={missing.length ? 'pending' : 'approved'}>{missing.length ? (language === 'th' ? `ขาด ${missing.length} ช่อง` : `${missing.length} missing`) : (language === 'th' ? 'ข้อมูลพร้อม' : 'Ready')}</Badge>
+              {template ? <Badge status={documentScopeTone(template.event_id, currentEventId)}>{documentScopeLabel(template.event_id, currentEventId, language)}</Badge> : null}
+              <span>{template ? `${template.placeholders.length} ${language === 'th' ? 'ช่องข้อมูล' : 'placeholders'} · ${missing.length ? (language === 'th' ? 'ยังไม่พร้อมเต็มที่' : 'Needs review') : (language === 'th' ? 'พร้อมสร้าง' : 'Ready to generate')}` : (language === 'th' ? 'ยังไม่ได้เลือกเทมเพลต' : 'No template selected')}</span>
             </div>
             <div className="form-actions full-span">
-              <Button variant="secondary" icon={<Eye size={18} />} onClick={preview}>ดูตัวอย่าง</Button>
-              <Button icon={<Download size={18} />} onClick={download} disabled={!template || generating}>{generating ? 'กำลังสร้างเอกสาร...' : 'สร้างและดาวน์โหลดเอกสาร'}</Button>
+              <Button variant="secondary" icon={<Eye size={18} />} onClick={preview}>{language === 'th' ? 'ดูตัวอย่าง' : 'Preview'}</Button>
+              <Button icon={<Download size={18} />} onClick={download} disabled={!template || generating}>{generating ? (language === 'th' ? 'กำลังสร้างเอกสาร...' : 'Generating...') : (language === 'th' ? 'สร้างและดาวน์โหลดเอกสาร' : 'Generate and download')}</Button>
             </div>
           </Card>
           {template ? (
             <Card className="privacy-notice" variant="soft">
-              <strong>ขอบเขตเทมเพลต</strong>
-              <span>{documentScopeLabel(template.event_id, currentEventId, 'th')} · ข้อมูลที่เติมในเอกสารจะใช้ข้อมูลของกิจกรรมที่เลือกด้านบน</span>
+              <strong>{language === 'th' ? 'ขอบเขตเทมเพลต' : 'Template scope'}</strong>
+              <span>{documentScopeLabel(template.event_id, currentEventId, language)} · {language === 'th' ? 'ข้อมูลที่เติมในเอกสารจะใช้ข้อมูลของกิจกรรมที่เลือกด้านบน' : 'Document data comes from the selected event above.'}</span>
             </Card>
           ) : null}
-          <Card className="document-missing-card">
+          <Card className="document-missing-card" variant={missing.length ? 'warning' : 'success'}>
             <div className="section-title-row">
-              <h2>ข้อมูลที่ยังขาด</h2>
+              <h2>{language === 'th' ? 'ข้อมูลที่ยังขาด' : 'Missing information'}</h2>
             </div>
             {missing.length ? (
               <div className="document-missing-groups">
                 <div>
-                  <strong>ข้อมูลโครงการ</strong>
+                  <strong>{language === 'th' ? 'ยังมีข้อมูลที่ต้องกรอกก่อนสร้างเอกสาร' : 'Some information is required before generating this document.'}</strong>
                   <div className="filter-chip-row">{missing.map((item) => <span className="filter-chip" key={item.field}>{item.label}</span>)}</div>
                 </div>
-                <Link className="btn btn-secondary document-readiness-action" to="/admin/documents/settings">ไปกรอกข้อมูลตั้งต้น</Link>
+                <Link className="btn btn-secondary document-readiness-action" to="/admin/documents/settings">{language === 'th' ? 'ไปกรอกข้อมูลตั้งต้น' : 'Fill missing project info'}</Link>
               </div>
-            ) : <p>ไม่มีข้อมูลที่ขาดสำหรับเอกสารประเภทนี้</p>}
+            ) : <p>{language === 'th' ? 'ไม่มีข้อมูลที่ขาดสำหรับเอกสารประเภทนี้' : 'No missing information for this document type.'}</p>}
           </Card>
           {previewHtml ? <Card className="document-preview-card"><div dangerouslySetInnerHTML={{ __html: previewHtml }} /></Card> : null}
         </>

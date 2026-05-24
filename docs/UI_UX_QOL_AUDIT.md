@@ -20,6 +20,7 @@ Biggest usability risks:
 - Staff application identity mismatch copy must stay calm and non-blocking.
 - Name/nickname display can become misleading if display helpers fall back to nickname for a full-name field.
 - Export flows need consistently strong privacy warnings before downloading personal data.
+- Phase 4 reduced major public-page translation gaps and improved dark-mode shared surfaces, but admin/staff page-specific copy still needs careful incremental migration.
 
 Top 10 quality-of-life improvements:
 1. Use "โปรดเลือก" as the default form placeholder and reserve "ทั้งหมด" for admin filters.

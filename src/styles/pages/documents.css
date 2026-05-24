@@ -28,6 +28,13 @@
   color: var(--accent);
 }
 
+.document-flow-step-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 .document-flow-step span,
 .document-readiness-grid span,
 .document-readiness-summary span {
@@ -267,4 +274,26 @@
 .import-stepper span.active {
   background: rgba(40, 104, 232, 0.12);
   color: var(--accent-strong);
+}
+
+:root[data-theme="dark"] .document-action-card,
+:root[data-theme="dark"] .document-row-grid,
+:root[data-theme="dark"] .document-missing-card,
+:root[data-theme="dark"] .document-preview-card,
+:root[data-theme="dark"] .document-history-preview,
+:root[data-theme="dark"] .document-template-card,
+:root[data-theme="dark"] .document-center-card {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .document-preview table,
+:root[data-theme="dark"] .document-preview td {
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .import-stepper span {
+  background: var(--surface-muted);
+  color: var(--text-muted);
 }

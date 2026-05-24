@@ -16,9 +16,8 @@ body {
   min-width: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(79, 139, 255, 0.16), transparent 32rem),
-    linear-gradient(180deg, #ffffff 0%, var(--bg) 42%, #eef5ff 100%);
+  color: var(--text);
+  background: var(--body-bg);
 }
 
 button,

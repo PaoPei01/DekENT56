@@ -598,3 +598,38 @@
   font-size: 0.78rem;
   font-weight: 800;
 }
+
+:root[data-theme="dark"] .admin-dashboard,
+:root[data-theme="dark"] .admin-panel,
+:root[data-theme="dark"] .admin-card,
+:root[data-theme="dark"] .admin-section,
+:root[data-theme="dark"] .admin-surface,
+:root[data-theme="dark"] .admin-table-card,
+:root[data-theme="dark"] .admin-filter-card,
+:root[data-theme="dark"] .edit-friend-panel,
+:root[data-theme="dark"] .edit-friend-card,
+:root[data-theme="dark"] .edit-collapsible,
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .system-readiness-card,
+:root[data-theme="dark"] .people-import-card,
+:root[data-theme="dark"] .dedupe-card,
+:root[data-theme="dark"] .update-request-card {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .edit-collapsible > summary,
+:root[data-theme="dark"] .edit-inline-error {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .edit-success-card {
+  border-color: color-mix(in srgb, var(--success) 34%, transparent);
+  background: var(--success-soft);
+}
+
+:root[data-theme="dark"] .edit-inline-error {
+  border-color: color-mix(in srgb, var(--danger) 34%, transparent);
+  background: var(--danger-soft);
+}
