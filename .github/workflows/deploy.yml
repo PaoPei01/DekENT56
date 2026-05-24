@@ -45,6 +45,7 @@ jobs:
           VITE_GIT_COMMIT_SHA: ${{ env.VITE_GIT_COMMIT_SHA }}
           VITE_BUILD_TIME: ${{ env.VITE_BUILD_TIME }}
           VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
+          VITE_DEPLOY_TARGET: github-pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

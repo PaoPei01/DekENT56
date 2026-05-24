@@ -88,6 +88,70 @@
    npm run dev
    ```
 
+## Deployment
+
+The app uses React + Vite with `HashRouter`. Keep `HashRouter` enabled for both GitHub Pages and Cloudflare Pages. The deployment difference is the Vite asset base path:
+
+- GitHub Pages project site: assets must load from `/TFBP/`.
+- Cloudflare Pages root site: assets must load from `/`.
+
+`vite.config.ts` chooses the base dynamically:
+
+- `VITE_DEPLOY_TARGET=github-pages` uses `base: '/TFBP/'`.
+- `VITE_DEPLOY_TARGET=cloudflare-pages` or no deploy target uses `base: '/'`.
+- `VITE_APP_BASE_PATH=/custom-path/` can override both when deploying to another subpath.
+
+### GitHub Pages
+
+The included GitHub Actions workflow builds and deploys to GitHub Pages. It sets:
+
+```text
+VITE_DEPLOY_TARGET=github-pages
+```
+
+Required frontend environment variables:
+
+```text
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+Optional build metadata shown in admin diagnostics:
+
+```text
+VITE_APP_VERSION=0.1.0
+VITE_GIT_COMMIT_SHA=...
+VITE_BUILD_TIME=...
+```
+
+Do not add `SUPABASE_SERVICE_ROLE_KEY` to GitHub Pages or any Vite frontend deployment.
+
+### Cloudflare Pages
+
+Use these Cloudflare Pages settings:
+
+```text
+Build command: npm run build
+Build output directory: dist
+```
+
+Required environment variables:
+
+```text
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+Recommended deployment target marker:
+
+```text
+VITE_DEPLOY_TARGET=cloudflare-pages
+```
+
+`VITE_DEPLOY_TARGET=cloudflare-pages` is explicit documentation for future maintainers; omitting it also builds with `base: '/'`. Do not set `VITE_APP_BASE_PATH=/TFBP/` on Cloudflare root deployments, or the app may load a blank page because built assets will be requested from `/TFBP/assets/...`.
+
+Never deploy the Supabase `service_role` key to Cloudflare Pages. Keep service-role keys only in local/server-side import scripts or trusted backend jobs.
+
 ## Import Registration Excel
 
 The importer reads the Google Forms Excel export and upserts rows into `profiles` by `email`.
