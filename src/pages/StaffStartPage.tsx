@@ -1,4 +1,4 @@
-import { ClipboardCheck, LogIn, QrCode, Shield, UserCheck } from 'lucide-react';
+import { LogIn, Shield, UserCheck } from 'lucide-react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { PortalActionCard } from '../components/PortalActionCard';
@@ -60,7 +60,7 @@ export function StaffStartPage() {
       <PageHeader
         eyebrow="Staff"
         title={language === 'th' ? 'ศูนย์ทีมงาน' : 'Staff Center'}
-        description={language === 'th' ? 'ใช้หน้านี้เพื่อเข้าสู่ระบบ ยืนยันตัวตน แสดง QR หรือแก้ไขโปรไฟล์ทีมงาน' : 'Use this page to sign in, verify your staff identity, show your QR, or edit your staff profile.'}
+        description={language === 'th' ? 'เลือกวิธีเข้าใช้งานตามสิทธิ์ของคุณ' : 'Choose how you want to access staff tools.'}
       />
       <div className="staff-action-grid">
         <PortalActionCard
@@ -74,27 +74,12 @@ export function StaffStartPage() {
         />
         <PortalActionCard
           to="/staff/profile/verify"
-          icon={<QrCode size={28} />}
-          title={language === 'th' ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทร' : 'Verify with email and phone'}
-          description={language === 'th' ? 'ใช้สำหรับแสดง QR ส่วนตัวหรือขอแก้ไขโปรไฟล์ โดยไม่ต้องเข้าสู่ระบบ' : 'Use this to show your personal QR or request profile changes without signing in.'}
+          icon={<UserCheck size={28} />}
+          title={language === 'th' ? 'เข้าสู่โหมดทีมงานทั่วไป' : 'General staff access'}
+          description={language === 'th' ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทร เพื่อแสดง QR ส่วนตัว เช็กชื่อ แก้ไขโปรไฟล์ หรือส่งคำขอแก้ไขข้อมูลสำคัญ โดยไม่ต้องเข้าสู่ระบบ' : 'Verify with email and phone to show your personal QR, check in, edit your profile, or request important data updates without signing in.'}
           actionLabel={language === 'th' ? 'ยืนยันตัวตน' : 'Verify identity'}
         />
-        <PortalActionCard
-          to="/events/parent-orientation-staff-2569/staff/application-status"
-          icon={<ClipboardCheck size={28} />}
-          title={language === 'th' ? 'ตรวจสถานะใบสมัครทีมงาน' : 'Check staff application status'}
-          description={language === 'th' ? 'สำหรับผู้ที่สมัครเป็นทีมงานแล้วและต้องการดูผลหรือสถานะล่าสุด' : 'For applicants who want to check their latest staff application status.'}
-          actionLabel={language === 'th' ? 'ตรวจสถานะ' : 'Check status'}
-        />
       </div>
-      <Card className="privacy-notice">
-        <strong>{language === 'th' ? 'ลิงก์เดิมยังใช้งานได้' : 'Existing direct links still work'}</strong>
-        <span>{language === 'th' ? 'หากมีลิงก์ QR ส่วนตัว เช็กชื่อ หรือหน้าเข้าสู่ระบบเดิม สามารถเปิดได้ตามปกติ' : 'Existing personal QR, attendance, and sign-in links remain available.'}</span>
-        <div className="form-actions">
-          <Link className="btn btn-secondary" to="/staff/profile/qr">{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Staff personal QR'}</Link>
-          <Link className="btn btn-secondary" to="/staff/attendance">{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff attendance'}</Link>
-        </div>
-      </Card>
     </section>
   );
 }

@@ -123,9 +123,9 @@ export function StaffProfileVerifyPage() {
     <section className="narrow-page page-stack has-sticky-actions">
       <Toast toast={toast} />
       <PageHeader
-        eyebrow="Staff Lite"
-        title={language === 'th' ? 'ยืนยันตัวตนเพื่อแก้ไขข้อมูลทีมงาน' : 'Verify identity to edit staff information'}
-        description={language === 'th' ? 'ใช้สำหรับทีมงานรายบุคคลที่ต้องการแสดง QR ส่วนตัว แก้โปรไฟล์ หรือส่งคำขอแก้ข้อมูลสำคัญ โดยไม่ต้องเข้าสู่ระบบ' : 'Use this to show your personal QR, edit your profile, or request sensitive changes without signing in.'}
+        eyebrow={language === 'th' ? 'ทีมงานทั่วไป' : 'General staff'}
+        title={language === 'th' ? 'เข้าสู่โหมดทีมงานทั่วไป' : 'General staff access'}
+        description={language === 'th' ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทร เพื่อแสดง QR ส่วนตัว เช็กชื่อ แก้ไขโปรไฟล์ หรือส่งคำขอแก้ไขข้อมูลสำคัญ โดยไม่ต้องเข้าสู่ระบบ' : 'Verify with email and phone to show your personal QR, check in, edit your profile, or request important data updates without signing in.'}
         meta={(
           <>
             <HelpButton topicId="staff.profile-verify" variant="link" />
@@ -137,7 +137,7 @@ export function StaffProfileVerifyPage() {
         <form className="form-grid" onSubmit={verify}>
           <Input label={language === 'th' ? 'อีเมล' : 'Email'} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} value={phone} onChange={(event) => setPhone(event.target.value)} required />
-          <Button type="submit" disabled={loading} icon={<SearchCheck size={18} />}>{language === 'th' ? 'ตรวจสอบโปรไฟล์' : 'Verify profile'}</Button>
+          <Button type="submit" disabled={loading} icon={<SearchCheck size={18} />}>{language === 'th' ? 'ยืนยันตัวตน' : 'Verify identity'}</Button>
         </form>
       </Card>
 
@@ -151,30 +151,30 @@ export function StaffProfileVerifyPage() {
           </Card>
           <Card className="staff-lite-actions-card" variant="soft">
             <div>
-              <p className="eyebrow">{language === 'th' ? 'Staff Lite' : 'Staff Lite'}</p>
+              <p className="eyebrow">{language === 'th' ? 'ทีมงานทั่วไป' : 'General staff'}</p>
               <h2>{language === 'th' ? 'ทำอะไรต่อดี?' : 'What do you need next?'}</h2>
               <p className="muted">{language === 'th' ? 'บางเครื่องมือใช้อีเมลและเบอร์โทรยืนยันตัวตนได้ โดยไม่ต้องเข้าสู่ระบบ' : 'Some tools support email and phone verification without signing in.'}</p>
             </div>
             <div className="staff-action-grid staff-lite-action-grid">
               <Link className="staff-action-card" to="/staff/profile/qr">
                 <QrCode size={26} />
-                <strong>{language === 'th' ? 'แสดง QR ส่วนตัว' : 'Show personal QR'}</strong>
-                <span>{language === 'th' ? 'ให้แอดมินหรือหัวหน้าทีมสแกนเพื่อเช็กชื่อ' : 'Let an admin or team lead scan you for check-in.'}</span>
+                <strong>{language === 'th' ? 'QR ส่วนตัวสำหรับเช็กชื่อ' : 'Personal check-in QR'}</strong>
+                <span>{language === 'th' ? 'ให้แอดมินหรือหัวหน้าทีมสแกนเพื่อบันทึกการเช็กชื่อ' : 'Let an admin or team lead scan your QR for attendance.'}</span>
               </Link>
               <Link className="staff-action-card" to="/staff/attendance">
                 <ClipboardCheck size={26} />
                 <strong>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</strong>
-                <span>{language === 'th' ? 'เลือกแสดง QR ของฉันหรือสแกน QR รอบเช็กชื่อ' : 'Show my QR or scan a session QR.'}</span>
+                <span>{language === 'th' ? 'เลือกวิธีเช็กชื่อหรือดูประวัติการเช็กชื่อของคุณ' : 'Choose a check-in method or view your attendance history.'}</span>
               </Link>
               <a className="staff-action-card" href="#staff-profile-edit-card">
                 <UserRound size={26} />
                 <strong>{language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit staff profile'}</strong>
-                <span>{language === 'th' ? 'แก้ข้อมูลโปรไฟล์พื้นฐานและส่งคำขอแก้ข้อมูลสำคัญ' : 'Edit basic profile details and request sensitive updates.'}</span>
+                <span>{language === 'th' ? 'ปรับข้อมูลที่แสดงต่อผู้เข้าร่วม และส่งคำขอแก้ไขข้อมูลสำคัญ' : 'Update information shown to participants and request important data changes.'}</span>
               </a>
               <Link className="staff-action-card" to="/login" state={{ returnTo: '/staff' }}>
                 <LogIn size={26} />
-                <strong>{language === 'th' ? 'เข้าสู่ระบบเพื่อใช้เครื่องมือทั้งหมด' : 'Sign in for all staff tools'}</strong>
-                <span>{language === 'th' ? 'สำหรับบัญชีทีมงานที่ได้รับสิทธิ์แล้ว' : 'For staff accounts with system access.'}</span>
+                <strong>{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff sign in'}</strong>
+                <span>{language === 'th' ? 'สำหรับทีมงานที่ได้รับสิทธิ์ใช้งานระบบเต็มรูปแบบ' : 'For staff members with full system access.'}</span>
               </Link>
             </div>
           </Card>
@@ -186,7 +186,7 @@ export function StaffProfileVerifyPage() {
             <Card id="staff-profile-edit-card">
               <form className="form-grid" onSubmit={savePublic}>
                 <Card className="privacy-notice full-span" variant="soft">
-                  <strong>{language === 'th' ? 'โปรไฟล์พื้นฐานแบบปลอดภัย' : 'Safe Public Lite profile'}</strong>
+                  <strong>{language === 'th' ? 'โปรไฟล์ทีมงานทั่วไป' : 'General staff profile'}</strong>
                   <span>{language === 'th' ? 'โปรไฟล์พื้นฐานของพี่อาจแสดงให้น้องเห็น เช่น ชื่อเล่นและหน้าที่ แต่ช่องทางติดต่อจะซ่อนไว้จนกว่าพี่จะเลือกเปิดเอง' : 'Your basic staff profile may be visible to participants, but contact channels stay hidden until you choose to show them.'}</span>
                 </Card>
                 <Card className="privacy-notice full-span" variant="soft">
