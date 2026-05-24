@@ -49,7 +49,7 @@
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 0.7rem;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--glass-bg-strong);
   box-shadow: var(--shadow);
   backdrop-filter: blur(14px);
 }
@@ -104,7 +104,7 @@
   border: 1px solid var(--line);
   border-radius: 26px;
   padding: 1.1rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--card-bg);
   box-shadow: var(--shadow);
   transition: transform 160ms ease, border-color 160ms ease;
 }
@@ -145,8 +145,8 @@
 
 .danger-card {
   border-color: rgba(201, 52, 68, 0.24);
-  color: #881c2a;
-  background: rgba(255, 244, 245, 0.82);
+  color: var(--danger-soft-text);
+  background: var(--danger-soft);
 }
 
 .disabled-link {
@@ -197,7 +197,7 @@
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 18px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
 }
 
 .staff-roster-person span,
@@ -222,7 +222,7 @@
   min-height: 42px;
   border: 1px solid rgba(132, 155, 190, 0.28);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--card-bg-soft);
   color: var(--text);
   font-weight: 800;
   padding: 0.55rem 0.85rem;
@@ -239,7 +239,7 @@
   display: grid;
   gap: 0.85rem;
   border-color: color-mix(in srgb, var(--group-color, #2868e8), transparent 70%);
-  background: linear-gradient(180deg, var(--group-soft, rgba(40, 104, 232, 0.08)), rgba(255, 255, 255, 0.84));
+  background: linear-gradient(180deg, var(--group-soft, rgba(40, 104, 232, 0.08)), var(--card-bg));
 }
 
 .staff-operation-note {
@@ -248,7 +248,7 @@
   gap: 0.75rem;
   border-radius: 16px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
 }
 
 .staff-operation-note span {
@@ -276,8 +276,8 @@
   border: 1px solid rgba(163, 101, 0, 0.24);
   border-radius: 999px;
   padding: 0.24rem 0.55rem;
-  color: #7a4a00;
-  background: rgba(255, 247, 224, 0.95);
+  color: var(--warning-soft-text);
+  background: var(--warning-soft);
   font-size: 0.76rem;
   font-weight: 950;
 }
@@ -285,7 +285,7 @@
 .staff-health-details {
   border: 1px solid rgba(163, 101, 0, 0.16);
   border-radius: 18px;
-  background: rgba(255, 251, 235, 0.62);
+  background: var(--warning-soft);
 }
 
 .staff-health-details summary {
@@ -335,7 +335,7 @@
   justify-content: space-between;
   border-radius: 18px;
   padding: 0.75rem 0.85rem;
-  background: rgba(248, 251, 255, 0.86);
+  background: var(--subtle-card-bg);
 }
 
 .attendance-actions {
@@ -410,7 +410,7 @@
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
   cursor: pointer;
 }
 

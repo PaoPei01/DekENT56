@@ -8,9 +8,7 @@
   gap: 1.1rem;
   padding: clamp(1.1rem, 3vw, 1.6rem);
   border-color: rgba(40, 104, 232, 0.16);
-  background:
-    linear-gradient(135deg, rgba(40, 104, 232, 0.11), rgba(255, 255, 255, 0.82) 52%),
-    rgba(255, 255, 255, 0.74);
+  background: var(--hero-bg);
 }
 
 .participant-portal-copy {
@@ -86,7 +84,7 @@ button.event-action-card {
 .participant-card-badges .group-badge {
   color: var(--text);
   border-color: color-mix(in srgb, var(--group-color, var(--accent)) 42%, transparent);
-  background: color-mix(in srgb, var(--group-soft, var(--accent)) 34%, white);
+  background: color-mix(in srgb, var(--group-soft, var(--accent)) 34%, var(--card-bg-strong));
 }
 
 :root[data-theme="dark"] .participant-portal-hero {

@@ -744,7 +744,7 @@ textarea:focus {
   border-radius: 20px;
   padding: 0.95rem;
   color: inherit;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--hero-card-bg);
   text-decoration: none;
   box-shadow: var(--shadow-soft);
   transition: transform 160ms ease, border-color 160ms ease;
@@ -988,7 +988,7 @@ textarea:focus {
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 18px;
   padding: 0.85rem;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--subtle-card-bg);
   color: var(--text-soft);
   line-height: 1.45;
 }
@@ -1151,7 +1151,7 @@ textarea:focus {
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 0.85rem;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--card-bg-soft);
 }
 
 .event-checkbox-grid legend {
@@ -1177,7 +1177,7 @@ textarea:focus {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--card-bg-soft);
   cursor: pointer;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
@@ -1259,7 +1259,7 @@ textarea:focus {
   border-radius: 18px;
   padding: 0.85rem 1rem;
   color: var(--text);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--input-bg);
   font: inherit;
 }
 
@@ -1331,8 +1331,8 @@ textarea:focus {
   border: 1px solid rgba(217, 119, 6, 0.25);
   border-radius: 18px;
   padding: 0.7rem 0.9rem;
-  color: #7a4a00;
-  background: rgba(255, 247, 237, 0.95);
+  color: var(--warning-soft-text);
+  background: var(--warning-soft);
   font-weight: 800;
 }
 
@@ -1349,7 +1349,7 @@ textarea:focus {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.84);
+  background: var(--card-bg-soft);
   font-weight: 800;
 }
 
@@ -1361,7 +1361,7 @@ textarea:focus {
 
 .sensitive-panel {
   border-color: rgba(40, 104, 232, 0.18);
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--card-bg);
 }
 
 .stat-card {
@@ -1629,8 +1629,8 @@ th {
   border: 1px solid rgba(132, 155, 190, 0.22);
   border-radius: 999px;
   padding: 0.34rem 0.55rem;
-  background: rgba(255, 255, 255, 0.68);
-  color: #273954;
+  background: var(--card-bg-soft);
+  color: var(--text);
   font-size: 0.82rem;
 }
 
@@ -1718,7 +1718,7 @@ th {
   gap: 0.25rem;
   border-radius: 18px;
   padding: 0.85rem;
-  background: rgba(248, 251, 255, 0.82);
+  background: var(--subtle-card-bg);
 }
 
 .profile-facts span {

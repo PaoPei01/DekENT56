@@ -71,7 +71,7 @@
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 18px;
   padding: 0.8rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
 }
 
 .ops-alert-row > div,
@@ -82,12 +82,12 @@
 
 .ops-alert-row.severity-red {
   border-color: rgba(220, 38, 38, 0.22);
-  background: rgba(254, 242, 242, 0.86);
+  background: var(--danger-soft);
 }
 
 .ops-alert-row.severity-yellow {
   border-color: rgba(245, 158, 11, 0.22);
-  background: rgba(255, 251, 235, 0.86);
+  background: var(--warning-soft);
 }
 
 .recommendation-row {
@@ -126,7 +126,7 @@
   gap: 0.75rem;
   border-radius: 14px;
   padding: 0.65rem 0.75rem;
-  background: rgba(248, 251, 255, 0.86);
+  background: var(--subtle-card-bg);
 }
 
 .distribution-list span {
@@ -149,8 +149,8 @@
 
 .emergency-notice {
   border-color: rgba(201, 52, 68, 0.24);
-  background: rgba(255, 243, 244, 0.82);
-  color: #6d1822;
+  background: var(--danger-soft);
+  color: var(--danger-soft-text);
 }
 
 .emergency-notice strong,
@@ -195,7 +195,7 @@
   border-radius: 18px;
   padding: 0.75rem;
   border: 1px solid rgba(132, 155, 190, 0.18);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
   font-weight: 900;
 }
 
@@ -214,13 +214,13 @@
   gap: 0.35rem;
   border-radius: 20px;
   padding: 0.9rem;
-  color: #5d2100;
-  background: rgba(255, 245, 227, 0.88);
+  color: var(--warning-soft-text);
+  background: var(--warning-soft);
   border: 1px solid rgba(224, 132, 32, 0.2);
 }
 
 .guideline-panel span {
-  color: #71420d;
+  color: var(--warning-soft-text);
   line-height: 1.65;
 }
 
@@ -241,7 +241,7 @@
   border-radius: 22px;
   padding: 1rem;
   border: 1px solid rgba(132, 155, 190, 0.18);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--card-bg);
 }
 
 .emergency-quick-card h3,
@@ -275,7 +275,7 @@
 
 .alternate-phone-list span {
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-bg-soft);
 }
 
 .alternate-phone-list a {
@@ -300,20 +300,20 @@
 
 .priority-critical {
   border-color: rgba(201, 52, 68, 0.3);
-  background: rgba(255, 235, 237, 0.92);
-  color: #8d1324;
+  background: var(--danger-soft);
+  color: var(--danger-soft-text);
 }
 
 .priority-high {
   border-color: rgba(224, 126, 29, 0.3);
-  background: rgba(255, 239, 221, 0.92);
-  color: #854100;
+  background: var(--warning-soft);
+  color: var(--warning-soft-text);
 }
 
 .priority-medium {
   border-color: rgba(210, 168, 36, 0.32);
-  background: rgba(255, 248, 210, 0.92);
-  color: #735c00;
+  background: var(--warning-soft);
+  color: var(--warning-soft-text);
 }
 
 .incident-row {
@@ -323,7 +323,7 @@
   align-items: center;
   border-radius: 16px;
   padding: 0.7rem 0.8rem;
-  background: rgba(248, 251, 255, 0.84);
+  background: var(--subtle-card-bg);
 }
 
 .incident-row span,
@@ -342,7 +342,7 @@
   border: 1px solid var(--line);
   border-radius: 26px;
   padding: 0.85rem;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--glass-bg);
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
 }
@@ -382,7 +382,7 @@
 .call-card {
   border-radius: 20px;
   padding: 0.9rem;
-  background: rgba(248, 251, 255, 0.86);
+  background: var(--subtle-card-bg);
   border: 1px solid rgba(132, 155, 190, 0.18);
 }
 
@@ -418,7 +418,7 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 0.55rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-bg-strong);
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
 }
@@ -466,18 +466,18 @@
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.84);
+  background: var(--card-bg);
   box-shadow: 0 12px 36px rgba(55, 83, 130, 0.1);
 }
 
 .announcement-card.priority-critical {
   border-color: rgba(201, 52, 68, 0.32);
-  background: linear-gradient(180deg, rgba(255, 240, 242, 0.96), rgba(255, 255, 255, 0.88));
+  background: linear-gradient(180deg, var(--danger-soft), var(--card-bg));
 }
 
 .announcement-card.priority-important {
   border-color: rgba(217, 119, 6, 0.3);
-  background: linear-gradient(180deg, rgba(255, 247, 237, 0.96), rgba(255, 255, 255, 0.88));
+  background: linear-gradient(180deg, var(--warning-soft), var(--card-bg));
 }
 
 .announcement-card img,
@@ -539,7 +539,7 @@
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--card-bg);
   box-shadow: 0 12px 34px rgba(55, 83, 130, 0.1);
 }
 
@@ -565,7 +565,7 @@
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 0.45rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--card-bg-soft);
 }
 
 .mobile-section summary {
@@ -610,7 +610,7 @@
   border: 1px solid var(--line);
   border-radius: 22px;
   padding: 0.55rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-bg-strong);
   box-shadow: 0 12px 36px rgba(55, 83, 130, 0.12);
   backdrop-filter: blur(12px);
 }
@@ -642,8 +642,8 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.85rem 3rem;
-  color: var(--text);
-  background: rgba(248, 251, 255, 0.9);
+  color: var(--input-text);
+  background: var(--input-bg);
 }
 
 .mobile-search-field button {
@@ -707,7 +707,7 @@
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 0.55rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--glass-bg-strong);
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
 }
@@ -739,7 +739,7 @@
   border: 1px solid color-mix(in srgb, var(--group-color), transparent 72%);
   border-radius: 18px;
   padding: 0.6rem 0.75rem;
-  background: linear-gradient(180deg, var(--group-soft), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(180deg, var(--group-soft), var(--card-bg));
   color: var(--text);
   scroll-snap-align: start;
 }
@@ -762,7 +762,7 @@
   min-width: 30px;
   height: 30px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--card-bg-strong);
 }
 
 .quick-move-row {
@@ -833,7 +833,7 @@
 .diff-grid div {
   border-radius: 18px;
   padding: 0.85rem;
-  background: rgba(248, 251, 255, 0.85);
+  background: var(--subtle-card-bg);
 }
 
 .diff-grid span,
@@ -989,7 +989,7 @@
   }
 
   body {
-    background: linear-gradient(180deg, #ffffff 0%, var(--bg) 52%, #eef5ff 100%);
+    background: var(--body-bg);
   }
 
   .top-nav {
@@ -1031,7 +1031,7 @@
     border: 1px solid var(--line);
     border-radius: 16px;
     color: var(--accent-strong);
-    background: rgba(255, 255, 255, 0.78);
+    background: var(--card-bg);
     box-shadow: var(--shadow-soft);
   }
 
@@ -1243,7 +1243,7 @@
     border: 1px solid var(--line);
     border-radius: 24px;
     padding: 0.28rem;
-    background: var(--nav-bg);
+    background: var(--bottom-nav-bg);
     box-shadow: var(--shadow-soft);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -1434,7 +1434,7 @@
     justify-content: stretch;
     padding: 0.75rem;
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.88);
+    background: var(--glass-bg-strong);
     box-shadow: var(--shadow-soft);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -1450,7 +1450,7 @@
     z-index: 35;
     margin: 0 -1.25rem -1.25rem;
     padding: 0.75rem 1.25rem;
-    background: rgba(255, 255, 255, 0.94);
+    background: var(--overlay-card-bg);
     border-top: 1px solid var(--border);
   }
 
@@ -1730,7 +1730,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #17243a;
+  color: var(--text-strong);
   font-weight: 950;
 }
 
@@ -1754,7 +1754,7 @@
   margin: 0.9rem -0.85rem -0.85rem;
   padding: 0.75rem 0.85rem calc(0.75rem + var(--safe-bottom));
   border-top: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--overlay-card-bg);
 }
 
 .status-pill {
@@ -1765,7 +1765,7 @@
   border-radius: 999px;
   padding: 0.25rem 0.65rem;
   background: rgba(111, 126, 150, 0.12);
-  color: #2b3a50;
+  color: var(--text);
   font-size: 0.82rem;
   font-weight: 900;
 }
@@ -1858,7 +1858,7 @@
   border: 1px dashed rgba(132, 155, 190, 0.42);
   border-radius: 18px;
   padding: 1rem;
-  background: rgba(245, 248, 252, 0.72);
+  background: var(--card-bg-soft);
   text-align: center;
   color: var(--muted);
 }
@@ -1928,7 +1928,7 @@
   border: 1px solid rgba(76, 101, 147, 0.18);
   border-radius: 999px;
   padding: 0.18rem 0.55rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
   color: var(--text);
   font-size: 0.82rem;
   font-weight: 800;
@@ -1937,7 +1937,7 @@
 
 .duty-chip.is-muted {
   color: var(--text-soft);
-  background: rgba(245, 247, 251, 0.9);
+  background: var(--surface-muted);
 }
 
 .application-more-actions {
@@ -2161,7 +2161,7 @@
   padding: 1rem;
   border: 1px solid rgba(132, 155, 190, 0.22);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-bg);
   color: var(--text);
   text-align: left;
   cursor: pointer;
@@ -2296,8 +2296,8 @@
   gap: 0.3rem;
   border-radius: 999px;
   padding: 0.4rem 0.7rem;
-  background: rgba(255, 255, 255, 0.68);
-  color: #25364f;
+  background: var(--card-bg-soft);
+  color: var(--text);
   font-weight: 850;
 }
 
@@ -2327,7 +2327,7 @@
   border: 1px solid rgba(132, 155, 190, 0.22);
   border-radius: 24px;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--card-bg);
   color: var(--text);
   text-align: left;
   box-shadow: var(--shadow-soft);
@@ -2445,7 +2445,7 @@
 .guide-flow-path {
   border-radius: 18px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--card-bg-soft);
 }
 
 .guide-note {
@@ -2477,7 +2477,7 @@
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 22px;
   padding: 0.85rem;
-  background: linear-gradient(180deg, rgba(248, 251, 255, 0.94), rgba(255, 255, 255, 0.72));
+  background: linear-gradient(180deg, var(--subtle-card-bg), var(--card-bg));
 }
 
 .guide-preview-topbar {
@@ -2515,7 +2515,7 @@
   gap: 0.55rem;
   border-radius: 16px;
   padding: 0.55rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg-soft);
 }
 
 .guide-preview-row span {
@@ -2542,7 +2542,7 @@
   border: 1px solid rgba(132, 155, 190, 0.2);
   border-radius: 20px;
   padding: 0.85rem 1rem;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--card-bg);
   box-shadow: var(--shadow-soft);
 }
 
@@ -2597,7 +2597,7 @@
   border: 1px solid rgba(132, 155, 190, 0.2);
   border-radius: 22px;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--card-bg);
   color: var(--text);
   text-decoration: none;
   box-shadow: var(--shadow-soft);
@@ -2680,7 +2680,7 @@
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 20px;
   padding: 0.85rem;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--card-bg-soft);
   box-shadow: var(--shadow-soft);
 }
 
@@ -2789,7 +2789,7 @@
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 18px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--card-bg-soft);
 }
 
 .guide-field-note strong {
@@ -2811,7 +2811,7 @@
   border: 1px solid rgba(132, 155, 190, 0.18);
   border-radius: 18px;
   padding: 0.75rem 0.9rem;
-  background: rgba(255, 255, 255, 0.66);
+  background: var(--card-bg-soft);
 }
 
 .guide-problem-item summary {
@@ -2985,7 +2985,7 @@
   border: 1px solid rgba(132, 155, 190, 0.22);
   border-radius: 18px;
   padding: 0.6rem 0.75rem;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--card-bg);
   color: var(--text);
   box-shadow: var(--shadow-soft);
 }
@@ -3018,7 +3018,7 @@
   border: 1px solid rgba(132, 155, 190, 0.35);
   border-radius: 12px;
   padding: 0.45rem 2rem 0.45rem 0.65rem;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--text);
   font: inherit;
   font-weight: 850;
@@ -3057,7 +3057,7 @@
   border: 1px solid rgba(132, 155, 190, 0.22);
   border-radius: 12px;
   padding: 0.72rem 0.85rem;
-  background: rgba(245, 248, 252, 0.85);
+  background: var(--input-bg);
   color: var(--text);
   font-weight: 850;
 }
@@ -3331,7 +3331,6 @@
   }
 
   .top-nav,
-  .mobile-bottom-nav,
   .mobile-search-header,
   .sticky-bottom-bar,
   .sticky-action-bar,
@@ -3339,8 +3338,17 @@
   .admin-action-bar,
   .emergency-toolbar,
   .emergency-dock {
-    background: var(--surface-elevated) !important;
+    background: var(--glass-bg-strong) !important;
     box-shadow: var(--shadow-soft) !important;
+  }
+
+  .top-nav {
+    background: var(--top-nav-bg) !important;
+  }
+
+  .mobile-bottom-nav {
+    border-color: var(--border);
+    background: var(--bottom-nav-bg) !important;
   }
 
   .help-drawer-backdrop {
