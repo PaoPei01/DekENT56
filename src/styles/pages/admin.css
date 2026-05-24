@@ -1,4 +1,98 @@
 /* Admin, group management, participant edit, and event operations pages. */
+.command-center-grid,
+.needs-review-list,
+.admin-quick-action-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.command-center-grid {
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+}
+
+.command-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.needs-review-list {
+  gap: 0.7rem;
+}
+
+.needs-review-item,
+.admin-quick-action-card {
+  border: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.needs-review-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.1rem 0.75rem;
+  align-items: center;
+  border-radius: 18px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.needs-review-item:hover,
+.admin-quick-action-card:hover,
+.needs-review-item:focus-visible,
+.admin-quick-action-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(40, 104, 232, 0.34);
+}
+
+.needs-review-item strong {
+  grid-row: span 2;
+  min-width: 46px;
+  color: var(--accent-strong);
+  font-size: 1.35rem;
+}
+
+.needs-review-item span {
+  font-weight: 900;
+}
+
+.needs-review-item em {
+  color: var(--text-soft);
+  font-size: 0.86rem;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.admin-quick-action-grid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.admin-quick-action-card {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  min-height: 132px;
+  border-radius: 20px;
+  padding: 0.95rem;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-quick-action-card svg {
+  color: var(--accent-strong);
+}
+
+.admin-quick-action-card span {
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.manage-records-heading {
+  border-top: 1px solid var(--border);
+  padding-top: 1.15rem;
+}
+
 .group-action-panel {
   display: flex;
   justify-content: space-between;

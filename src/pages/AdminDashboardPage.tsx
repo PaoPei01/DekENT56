@@ -1,5 +1,6 @@
-import { Download, HeartPulse, Pencil, SlidersHorizontal, Trash2, UsersRound } from 'lucide-react';
+import { ClipboardCheck, Database, Download, FileText, HeartPulse, Pencil, ShieldAlert, ShieldCheck, SlidersHorizontal, Trash2, UserCheck, UsersRound } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
 import { EventSwitcher } from '../components/events/EventSwitcher';
 import { HealthFlags, hasHealthFlag } from '../components/HealthFlags';
@@ -70,6 +71,37 @@ export function AdminDashboardPage() {
     subgroup ? `Group ${subgroup}` : '',
     healthFilter ? healthOptions.find((item) => item.value === healthFilter)?.label : '',
   ].filter(Boolean);
+  const summary = summaryState.data;
+  const healthFlagCount = summary ? summary.health.food_allergy + summary.health.disease + summary.health.drug_allergy : 0;
+  const needsReviewItems = summary ? [
+    {
+      label: language === 'th' ? 'คำขอแก้ไขเดิม' : 'Edit requests',
+      value: summary.pending,
+      helper: language === 'th' ? 'รายการที่รออนุมัติจากฟอร์มแก้ไขข้อมูลเดิม' : 'Legacy edit requests waiting for approval',
+      to: '/admin/requests',
+    },
+    {
+      label: language === 'th' ? 'ข้อมูลสุขภาพ' : 'Health notes',
+      value: healthFlagCount,
+      helper: language === 'th' ? 'รายการที่ควรพร้อมใช้งานระหว่างกิจกรรม' : 'Records to keep ready during live operations',
+      to: '/admin/emergency',
+    },
+    {
+      label: language === 'th' ? 'ตรวจข้อมูลระบบ' : 'System checks',
+      value: language === 'th' ? 'เปิด' : 'Open',
+      helper: language === 'th' ? 'ตรวจสุขภาพข้อมูลและความพร้อมก่อนใช้งานจริง' : 'Review data health and production readiness',
+      to: '/admin/data-health',
+    },
+  ] : [];
+  const quickActions = [
+    { to: '/admin/people', icon: <Database size={22} />, title: language === 'th' ? 'ฐานข้อมูลบุคคล' : 'People database', body: language === 'th' ? 'จัดการข้อมูลทั้งหมด' : 'Manage all records' },
+    { to: '/admin/groups', icon: <UsersRound size={22} />, title: language === 'th' ? 'จัดกลุ่ม' : 'Groups', body: language === 'th' ? 'ดูและปรับกลุ่มผู้เข้าร่วม' : 'Review participant grouping' },
+    { to: '/admin/staff', icon: <UserCheck size={22} />, title: language === 'th' ? 'ทีมงาน' : 'Staff', body: language === 'th' ? 'จัดการรายชื่อและสิทธิ์ทีมงาน' : 'Manage staff records and roles' },
+    { to: '/admin/staff/attendance', icon: <ClipboardCheck size={22} />, title: language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff attendance', body: language === 'th' ? 'เปิดรอบเช็กชื่อและดูสถานะ' : 'Open sessions and attendance status' },
+    { to: '/admin/documents', icon: <FileText size={22} />, title: language === 'th' ? 'ศูนย์เอกสาร' : 'Document Center', body: language === 'th' ? 'สร้างและติดตามเอกสาร' : 'Generate and track documents' },
+    { to: '/admin/data-health', icon: <ShieldCheck size={22} />, title: language === 'th' ? 'ตรวจสุขภาพข้อมูล' : 'Data Health', body: language === 'th' ? 'ตรวจข้อมูลที่ขาดหรือเสี่ยงผิดพลาด' : 'Find missing or risky data' },
+    { to: '/admin/emergency', icon: <ShieldAlert size={22} />, title: language === 'th' ? 'เหตุฉุกเฉิน' : 'Emergency', body: language === 'th' ? 'เข้าถึงข้อมูลช่วยเหลือหน้างาน' : 'Open live support information' },
+  ];
 
   function clearFilters() {
     setSearch('');
@@ -121,25 +153,67 @@ export function AdminDashboardPage() {
       />
 
       {summaryState.loading ? <LoadingSkeleton count={2} /> : null}
-      {summaryState.data ? (
+      {summary ? (
         <div className="stats-grid">
-          <DashboardStatCard label={t.totalParticipants} value={summaryState.data.total} icon={<UsersRound size={20} />} />
-          <DashboardStatCard label={t.pendingRequests} value={summaryState.data.pending} helper={language === 'th' ? 'ไปที่หน้าคำขอเพื่อตรวจสอบ' : 'Open requests to review them'} />
+          <DashboardStatCard label={t.totalParticipants} value={summary.total} icon={<UsersRound size={20} />} />
+          <DashboardStatCard label={t.pendingRequests} value={summary.pending} helper={language === 'th' ? 'ไปที่หน้าคำขอเพื่อตรวจสอบ' : 'Open requests to review them'} />
           <DashboardStatCard
             label={t.healthData}
-            value={summaryState.data.health.food_allergy + summaryState.data.health.disease + summaryState.data.health.drug_allergy}
+            value={healthFlagCount}
             helper={language === 'th' ? 'ข้อมูลสุขภาพที่ต้องดูแลระหว่างกิจกรรม' : 'Health details that may need attention during the event'}
             icon={<HeartPulse size={20} />}
           />
         </div>
       ) : null}
 
-      {summaryState.data ? (
+      {summary ? (
+        <section className="command-center-grid" aria-label={language === 'th' ? 'ศูนย์ควบคุมแอดมิน' : 'Admin command center'}>
+          <Card className="command-panel">
+            <div className="section-heading-row">
+              <div>
+                <p className="eyebrow">{language === 'th' ? 'งานที่ควรตรวจสอบ' : 'Needs review'}</p>
+                <h2>{language === 'th' ? 'งานที่ควรตรวจสอบ' : 'Needs review'}</h2>
+                <span>{language === 'th' ? 'เลือกงานที่ควรเคลียร์ก่อนใช้งานหน้างาน' : 'Start with the records and checks that need attention.'}</span>
+              </div>
+            </div>
+            <div className="needs-review-list">
+              {needsReviewItems.map((item) => (
+                <Link className="needs-review-item" to={item.to} key={item.to}>
+                  <strong>{item.value}</strong>
+                  <span>{item.label}</span>
+                  <em>{item.helper}</em>
+                </Link>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="command-panel">
+            <div className="section-heading-row">
+              <div>
+                <p className="eyebrow">{language === 'th' ? 'วันนี้ต้องทำอะไร' : 'Today’s operations'}</p>
+                <h2>{language === 'th' ? 'ทางลัดงานหลัก' : 'Quick actions'}</h2>
+                <span>{language === 'th' ? 'เลือกงานที่ต้องใช้หน้างานได้เร็ว' : 'Quick access to live event tools'}</span>
+              </div>
+            </div>
+            <div className="admin-quick-action-grid">
+              {quickActions.map((action) => (
+                <Link className="admin-quick-action-card" to={action.to} key={action.to}>
+                  {action.icon}
+                  <strong>{action.title}</strong>
+                  <span>{action.body}</span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        </section>
+      ) : null}
+
+      {summary ? (
         <details className="filter-disclosure major-summary-disclosure">
           <summary>{language === 'th' ? 'สรุปจำนวนตามสาขา' : 'Major summary'}</summary>
           <Card className="major-summary" variant="soft">
             <div>
-              {Object.entries(summaryState.data.byMajor).map(([name, count]) => (
+              {Object.entries(summary.byMajor).map(([name, count]) => (
                 <span key={name}>
                   {majorLabel(`(${name})`, language)} <strong>{count}</strong>
                 </span>
@@ -148,6 +222,17 @@ export function AdminDashboardPage() {
           </Card>
         </details>
       ) : null}
+
+      <div className="section-heading-row manage-records-heading">
+        <div>
+          <p className="eyebrow">{language === 'th' ? 'จัดการข้อมูลทั้งหมด' : 'Manage all records'}</p>
+          <h2>{language === 'th' ? 'รายชื่อผู้เข้าร่วมทั้งหมด' : 'All participant records'}</h2>
+          <span>{language === 'th' ? 'ตารางเต็มยังอยู่ครบสำหรับค้นหา แก้ไข ลบ และส่งออกข้อมูล' : 'The full table remains available for search, edit, delete, and export.'}</span>
+        </div>
+        <Link className="btn btn-secondary" to="/admin/people">
+          {language === 'th' ? 'เปิดฐานข้อมูลบุคคล' : 'Open people database'}
+        </Link>
+      </div>
 
       <MobileSearchHeader
         label={t.searchParticipants}

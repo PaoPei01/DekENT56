@@ -1479,6 +1479,11 @@
     grid-template-columns: 1fr;
   }
 
+  .command-center-grid,
+  .admin-quick-action-grid {
+    grid-template-columns: 1fr;
+  }
+
   .operations-grid {
     grid-template-columns: 1fr;
   }

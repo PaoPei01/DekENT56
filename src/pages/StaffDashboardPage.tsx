@@ -1,4 +1,4 @@
-import { AlertTriangle, Bell, ClipboardCheck, Search, ShieldAlert, UserRound, UsersRound } from 'lucide-react';
+import { AlertTriangle, Bell, ClipboardCheck, FileText, QrCode, ShieldAlert, UserRound, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { MobileSafeAreaSpacer } from '../components/mobile/MobileSafeAreaSpacer';
@@ -31,7 +31,7 @@ export function StaffDashboardPage() {
       <PageHeader
         eyebrow={language === 'th' ? 'โหมดสตาฟ' : 'Staff App Mode'}
         title={language === 'th' ? 'วันนี้ต้องทำอะไร' : 'Today’s operations'}
-        description={language === 'th' ? 'เลือกงานที่ต้องใช้หน้างานได้เร็วใน 1-2 แตะ' : 'Fast one-handed access to live event tools.'}
+        description={language === 'th' ? 'เลือกงานที่ต้องใช้หน้างานได้เร็ว' : 'Quick access to live event tools'}
         meta={<Badge status="approved">{access.is_admin ? 'admin' : access.roles.join(', ')}</Badge>}
         compact
       />
@@ -43,7 +43,8 @@ export function StaffDashboardPage() {
 
       <div className="today-action-strip">
         {canUseStaffAttendance ? <Link className="today-primary-action" to="/staff/attendance"><ClipboardCheck size={24} /><strong>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</strong><span>{language === 'th' ? 'สแกน QR เพื่อเช็กชื่อของตัวเอง' : 'Scan QR to check yourself in'}</span></Link> : null}
-        {access.can_view_emergency ? <Link className="today-primary-action emergency" to="/staff/emergency"><ShieldAlert size={24} /><strong>{language === 'th' ? 'เปิดฉุกเฉิน' : 'Open emergency'}</strong><span>{language === 'th' ? 'เบอร์ด่วนและข้อมูลสุขภาพ' : 'Hotlines and health data'}</span></Link> : null}
+        {!isEmergencyOnly && access.can_view_staff ? <Link className="today-primary-action" to="/staff/my-group"><UsersRound size={24} /><strong>{language === 'th' ? 'รายชื่อกลุ่มของฉัน' : 'My group list'}</strong><span>{language === 'th' ? 'ค้นหารายชื่อ เบอร์ติดต่อที่อนุญาต และจุดนัดพบ' : 'Find participants, allowed contacts, and meeting point'}</span></Link> : null}
+        {access.can_view_emergency ? <Link className="today-primary-action emergency" to="/staff/emergency"><ShieldAlert size={24} /><strong>{language === 'th' ? 'เหตุฉุกเฉิน' : 'Emergency'}</strong><span>{language === 'th' ? 'เบอร์ด่วนและข้อมูลสุขภาพ' : 'Hotlines and health data'}</span></Link> : null}
       </div>
 
       <div className="stats-grid">
@@ -52,43 +53,40 @@ export function StaffDashboardPage() {
         <DashboardStatCard label={language === 'th' ? 'ข้อมูลสุขภาพที่เห็น' : 'Medical visible'} value={medicalCount} icon={<AlertTriangle size={20} />} />
       </div>
 
-      <div className="staff-action-grid">
+      <div className="section-heading-row">
+        <div>
+          <p className="eyebrow">{language === 'th' ? 'เครื่องมือเพิ่มเติม' : 'More tools'}</p>
+          <h2>{language === 'th' ? 'เครื่องมือเพิ่มเติม' : 'More staff tools'}</h2>
+          <span>{language === 'th' ? 'งานที่ใช้เป็นครั้งคราวและข้อมูลอ้างอิง' : 'Occasional tools and reference information'}</span>
+        </div>
+      </div>
+
+      <div className="staff-action-grid secondary-staff-tools">
         <Link className="staff-action-card" to="/staff/profile">
           <UserRound size={28} />
-          <strong>{language === 'th' ? 'โปรไฟล์ทีมงานของฉัน' : 'My Staff Profile'}</strong>
+          <strong>{language === 'th' ? 'โปรไฟล์ของฉัน' : 'My profile'}</strong>
           <span>{language === 'th' ? 'จัดการข้อมูลที่น้องเห็นและส่งคำขอแก้ไขข้อมูลสำคัญ' : 'Manage public visibility and request sensitive changes'}</span>
         </Link>
         <Link className="staff-action-card" to="/staff/directory">
           <UsersRound size={28} />
-          <strong>{language === 'th' ? 'ไดเรกทอรีทีมงาน' : 'Staff Directory'}</strong>
+          <strong>{language === 'th' ? 'ไดเรกทอรีทีมงาน' : 'Staff directory'}</strong>
           <span>{language === 'th' ? 'ค้นหาช่องทางติดต่อภายในตามสิทธิ์' : 'Find internal staff contacts based on permissions'}</span>
+        </Link>
+        <Link className="staff-action-card" to="/staff/profile/qr">
+          <QrCode size={28} />
+          <strong>{language === 'th' ? 'QR ส่วนตัวทีมงาน' : 'Personal QR'}</strong>
+          <span>{language === 'th' ? 'เปิด QR ส่วนตัวสำหรับการตรวจสอบหน้างาน' : 'Open your personal QR for on-site checks'}</span>
         </Link>
         <Link className="staff-action-card" to="/announcements">
           <Bell size={28} />
-          <strong>{language === 'th' ? 'ประกาศและไฟล์กิจกรรม' : 'Announcements & files'}</strong>
+          <strong>{language === 'th' ? 'ประกาศ' : 'Announcements'}</strong>
           <span>{language === 'th' ? 'กำหนดการ แผนที่ จุดนัดพบ และอัปเดตสำคัญ' : 'Schedules, maps, meeting points, and important updates'}</span>
         </Link>
-        {!isEmergencyOnly && access.can_view_staff ? (
-          <Link className="staff-action-card" to="/staff/my-group">
-            <Search size={28} />
-            <strong>{language === 'th' ? 'กลุ่มของฉัน' : 'My Group'}</strong>
-            <span>{language === 'th' ? 'ค้นหารายชื่อ เบอร์ที่ได้รับอนุญาต และจุดนัดพบ' : 'Find participants, allowed contacts, and meeting point'}</span>
-          </Link>
-        ) : null}
-        {canUseStaffAttendance ? (
-          <Link className="staff-action-card" to="/staff/attendance">
-            <ClipboardCheck size={28} />
-            <strong>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff Attendance'}</strong>
-            <span>{language === 'th' ? 'สแกน QR ของรอบเช็กชื่อ หรือวางลิงก์สำรอง' : 'Scan a session QR or paste a fallback link'}</span>
-          </Link>
-        ) : null}
-        {access.can_view_emergency ? (
-          <Link className="staff-action-card danger-card" to="/staff/emergency">
-            <ShieldAlert size={28} />
-            <strong>{language === 'th' ? 'ปุ่มฉุกเฉิน' : 'Emergency shortcut'}</strong>
-            <span>{language === 'th' ? 'เบอร์ด่วนและข้อมูลช่วยเหลือฉุกเฉิน' : 'Hotlines and emergency support data'}</span>
-          </Link>
-        ) : null}
+        <Link className="staff-action-card" to="/guide">
+          <FileText size={28} />
+          <strong>{language === 'th' ? 'คู่มือ' : 'Guide'}</strong>
+          <span>{language === 'th' ? 'ข้อมูลอ้างอิงและขั้นตอนที่ควรรู้' : 'Reference information and key procedures'}</span>
+        </Link>
       </div>
 
       <details className="filter-disclosure staff-role-note">
