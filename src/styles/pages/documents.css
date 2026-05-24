@@ -1,0 +1,214 @@
+/* Document Center and document workflow pages. */
+.document-action-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.document-event-context-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.document-event-context-card h2 {
+  margin: 0.15rem 0 0.35rem;
+  color: var(--text);
+}
+
+.document-event-context-card p {
+  margin: 0.2rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.template-upload-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.template-upload-card h2 {
+  margin: 0.2rem 0;
+}
+
+.template-upload-card span {
+  color: var(--text-soft);
+}
+
+.file-drop-zone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  min-height: 150px;
+  border: 1px dashed rgba(40, 104, 232, 0.32);
+  border-radius: 24px;
+  padding: 1rem;
+  color: var(--accent-strong);
+  background: rgba(40, 104, 232, 0.07);
+  text-align: center;
+  cursor: pointer;
+}
+
+.file-drop-zone input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.document-action-card {
+  min-height: 150px;
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.document-action-card:hover,
+.document-action-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(44, 111, 255, 0.32);
+}
+
+.document-action-card svg {
+  color: var(--accent);
+}
+
+.document-action-card span,
+.document-readiness span,
+.document-preview-card p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.document-edit-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.document-row-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem;
+  align-items: end;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.document-row-grid .btn {
+  align-self: end;
+}
+
+.checkbox-field {
+  min-height: 54px;
+  justify-content: center;
+}
+
+.checkbox-field input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.document-readiness {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-height: 54px;
+}
+
+.document-missing-card,
+.document-preview-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.document-missing-groups {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.document-missing-groups strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+}
+
+.document-preview {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.document-preview div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.document-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.document-preview td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.document-preview h2 {
+  margin: 0.8rem 0 0;
+  font-size: 1.05rem;
+}
+
+.document-preview span {
+  color: var(--muted);
+}
+
+.document-history-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.65rem;
+  box-shadow: none;
+}
+
+.import-stepper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.import-stepper span {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(132, 155, 190, 0.12);
+  color: var(--text-soft);
+  font-weight: 900;
+}
+
+.import-stepper span.active {
+  background: rgba(40, 104, 232, 0.12);
+  color: var(--accent-strong);
+}

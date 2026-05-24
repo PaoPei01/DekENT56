@@ -50,6 +50,12 @@ export function ResponsiveDataTable<T>({
     return <div className="empty-state">{emptyText}</div>;
   }
 
+  const mobileColumns = columns.filter((column) => column.key !== 'actions' && !column.mobileHidden);
+  const mobilePrimaryColumns = mobileColumns.filter((column) => column.priority === 'primary');
+  const mobileSecondaryColumns = mobileColumns.filter((column) => column.priority === 'secondary');
+  const mobileDetailColumns = mobileColumns.filter((column) => !column.priority || column.priority === 'detail');
+  const actionColumn = columns.find((column) => column.key === 'actions');
+
   return (
     <>
       <div className={`table-wrap table-${density} ${stickyHeader ? 'table-sticky' : ''}`}>
@@ -85,16 +91,38 @@ export function ResponsiveDataTable<T>({
                 {mobileMeta ? <em>{mobileMeta(row)}</em> : null}
               </div>
             ) : null}
-            <details open={mobileDefaultOpen}>
-              <summary>{mobileDetailsLabel}</summary>
-              {columns.filter((column) => column.key !== 'actions' && !column.mobileHidden).map((column) => (
-                <div key={column.key} className={column.priority ? `mobile-detail-${column.priority}` : undefined}>
+            {mobilePrimaryColumns.length || mobileSecondaryColumns.length ? (
+              <div className="mobile-row-summary-grid">
+                {[...mobilePrimaryColumns, ...mobileSecondaryColumns].map((column) => (
+                  <div key={column.key} className={column.priority ? `mobile-detail-${column.priority}` : undefined}>
+                    <span>{column.mobileLabel ?? column.header}</span>
+                    <div>{column.render(row)}</div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {mobileDetailColumns.length ? (
+              <details open={mobileDefaultOpen}>
+                <summary>{mobileDetailsLabel}</summary>
+                {mobileDetailColumns.map((column) => (
+                  <div key={column.key} className={column.priority ? `mobile-detail-${column.priority}` : undefined}>
+                    <span>{column.mobileLabel ?? column.header}</span>
+                    <div>{column.render(row)}</div>
+                  </div>
+                ))}
+              </details>
+            ) : null}
+            {!mobileTitle && !mobileSubtitle && !mobileMeta && !mobilePrimaryColumns.length && !mobileSecondaryColumns.length && !mobileDetailColumns.length ? (
+              <div className="mobile-row-summary-grid">
+                {mobileColumns.slice(0, 2).map((column) => (
+                  <div key={column.key}>
                   <span>{column.mobileLabel ?? column.header}</span>
                   <div>{column.render(row)}</div>
-                </div>
-              ))}
-            </details>
-            {mobileActions ? <div className="mobile-card-actions">{mobileActions(row)}</div> : columns.find((column) => column.key === 'actions')?.render(row)}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {mobileActions ? <div className="mobile-card-actions">{mobileActions(row)}</div> : actionColumn ? <div className="mobile-card-actions">{actionColumn.render(row)}</div> : null}
           </Card>
         ))}
       </div>

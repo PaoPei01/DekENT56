@@ -1,0 +1,43 @@
+/* Design tokens and app-wide CSS custom properties. */
+:root {
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif;
+  color: #142033;
+  background: #f8fbff;
+  --bg: #f8fbff;
+  --text: #142033;
+  --muted: #607089;
+  --focus-ring: rgba(40, 104, 232, 0.35);
+  --surface: rgba(255, 255, 255, 0.76);
+  --surface-soft: rgba(255, 255, 255, 0.64);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --panel: rgba(255, 255, 255, 0.76);
+  --panel-strong: rgba(255, 255, 255, 0.92);
+  --line: rgba(255, 255, 255, 0.5);
+  --border: rgba(132, 155, 190, 0.22);
+  --text-soft: #607089;
+  --accent: #2868e8;
+  --accent-strong: #164fca;
+  --danger: #c93444;
+  --success: #197a46;
+  --warning: #a36500;
+  --danger-surface: rgba(255, 236, 238, 0.92);
+  --warning-surface: rgba(255, 248, 224, 0.92);
+  --success-surface: rgba(232, 248, 239, 0.92);
+  --soft-surface: rgba(255, 255, 255, 0.64);
+  --shadow: 0 18px 60px rgba(55, 83, 130, 0.14);
+  --shadow-soft: 0 12px 34px rgba(55, 83, 130, 0.1);
+  --radius: 24px;
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --space-1: 0.35rem;
+  --space-2: 0.55rem;
+  --space-3: 0.85rem;
+  --space-4: 1.25rem;
+  --space-5: 1.75rem;
+  --mobile-bottom-nav-height: 5.8rem;
+  --mobile-sticky-action-height: 4.5rem;
+  --mobile-emergency-dock-height: 4.5rem;
+  --safe-bottom: env(safe-area-inset-bottom);
+}

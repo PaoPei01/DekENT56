@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
-import { HealthFlags } from '../components/HealthFlags';
+import { hasHealthFlag, HealthFlags } from '../components/HealthFlags';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { MobileSearchHeader } from '../components/mobile/MobileSearchHeader';
 import { Card } from '../components/ui/Card';
@@ -28,7 +28,7 @@ export function StaffMobilePage() {
   const participants = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (context?.participants ?? []).filter((profile) => {
-      if (quickFilter === 'special' && !(profile.disease || profile.drug_allergy || profile.food_allergy)) return false;
+      if (quickFilter === 'special' && !hasHealthFlag(profile)) return false;
       if (quickFilter === 'sameMajor' && referenceMajor && profile.major !== referenceMajor) return false;
       if (!term) return true;
       return [profile.name_th, profile.name_en, profile.nickname, profile.nickname_en, profile.major, profile.phone].some((value) => value?.toLowerCase().includes(term));
@@ -92,7 +92,15 @@ export function StaffMobilePage() {
                 <span>{staff.name}</span>
                 <ContactLinks instagram={staff.instagram} facebook={staff.facebook} lineId={staff.line_id} other={staff.other_contact} />
                 {canCallStaff && staff.phone ? <a className="btn btn-secondary btn-compact" href={`tel:${staff.phone}`}><Phone size={16} />{language === 'th' ? 'โทร' : 'Call'}</a> : null}
-                {canViewMedical ? <HealthFlags profile={staff} detail /> : null}
+                {canViewMedical && hasHealthFlag(staff) ? (
+                  <details className="staff-health-details">
+                    <summary>
+                      <span className="special-care-badge">{language === 'th' ? 'ต้องดูแลพิเศษ' : 'Special care'}</span>
+                      <em>{language === 'th' ? 'ดูรายละเอียดสุขภาพ' : 'View health details'}</em>
+                    </summary>
+                    <HealthFlags profile={staff} detail />
+                  </details>
+                ) : null}
               </div>
             ))}
           </div>
@@ -144,6 +152,7 @@ export function StaffMobilePage() {
                 <div>
                   <h2>{language === 'en' ? profile.nickname_en || profile.nickname || profile.name_en || profile.name_th : profile.nickname || profile.name_th}</h2>
                   <p>{language === 'en' ? profile.name_en || profile.name_th : profile.name_th}</p>
+                  {hasHealthFlag(profile) ? <span className="special-care-badge">{language === 'th' ? 'ต้องดูแลพิเศษ' : 'Special care'}</span> : null}
                 </div>
               </div>
               <div className="profile-facts">
@@ -156,7 +165,15 @@ export function StaffMobilePage() {
                 <strong>{setting?.meeting_point || '-'}</strong>
                 <span>{setting?.schedule || '-'}</span>
               </div>
-              {canViewMedical ? <HealthFlags profile={profile} detail /> : null}
+              {canViewMedical && hasHealthFlag(profile) ? (
+                <details className="staff-health-details">
+                  <summary>
+                    <span className="special-care-badge">{language === 'th' ? 'ต้องดูแลพิเศษ' : 'Special care'}</span>
+                    <em>{language === 'th' ? 'ดูรายละเอียดสุขภาพ' : 'View health details'}</em>
+                  </summary>
+                  <HealthFlags profile={profile} detail />
+                </details>
+              ) : null}
               <ContactLinks instagram={profile.instagram} facebook={profile.facebook} lineId={profile.line_id} other={profile.other_contact} />
             </Card>
           );

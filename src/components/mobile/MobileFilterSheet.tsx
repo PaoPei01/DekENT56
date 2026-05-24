@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 type MobileFilterSheetProps = {
   open: boolean;
@@ -18,10 +19,15 @@ type MobileFilterSheetProps = {
 export function MobileFilterSheet({ open, title, description, children, primaryLabel = 'Apply', clearLabel = 'Clear', onClose, onClear }: MobileFilterSheetProps) {
   const { language } = useLanguage();
   const sheetRef = useRef<HTMLElement>(null);
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
     const previous = document.activeElement as HTMLElement | null;
-    sheetRef.current?.focus();
+    window.setTimeout(() => {
+      const firstFocusable = sheetRef.current?.querySelector<HTMLElement>('input, select, textarea, button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
+      (firstFocusable ?? sheetRef.current)?.focus();
+    }, 0);
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose();
     }
@@ -34,7 +40,12 @@ export function MobileFilterSheet({ open, title, description, children, primaryL
 
   if (!open) return null;
   return (
-    <div className="mobile-filter-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="mobile-filter-backdrop"
+      role="presentation"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+      onTouchMove={(event) => event.target === event.currentTarget && event.preventDefault()}
+    >
       <section className="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={sheetRef}>
         <div className="mobile-filter-head">
           <div>

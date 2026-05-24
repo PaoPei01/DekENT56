@@ -3,6 +3,7 @@ import { useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 type MobileMoreMenuProps = {
   open: boolean;
@@ -15,10 +16,15 @@ export function MobileMoreMenu({ open, title, children, onClose }: MobileMoreMen
   const { language } = useLanguage();
   const titleId = useId();
   const sheetRef = useRef<HTMLElement>(null);
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
     const previous = document.activeElement as HTMLElement | null;
-    sheetRef.current?.focus();
+    window.setTimeout(() => {
+      const firstFocusable = sheetRef.current?.querySelector<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      (firstFocusable ?? sheetRef.current)?.focus();
+    }, 0);
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose();
     }
@@ -31,7 +37,12 @@ export function MobileMoreMenu({ open, title, children, onClose }: MobileMoreMen
 
   if (!open) return null;
   return (
-    <div className="mobile-more-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="mobile-more-backdrop"
+      role="presentation"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+      onTouchMove={(event) => event.target === event.currentTarget && event.preventDefault()}
+    >
       <section className="mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} ref={sheetRef}>
         <div className="mobile-more-head">
           <strong id={titleId}>{title}</strong>

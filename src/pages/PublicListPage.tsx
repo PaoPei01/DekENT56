@@ -150,6 +150,14 @@ export function PublicListPage() {
           <Card
             className="participant-card participant-card-clickable"
             key={profile.id}
+            style={
+              profile.main_group
+                ? ({
+                    '--group-color': groupMeta[profile.main_group].color,
+                    '--group-soft': groupMeta[profile.main_group].soft,
+                  } as CSSProperties)
+                : undefined
+            }
             onClick={() => setSelected(profile)}
             role="button"
             tabIndex={0}
@@ -161,10 +169,17 @@ export function PublicListPage() {
               }
             }}
           >
-            <h2>{(language === 'th' ? profile.name_th : profile.name_en) || profile.name_th || (language === 'th' ? 'ไม่ระบุชื่อ' : 'Name not specified')}</h2>
-            <p>{(language === 'th' ? profile.nickname : profile.nickname_en || profile.nickname) ? `${t.nickname} ${language === 'th' ? profile.nickname : profile.nickname_en || profile.nickname}` : language === 'th' ? 'ยังไม่มีชื่อเล่น' : 'No nickname yet'}</p>
-            <span>{majorLabel(profile.major, language)}</span>
-            <small className="group-badge">{groupLabel(profile.main_group, profile.subgroup, language)}</small>
+            <div className="participant-card-head">
+              {profile.main_group ? <span className="group-dot participant-group-dot" aria-hidden="true" /> : null}
+              <div>
+                <h2>{(language === 'th' ? profile.name_th : profile.name_en) || profile.name_th || (language === 'th' ? 'ไม่ระบุชื่อ' : 'Name not specified')}</h2>
+                <p>{(language === 'th' ? profile.nickname : profile.nickname_en || profile.nickname) ? `${t.nickname} ${language === 'th' ? profile.nickname : profile.nickname_en || profile.nickname}` : language === 'th' ? 'ยังไม่มีชื่อเล่น' : 'No nickname yet'}</p>
+              </div>
+            </div>
+            <div className="participant-card-badges">
+              <span className="major-badge">{majorLabel(profile.major, language)}</span>
+              <small className="group-badge">{groupLabel(profile.main_group, profile.subgroup, language)}</small>
+            </div>
           </Card>
         ))}
       </div>
