@@ -17,6 +17,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Select } from '../components/ui/Select';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { copy } from '../lib/copy';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
@@ -34,9 +35,12 @@ export function PublicListPage() {
   const [selected, setSelected] = useState<PublicProfile | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const debouncedSearch = useDebouncedValue(search, 300);
   const { data: majors } = useAsync(fetchPublicMajors, []);
-  const { data, loading, error } = useAsync(() => fetchPublicProfiles({ search, major, mainGroup, subgroup }), [search, major, mainGroup, subgroup]);
+  const { data, loading, error } = useAsync(() => fetchPublicProfiles({ search: debouncedSearch, major, mainGroup, subgroup }), [debouncedSearch, major, mainGroup, subgroup]);
   const participants = data ?? [];
+  const isInitialLoading = loading && !data;
+  const isUpdating = loading && Boolean(data);
   const resultText = useMemo(() => `${participants.length.toLocaleString(language === 'th' ? 'th-TH' : 'en-US')} ${language === 'th' ? 'คน' : 'people'}`, [language, participants.length]);
   const hasFilters = Boolean(search || major || mainGroup || subgroup);
   const activeFilters = [
@@ -177,9 +181,14 @@ export function PublicListPage() {
         </div>
       ) : null}
 
-      {loading ? <LoadingSkeleton /> : null}
+      {isUpdating ? (
+        <div className="inline-updating-status" role="status" aria-live="polite">
+          {language === 'th' ? 'กำลังอัปเดตข้อมูล...' : 'Updating...'}
+        </div>
+      ) : null}
+      {isInitialLoading ? <LoadingSkeleton /> : null}
       {error ? <div className="error-state">{error}</div> : null}
-      {!loading && !error && participants.length === 0 ? <EmptyState title={language === 'th' ? 'ไม่พบรายชื่อ' : 'No participants found'} description={language === 'th' ? copy.th.tryPublicSearch : copy.en.tryPublicSearch} /> : null}
+      {!isInitialLoading && !error && participants.length === 0 ? <EmptyState title={language === 'th' ? 'ไม่พบรายชื่อ' : 'No participants found'} description={language === 'th' ? copy.th.tryPublicSearch : copy.en.tryPublicSearch} /> : null}
 
       <div className="participant-grid">
         {participants.map((profile) => {

@@ -1341,6 +1341,17 @@ textarea:focus {
   font-size: 0.84rem;
 }
 
+.inline-updating-status {
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.42rem 0.72rem;
+  color: var(--text-soft);
+  background: var(--subtle-card-bg);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
 .check-field {
   display: flex;
   align-items: center;
