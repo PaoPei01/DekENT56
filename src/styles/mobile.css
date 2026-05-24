@@ -967,11 +967,22 @@
   color: var(--text-muted);
 }
 
-.route-loading-dot {
-  width: 0.72rem;
-  height: 0.72rem;
-  border-radius: 999px;
-  background: var(--primary);
+.route-loading-gear {
+  color: var(--primary);
+  transform-origin: center;
+  animation: gear-spin 1.1s linear infinite;
+}
+
+@keyframes gear-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-loading-gear {
+    animation: none;
+  }
 }
 
 @keyframes shimmer {

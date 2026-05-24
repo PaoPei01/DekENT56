@@ -101,9 +101,8 @@ export function Layout() {
     <div>
       <nav className="top-nav">
         <Link className="brand" to="/" aria-label={language === 'th' ? 'กลับหน้าแรก Entaneer Gear 56' : 'Entaneer Gear 56 home'}>
-          <Gear13Icon size={22} />
+          <Gear13Icon size={22} className="brand-gear-icon" />
           <span>Entaneer Gear 56</span>
-          <small>Gear 56</small>
         </Link>
         <div className="nav-links">
           <NavLink to="/">{t.participants}</NavLink>

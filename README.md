@@ -92,12 +92,12 @@
 
 The app uses React + Vite with `HashRouter`. Keep `HashRouter` enabled for both GitHub Pages and Cloudflare Pages. The deployment difference is the Vite asset base path:
 
-- GitHub Pages project site: assets must load from `/TFBP/`.
+- GitHub Pages project site: assets must load from `/DekENT56/`.
 - Cloudflare Pages root site: assets must load from `/`.
 
 `vite.config.ts` chooses the base dynamically:
 
-- `VITE_DEPLOY_TARGET=github-pages` uses `base: '/TFBP/'`.
+- `VITE_DEPLOY_TARGET=github-pages` uses `base: '/DekENT56/'`.
 - `VITE_DEPLOY_TARGET=cloudflare-pages` or no deploy target uses `base: '/'`.
 - `VITE_APP_BASE_PATH=/custom-path/` can override both when deploying to another subpath.
 
@@ -148,7 +148,7 @@ Recommended deployment target marker:
 VITE_DEPLOY_TARGET=cloudflare-pages
 ```
 
-`VITE_DEPLOY_TARGET=cloudflare-pages` is explicit documentation for future maintainers; omitting it also builds with `base: '/'`. Do not set `VITE_APP_BASE_PATH=/TFBP/` on Cloudflare root deployments, or the app may load a blank page because built assets will be requested from `/TFBP/assets/...`.
+`VITE_DEPLOY_TARGET=cloudflare-pages` is explicit documentation for future maintainers; omitting it also builds with `base: '/'`. Do not set `VITE_APP_BASE_PATH=/DekENT56/` on Cloudflare root deployments, or the app may load a blank page because built assets will be requested from `/DekENT56/assets/...`.
 
 Never deploy the Supabase `service_role` key to Cloudflare Pages. Keep service-role keys only in local/server-side import scripts or trusted backend jobs.
 
@@ -532,7 +532,7 @@ npm run build
 
 ## UI/UX Guidelines
 
-TFBP is designed as a mobile-first event operations platform. Public pages should stay simple and privacy-safe, staff pages should prioritize one-hand use during live activities, and admin pages should keep dense data organized with clear sections, filters, and responsive tables.
+DekENT56 is designed as a mobile-first event operations platform. Public pages should stay simple and privacy-safe, staff pages should prioritize one-hand use during live activities, and admin pages should keep dense data organized with clear sections, filters, and responsive tables.
 
 - Use the shared UI primitives in `src/components/ui` first: `Button`, `Card`, `Input`, `Select`, `PageHeader`, `ResponsiveDataTable`, `Toast`, and modal/confirmation components.
 - Keep primary actions obvious. Put secondary or risky actions behind grouped toolbars, action sheets, or confirmation dialogs.

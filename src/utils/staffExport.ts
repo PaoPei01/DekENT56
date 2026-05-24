@@ -45,7 +45,7 @@ export function exportStaffCsv(rows: StaffManagementRow[]) {
 export async function exportStaffXlsx(rows: StaffManagementRow[]) {
   const ExcelJS = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'TFBP';
+  workbook.creator = 'Entaneer Gear 56';
 
   const staff = workbook.addWorksheet('Staff list');
   staff.columns = [

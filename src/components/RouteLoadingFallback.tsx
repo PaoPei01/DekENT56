@@ -1,11 +1,12 @@
 import { useLanguage } from '../context/LanguageContext';
+import { Gear13Icon } from './brand/Gear13Icon';
 
 export function RouteLoadingFallback() {
   const { language } = useLanguage();
   return (
     <section className="route-loading-fallback" role="status" aria-live="polite">
-      <span className="route-loading-dot" aria-hidden="true" />
-      <strong>{language === 'th' ? 'กำลังโหลดข้อมูล...' : 'Loading data...'}</strong>
+      <Gear13Icon size={34} className="route-loading-gear" />
+      <strong>{language === 'th' ? 'กำลังโหลด...' : 'Loading...'}</strong>
     </section>
   );
 }

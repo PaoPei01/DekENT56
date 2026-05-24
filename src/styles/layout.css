@@ -31,6 +31,33 @@
   flex: 0 0 auto;
 }
 
+.brand-gear-icon {
+  flex: 0 0 auto;
+  transform-origin: center;
+  transition: transform 220ms ease;
+}
+
+.brand:hover .brand-gear-icon,
+.brand:focus-visible .brand-gear-icon {
+  transform: rotate(18deg) scale(1.04);
+}
+
+.brand:active .brand-gear-icon {
+  transform: rotate(72deg) scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-gear-icon {
+    transition: none;
+  }
+
+  .brand:hover .brand-gear-icon,
+  .brand:focus-visible .brand-gear-icon,
+  .brand:active .brand-gear-icon {
+    transform: none;
+  }
+}
+
 .brand span {
   min-width: 0;
 }

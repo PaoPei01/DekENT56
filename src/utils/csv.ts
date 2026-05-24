@@ -39,7 +39,7 @@ export function exportProfilesCsv(rows: Profile[]) {
 export async function exportProfilesXlsx(rows: GroupProfile[]) {
   const ExcelJS = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'TFBP';
+  workbook.creator = 'Entaneer Gear 56';
   workbook.created = new Date();
 
   const sheet = workbook.addWorksheet('Participants');

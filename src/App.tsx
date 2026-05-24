@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AdminGuard } from './components/AdminGuard';
 import { Layout } from './components/Layout';
-import { LoadingSkeleton } from './components/LoadingSkeleton';
+import { RouteLoadingFallback } from './components/RouteLoadingFallback';
 import { StaffGuard } from './components/StaffGuard';
 import { PublicListPage } from './pages/PublicListPage';
 import { VerifyEditPage } from './pages/VerifyEditPage';
@@ -70,74 +70,74 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<PublicListPage />} />
-        <Route path="portal" element={<Suspense fallback={<LoadingSkeleton />}><PortalPage /></Suspense>} />
-        <Route path="announcements" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementsPage /></Suspense>} />
-        <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
-        <Route path="events" element={<Suspense fallback={<LoadingSkeleton />}><EventsPage /></Suspense>} />
-        <Route path="events/:eventSlug" element={<Suspense fallback={<LoadingSkeleton />}><EventDetailPage /></Suspense>} />
-        <Route path="events/:eventSlug/announcements" element={<Suspense fallback={<LoadingSkeleton />}><EventAnnouncementsPage /></Suspense>} />
-        <Route path="events/:eventSlug/announcements/:announcementId" element={<Suspense fallback={<LoadingSkeleton />}><EventAnnouncementDetailPage /></Suspense>} />
-        <Route path="events/:eventSlug/profile-check" element={<Suspense fallback={<LoadingSkeleton />}><EventProfileCheckPage /></Suspense>} />
-        <Route path="events/:eventSlug/register" element={<Suspense fallback={<LoadingSkeleton />}><EventRegisterPage /></Suspense>} />
-        <Route path="events/:eventSlug/staff/apply" element={<Suspense fallback={<LoadingSkeleton />}><EventStaffApplyPage /></Suspense>} />
-        <Route path="events/:eventSlug/staff/application-status" element={<Suspense fallback={<LoadingSkeleton />}><EventStaffApplicationStatusPage /></Suspense>} />
-        <Route path="guide" element={<Suspense fallback={<LoadingSkeleton />}><GuideCenterPage /></Suspense>} />
-        <Route path="guide/:category" element={<Suspense fallback={<LoadingSkeleton />}><GuideCategoryPage /></Suspense>} />
-        <Route path="guide/:category/:topic" element={<Suspense fallback={<LoadingSkeleton />}><GuideTopicPage /></Suspense>} />
+        <Route path="portal" element={<Suspense fallback={<RouteLoadingFallback />}><PortalPage /></Suspense>} />
+        <Route path="announcements" element={<Suspense fallback={<RouteLoadingFallback />}><AnnouncementsPage /></Suspense>} />
+        <Route path="announcements/:id" element={<Suspense fallback={<RouteLoadingFallback />}><AnnouncementDetailPage /></Suspense>} />
+        <Route path="events" element={<Suspense fallback={<RouteLoadingFallback />}><EventsPage /></Suspense>} />
+        <Route path="events/:eventSlug" element={<Suspense fallback={<RouteLoadingFallback />}><EventDetailPage /></Suspense>} />
+        <Route path="events/:eventSlug/announcements" element={<Suspense fallback={<RouteLoadingFallback />}><EventAnnouncementsPage /></Suspense>} />
+        <Route path="events/:eventSlug/announcements/:announcementId" element={<Suspense fallback={<RouteLoadingFallback />}><EventAnnouncementDetailPage /></Suspense>} />
+        <Route path="events/:eventSlug/profile-check" element={<Suspense fallback={<RouteLoadingFallback />}><EventProfileCheckPage /></Suspense>} />
+        <Route path="events/:eventSlug/register" element={<Suspense fallback={<RouteLoadingFallback />}><EventRegisterPage /></Suspense>} />
+        <Route path="events/:eventSlug/staff/apply" element={<Suspense fallback={<RouteLoadingFallback />}><EventStaffApplyPage /></Suspense>} />
+        <Route path="events/:eventSlug/staff/application-status" element={<Suspense fallback={<RouteLoadingFallback />}><EventStaffApplicationStatusPage /></Suspense>} />
+        <Route path="guide" element={<Suspense fallback={<RouteLoadingFallback />}><GuideCenterPage /></Suspense>} />
+        <Route path="guide/:category" element={<Suspense fallback={<RouteLoadingFallback />}><GuideCategoryPage /></Suspense>} />
+        <Route path="guide/:category/:topic" element={<Suspense fallback={<RouteLoadingFallback />}><GuideTopicPage /></Suspense>} />
         <Route path="me" element={<VerifyEditPage titleMode="me" />} />
         <Route path="edit" element={<VerifyEditPage />} />
-        <Route path="staff/start" element={<Suspense fallback={<LoadingSkeleton />}><StaffStartPage /></Suspense>} />
-        <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
-        <Route path="staff/profile/qr" element={<Suspense fallback={<LoadingSkeleton />}><StaffPersonalQrPage /></Suspense>} />
-        <Route path="staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendancePage /></Suspense>} />
-        <Route path="staff/attendance/scan" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendanceScanPage /></Suspense>} />
-        <Route path="login" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
+        <Route path="staff/start" element={<Suspense fallback={<RouteLoadingFallback />}><StaffStartPage /></Suspense>} />
+        <Route path="staff/profile/verify" element={<Suspense fallback={<RouteLoadingFallback />}><StaffProfileVerifyPage /></Suspense>} />
+        <Route path="staff/profile/qr" element={<Suspense fallback={<RouteLoadingFallback />}><StaffPersonalQrPage /></Suspense>} />
+        <Route path="staff/attendance" element={<Suspense fallback={<RouteLoadingFallback />}><StaffAttendancePage /></Suspense>} />
+        <Route path="staff/attendance/scan" element={<Suspense fallback={<RouteLoadingFallback />}><StaffAttendanceScanPage /></Suspense>} />
+        <Route path="login" element={<Suspense fallback={<RouteLoadingFallback />}><AuthLoginPage /></Suspense>} />
         <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer', 'emergency_staff']} />}>
-          <Route path="staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffDashboardPage /></Suspense>} />
-          <Route path="staff/profile" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfilePage /></Suspense>} />
-          <Route path="staff/profile/edit" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileEditPage /></Suspense>} />
-          <Route path="staff/directory" element={<Suspense fallback={<LoadingSkeleton />}><StaffDirectoryPage /></Suspense>} />
+          <Route path="staff" element={<Suspense fallback={<RouteLoadingFallback />}><StaffDashboardPage /></Suspense>} />
+          <Route path="staff/profile" element={<Suspense fallback={<RouteLoadingFallback />}><StaffProfilePage /></Suspense>} />
+          <Route path="staff/profile/edit" element={<Suspense fallback={<RouteLoadingFallback />}><StaffProfileEditPage /></Suspense>} />
+          <Route path="staff/directory" element={<Suspense fallback={<RouteLoadingFallback />}><StaffDirectoryPage /></Suspense>} />
         </Route>
         <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer']} />}>
-          <Route path="staff/my-group" element={<Suspense fallback={<LoadingSkeleton />}><StaffMobilePage /></Suspense>} />
+          <Route path="staff/my-group" element={<Suspense fallback={<RouteLoadingFallback />}><StaffMobilePage /></Suspense>} />
         </Route>
         <Route element={<StaffGuard requireEmergency />}>
-          <Route path="staff/emergency" element={<Suspense fallback={<LoadingSkeleton />}><EmergencyDashboardPage /></Suspense>} />
+          <Route path="staff/emergency" element={<Suspense fallback={<RouteLoadingFallback />}><EmergencyDashboardPage /></Suspense>} />
         </Route>
         <Route element={<AdminGuard />}>
-          <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AdminCommandCenterPage /></Suspense>} />
-          <Route path="admin/dashboard" element={<Suspense fallback={<LoadingSkeleton />}><AdminDashboardPage /></Suspense>} />
-          <Route path="admin/events" element={<Suspense fallback={<LoadingSkeleton />}><AdminEventsPage /></Suspense>} />
-          <Route path="admin/events/:eventId/applications" element={<Suspense fallback={<LoadingSkeleton />}><AdminEventApplicationsPage /></Suspense>} />
-          <Route path="admin/events/:eventId" element={<Suspense fallback={<LoadingSkeleton />}><AdminEventDetailPage /></Suspense>} />
-          <Route path="admin/announcements" element={<Suspense fallback={<LoadingSkeleton />}><AdminAnnouncementsPage /></Suspense>} />
-          <Route path="admin/announcements/new" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementEditPage /></Suspense>} />
-          <Route path="admin/announcements/:id/edit" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementEditPage /></Suspense>} />
-          <Route path="admin/emergency" element={<Suspense fallback={<LoadingSkeleton />}><EmergencyDashboardPage /></Suspense>} />
-          <Route path="admin/groups" element={<Suspense fallback={<LoadingSkeleton />}><GroupDashboardPage /></Suspense>} />
-          <Route path="admin/people-groups" element={<Suspense fallback={<LoadingSkeleton />}><AdminPeopleGroupsHubPage /></Suspense>} />
-          <Route path="admin/staff-ops" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffOpsHubPage /></Suspense>} />
-          <Route path="admin/staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffManagementPage /></Suspense>} />
-          <Route path="admin/staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffAttendancePage /></Suspense>} />
-          <Route path="admin/staff/attendance/:sessionId" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffAttendanceSessionPage /></Suspense>} />
-          <Route path="admin/staff/:id" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffProfilePage /></Suspense>} />
-          <Route path="admin/staff/:id/profile" element={<Suspense fallback={<LoadingSkeleton />}><AdminStaffProfilePage /></Suspense>} />
-          <Route path="admin/staff/import" element={<Suspense fallback={<LoadingSkeleton />}><StaffImportPage /></Suspense>} />
-          <Route path="admin/staff/operations" element={<Suspense fallback={<LoadingSkeleton />}><StaffOperationsPage /></Suspense>} />
-          <Route path="admin/staff/requests" element={<Suspense fallback={<LoadingSkeleton />}><StaffEditRequestsPage /></Suspense>} />
-          <Route path="admin/people" element={<Suspense fallback={<LoadingSkeleton />}><AdminPeoplePage /></Suspense>} />
-          <Route path="admin/people/dedupe" element={<Suspense fallback={<LoadingSkeleton />}><AdminPeopleDedupePage /></Suspense>} />
-          <Route path="admin/people/import-year2" element={<Suspense fallback={<LoadingSkeleton />}><Year2PeopleImportPage /></Suspense>} />
-          <Route path="admin/people/update-requests" element={<Suspense fallback={<LoadingSkeleton />}><AdminPeopleUpdateRequestsPage /></Suspense>} />
-          <Route path="admin/documents" element={<Suspense fallback={<LoadingSkeleton />}><DocumentCenterPage /></Suspense>} />
-          <Route path="admin/documents/settings" element={<Suspense fallback={<LoadingSkeleton />}><DocumentSettingsPage /></Suspense>} />
-          <Route path="admin/documents/templates" element={<Suspense fallback={<LoadingSkeleton />}><DocumentTemplatesPage /></Suspense>} />
-          <Route path="admin/documents/generate" element={<Suspense fallback={<LoadingSkeleton />}><DocumentGeneratePage /></Suspense>} />
-          <Route path="admin/documents/history" element={<Suspense fallback={<LoadingSkeleton />}><DocumentHistoryPage /></Suspense>} />
-          <Route path="admin/requests" element={<Suspense fallback={<LoadingSkeleton />}><PendingRequestsPage /></Suspense>} />
-          <Route path="admin/logs" element={<Suspense fallback={<LoadingSkeleton />}><ChangeLogPage /></Suspense>} />
-          <Route path="admin/data-health" element={<Suspense fallback={<LoadingSkeleton />}><DataHealthPage /></Suspense>} />
-          <Route path="admin/system-readiness" element={<Suspense fallback={<LoadingSkeleton />}><SystemReadinessPage /></Suspense>} />
+          <Route path="admin" element={<Suspense fallback={<RouteLoadingFallback />}><AdminCommandCenterPage /></Suspense>} />
+          <Route path="admin/dashboard" element={<Suspense fallback={<RouteLoadingFallback />}><AdminDashboardPage /></Suspense>} />
+          <Route path="admin/events" element={<Suspense fallback={<RouteLoadingFallback />}><AdminEventsPage /></Suspense>} />
+          <Route path="admin/events/:eventId/applications" element={<Suspense fallback={<RouteLoadingFallback />}><AdminEventApplicationsPage /></Suspense>} />
+          <Route path="admin/events/:eventId" element={<Suspense fallback={<RouteLoadingFallback />}><AdminEventDetailPage /></Suspense>} />
+          <Route path="admin/announcements" element={<Suspense fallback={<RouteLoadingFallback />}><AdminAnnouncementsPage /></Suspense>} />
+          <Route path="admin/announcements/new" element={<Suspense fallback={<RouteLoadingFallback />}><AnnouncementEditPage /></Suspense>} />
+          <Route path="admin/announcements/:id/edit" element={<Suspense fallback={<RouteLoadingFallback />}><AnnouncementEditPage /></Suspense>} />
+          <Route path="admin/emergency" element={<Suspense fallback={<RouteLoadingFallback />}><EmergencyDashboardPage /></Suspense>} />
+          <Route path="admin/groups" element={<Suspense fallback={<RouteLoadingFallback />}><GroupDashboardPage /></Suspense>} />
+          <Route path="admin/people-groups" element={<Suspense fallback={<RouteLoadingFallback />}><AdminPeopleGroupsHubPage /></Suspense>} />
+          <Route path="admin/staff-ops" element={<Suspense fallback={<RouteLoadingFallback />}><AdminStaffOpsHubPage /></Suspense>} />
+          <Route path="admin/staff" element={<Suspense fallback={<RouteLoadingFallback />}><StaffManagementPage /></Suspense>} />
+          <Route path="admin/staff/attendance" element={<Suspense fallback={<RouteLoadingFallback />}><AdminStaffAttendancePage /></Suspense>} />
+          <Route path="admin/staff/attendance/:sessionId" element={<Suspense fallback={<RouteLoadingFallback />}><AdminStaffAttendanceSessionPage /></Suspense>} />
+          <Route path="admin/staff/:id" element={<Suspense fallback={<RouteLoadingFallback />}><AdminStaffProfilePage /></Suspense>} />
+          <Route path="admin/staff/:id/profile" element={<Suspense fallback={<RouteLoadingFallback />}><AdminStaffProfilePage /></Suspense>} />
+          <Route path="admin/staff/import" element={<Suspense fallback={<RouteLoadingFallback />}><StaffImportPage /></Suspense>} />
+          <Route path="admin/staff/operations" element={<Suspense fallback={<RouteLoadingFallback />}><StaffOperationsPage /></Suspense>} />
+          <Route path="admin/staff/requests" element={<Suspense fallback={<RouteLoadingFallback />}><StaffEditRequestsPage /></Suspense>} />
+          <Route path="admin/people" element={<Suspense fallback={<RouteLoadingFallback />}><AdminPeoplePage /></Suspense>} />
+          <Route path="admin/people/dedupe" element={<Suspense fallback={<RouteLoadingFallback />}><AdminPeopleDedupePage /></Suspense>} />
+          <Route path="admin/people/import-year2" element={<Suspense fallback={<RouteLoadingFallback />}><Year2PeopleImportPage /></Suspense>} />
+          <Route path="admin/people/update-requests" element={<Suspense fallback={<RouteLoadingFallback />}><AdminPeopleUpdateRequestsPage /></Suspense>} />
+          <Route path="admin/documents" element={<Suspense fallback={<RouteLoadingFallback />}><DocumentCenterPage /></Suspense>} />
+          <Route path="admin/documents/settings" element={<Suspense fallback={<RouteLoadingFallback />}><DocumentSettingsPage /></Suspense>} />
+          <Route path="admin/documents/templates" element={<Suspense fallback={<RouteLoadingFallback />}><DocumentTemplatesPage /></Suspense>} />
+          <Route path="admin/documents/generate" element={<Suspense fallback={<RouteLoadingFallback />}><DocumentGeneratePage /></Suspense>} />
+          <Route path="admin/documents/history" element={<Suspense fallback={<RouteLoadingFallback />}><DocumentHistoryPage /></Suspense>} />
+          <Route path="admin/requests" element={<Suspense fallback={<RouteLoadingFallback />}><PendingRequestsPage /></Suspense>} />
+          <Route path="admin/logs" element={<Suspense fallback={<RouteLoadingFallback />}><ChangeLogPage /></Suspense>} />
+          <Route path="admin/data-health" element={<Suspense fallback={<RouteLoadingFallback />}><DataHealthPage /></Suspense>} />
+          <Route path="admin/system-readiness" element={<Suspense fallback={<RouteLoadingFallback />}><SystemReadinessPage /></Suspense>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

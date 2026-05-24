@@ -37,7 +37,7 @@ export function exportGroupsCsv(rows: GroupProfile[]) {
 export async function exportGroupsXlsx(rows: GroupProfile[], stats: GroupStats[]) {
   const ExcelJS = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'TFBP';
+  workbook.creator = 'Entaneer Gear 56';
 
   const participants = workbook.addWorksheet('Full participant list');
   participants.columns = [
