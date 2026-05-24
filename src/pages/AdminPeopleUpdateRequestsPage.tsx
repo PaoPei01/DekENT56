@@ -21,7 +21,7 @@ import { errorMessage } from '../utils/error';
 
 function statusLabel(status: string, language: 'th' | 'en') {
   const labels: Record<string, { th: string; en: string }> = {
-    pending: { th: 'รอตรวจสอบ', en: 'Pending' },
+    pending: { th: 'รอตรวจสอบ', en: 'Waiting for review' },
     approved: { th: 'อนุมัติแล้ว', en: 'Approved' },
     rejected: { th: 'ปฏิเสธแล้ว', en: 'Rejected' },
     cancelled: { th: 'ยกเลิก', en: 'Cancelled' },
@@ -99,6 +99,14 @@ export function AdminPeopleUpdateRequestsPage() {
           </>
         )}
       />
+
+      <Card className="workflow-explainer-card" variant="soft">
+        <div>
+          <strong>{language === 'th' ? 'คำร้องแก้ข้อมูล' : 'Update requests'}</strong>
+          <span>{language === 'th' ? 'ตรวจคำร้องที่เกี่ยวกับอีเมล เบอร์โทร หรือข้อมูลยืนยันตัวตน' : 'Review requests related to identity fields such as email or phone.'}</span>
+        </div>
+        <Badge status="pending">{language === 'th' ? `รอตรวจสอบ ${(rows.filter((row) => row.status === 'pending').length).toLocaleString()} รายการ` : `${(rows.filter((row) => row.status === 'pending').length).toLocaleString()} waiting for review`}</Badge>
+      </Card>
 
       {requestsState.loading ? <LoadingSkeleton /> : null}
       {requestsState.error ? (

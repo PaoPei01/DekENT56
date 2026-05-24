@@ -59,6 +59,13 @@ export function PendingRequestsPage() {
         <p className="eyebrow">Requests</p>
         <h1>{language === 'th' ? 'คำขอแก้ไขที่รออนุมัติ' : 'Pending edit requests'}</h1>
       </div>
+      <Card className="workflow-explainer-card" variant="soft">
+        <div>
+          <strong>{language === 'th' ? 'คำขอแก้ไขผู้เข้าร่วม' : 'Participant edit requests'}</strong>
+          <span>{language === 'th' ? 'ตรวจคำขอแก้ไขข้อมูลที่ผู้เข้าร่วมส่งจากหน้า public' : 'Review edit requests submitted from the public page.'}</span>
+        </div>
+        <Badge status="pending">{language === 'th' ? `รอตรวจสอบ ${(state.data?.length ?? 0).toLocaleString()} รายการ` : `${(state.data?.length ?? 0).toLocaleString()} waiting for review`}</Badge>
+      </Card>
       {state.loading ? <LoadingSkeleton /> : null}
       {state.error ? <div className="error-state">{state.error}</div> : null}
       {!state.loading && !state.data?.length ? <div className="empty-state">{language === 'th' ? 'ยังไม่มีคำขอที่รออนุมัติ' : 'No pending requests'}</div> : null}
@@ -70,7 +77,7 @@ export function PendingRequestsPage() {
                 <h2>{request.profiles?.name_th ?? request.requested_by_email}</h2>
                 <p>{request.requested_by_email}</p>
               </div>
-              <Badge status="pending">{language === 'th' ? 'รออนุมัติ' : 'Pending'}</Badge>
+              <Badge status="pending">{language === 'th' ? 'รอตรวจสอบ' : 'Waiting for review'}</Badge>
             </div>
             <div className="diff-grid">
               {changedEntries(request).map(([key, value]) => (

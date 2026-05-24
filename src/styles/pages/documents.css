@@ -5,6 +5,62 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.document-flow-steps,
+.document-readiness-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.document-flow-step {
+  display: grid;
+  gap: 0.5rem;
+  min-height: 150px;
+  padding: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: inherit;
+  background: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+}
+
+.document-flow-step svg {
+  color: var(--accent);
+}
+
+.document-flow-step span,
+.document-readiness-grid span,
+.document-readiness-summary span {
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.document-readiness-panel,
+.document-readiness-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.document-readiness-summary {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.document-readiness-summary h2 {
+  margin: 0.15rem 0 0.25rem;
+}
+
+.document-readiness-grid > div {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.document-readiness-action {
+  width: fit-content;
+}
+
 .document-event-context-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

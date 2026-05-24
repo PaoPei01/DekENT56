@@ -57,6 +57,29 @@ export function DataHealthPage() {
   const [confirmAction, setConfirmAction] = useState<(typeof repairActions)[number] | null>(null);
   const data = state.data;
   const issueRows: DataHealthIssue[] = [...(data?.errors ?? []), ...(data?.warnings ?? [])];
+  const issueGroups = [
+    {
+      key: 'must-fix',
+      title: language === 'th' ? 'ต้องแก้ก่อนวันกิจกรรม' : 'Must fix before event day',
+      description: language === 'th' ? 'ปัญหาที่อาจกระทบการเช็กชื่อ การจัดกลุ่ม หรือข้อมูลหลักในวันงาน' : 'Issues that may affect attendance, groups, or core records on event day.',
+      rows: data?.errors ?? [],
+      variant: 'warning' as const,
+    },
+    {
+      key: 'should-review',
+      title: language === 'th' ? 'ควรตรวจสอบ' : 'Should review',
+      description: language === 'th' ? 'รายการที่ยังไม่จำเป็นต้องหยุดงาน แต่ควรตรวจเพื่อให้ข้อมูลสะอาด' : 'Items that do not block operations yet, but should be reviewed for data quality.',
+      rows: data?.warnings ?? [],
+      variant: 'soft' as const,
+    },
+    {
+      key: 'general-info',
+      title: language === 'th' ? 'ข้อมูลทั่วไป' : 'General info',
+      description: language === 'th' ? 'สรุปเพิ่มเติมจากการตรวจสุขภาพข้อมูล' : 'Additional summaries from the data health check.',
+      rows: [] as DataHealthIssue[],
+      variant: 'soft' as const,
+    },
+  ];
   const errorCount = data?.errors.reduce((sum, issue) => sum + issue.count, 0) ?? 0;
   const warningCount = data?.warnings.reduce((sum, issue) => sum + issue.count, 0) ?? 0;
   const status = errorCount ? 'critical' : warningCount ? 'review' : 'healthy';
@@ -155,19 +178,33 @@ export function DataHealthPage() {
             ))}
           </Card>
 
-          <ResponsiveDataTable
-            rows={issueRows}
-            getKey={(row) => row.type}
-            emptyText={language === 'th' ? 'ไม่พบปัญหาสำคัญ' : 'No major issues found'}
-            mobileTitle={(row) => row.message}
-            mobileSubtitle={(row) => `${row.type} · ${row.count}`}
-            columns={[
-              { key: 'severity', header: language === 'th' ? 'ระดับ' : 'Severity', render: (row) => <Badge status={row.severity === 'error' ? 'rejected' : 'pending'}>{row.severity}</Badge> },
-              { key: 'type', header: 'Type', render: (row) => row.type },
-              { key: 'count', header: language === 'th' ? 'จำนวน' : 'Count', render: (row) => row.count },
-              { key: 'message', header: language === 'th' ? 'รายละเอียด' : 'Message', render: (row) => row.message },
-            ]}
-          />
+          <div className="data-health-issue-sections">
+            {issueGroups.map((group) => (
+              <Card key={group.key} variant={group.variant}>
+                <div className="mobile-row-head">
+                  <div>
+                    <p className="eyebrow">{language === 'th' ? 'Data Health' : 'Data Health'}</p>
+                    <h2>{group.title}</h2>
+                    <p className="muted">{group.description}</p>
+                  </div>
+                  <Badge status={group.rows.length ? (group.key === 'must-fix' ? 'rejected' : 'pending') : 'approved'}>{String(group.rows.length)}</Badge>
+                </div>
+                <ResponsiveDataTable
+                  rows={group.rows}
+                  getKey={(row) => row.type}
+                  emptyText={language === 'th' ? 'ไม่พบรายการในหมวดนี้' : 'No items in this group'}
+                  mobileTitle={(row) => row.message}
+                  mobileSubtitle={(row) => `${row.type} · ${row.count}`}
+                  columns={[
+                    { key: 'severity', header: language === 'th' ? 'ระดับ' : 'Severity', render: (row) => <Badge status={row.severity === 'error' ? 'rejected' : 'pending'}>{row.severity}</Badge> },
+                    { key: 'type', header: 'Type', render: (row) => row.type },
+                    { key: 'count', header: language === 'th' ? 'จำนวน' : 'Count', render: (row) => row.count },
+                    { key: 'message', header: language === 'th' ? 'รายละเอียด' : 'Message', render: (row) => row.message },
+                  ]}
+                />
+              </Card>
+            ))}
+          </div>
 
           <ResponsiveDataTable
             rows={detailRows.slice(0, 200)}

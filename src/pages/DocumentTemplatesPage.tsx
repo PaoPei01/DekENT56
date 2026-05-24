@@ -12,6 +12,7 @@ import { ResponsiveDataTable } from '../components/ui/ResponsiveDataTable';
 import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useEventContext } from '../context/EventContext';
+import { useLanguage } from '../context/LanguageContext';
 import { documentTypeLabel, documentTypeOptions, extractDocxPlaceholders, templateVariableGuide } from '../lib/documentGeneration';
 import { documentScopeLabel, documentScopeTone } from '../lib/documentEventContext';
 import type { DocumentTemplate, DocumentType } from '../lib/documentTypes';
@@ -20,6 +21,7 @@ import { deleteDocumentTemplate, fetchDocumentCenterData, uploadDocumentTemplate
 import { errorMessage } from '../utils/error';
 
 export function DocumentTemplatesPage() {
+  const { language } = useLanguage();
   const { currentEventId } = useEventContext();
   const state = useAsync(() => fetchDocumentCenterData(currentEventId), [currentEventId]);
   const [name, setName] = useState('');
@@ -94,17 +96,17 @@ export function DocumentTemplatesPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow="ศูนย์เอกสาร"
-        title="เทมเพลตเอกสาร"
-        description="อัปโหลดเทมเพลต .docx และตรวจช่องข้อมูลที่ใช้เติมเอกสาร เช่น {project_name}, {event_date_th}"
+        title={language === 'th' ? 'เทมเพลตเอกสาร' : 'Document Templates'}
+        description={language === 'th' ? 'ใช้ช่องข้อมูล เช่น {project_name} เพื่อให้ระบบเติมข้อมูลให้อัตโนมัติ' : 'Use placeholders such as {project_name} so the system can fill in data automatically.'}
         meta={<EventSwitcher compact />}
         actions={<HelpButton topicId="documents.templates" variant="link" />}
       />
       <DocumentEventContextCard />
       <Card className="template-upload-card" variant="soft">
         <div>
-          <p className="eyebrow">อัปโหลดเทมเพลต</p>
-          <h2>อัปโหลดไฟล์ .docx</h2>
-          <span>ระบบจะอ่านช่องข้อมูลในไฟล์ และเก็บไฟล์ไว้ใน Storage ส่วนตัว</span>
+          <p className="eyebrow">{language === 'th' ? 'เทมเพลต DOCX' : 'DOCX template'}</p>
+          <h2>{language === 'th' ? 'อัปโหลดเทมเพลต DOCX' : 'Upload DOCX template'}</h2>
+          <span>{language === 'th' ? 'ใช้ช่องข้อมูล เช่น {project_name} เพื่อให้ระบบเติมข้อมูลให้อัตโนมัติ ไฟล์จะถูกเก็บไว้ใน Storage ส่วนตัว' : 'Use placeholders such as {project_name} so the system can fill in data automatically. Files stay in private Storage.'}</span>
           <HelpButton topicId="documents.templates" variant="compact" />
         </div>
         <label className="file-drop-zone">

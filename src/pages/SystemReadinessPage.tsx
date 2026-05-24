@@ -1,4 +1,5 @@
 import { Clipboard, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -48,6 +49,43 @@ export function SystemReadinessPage() {
   const friendlyError = reportState.error
     ? explainSupabaseSchemaError(reportState.error, language)
     : '';
+  const checklistGroups = report ? [
+    {
+      title: language === 'th' ? 'หน้าสาธารณะ' : 'Public pages',
+      items: [
+        { label: language === 'th' ? 'หน้ารายชื่อและแก้ไขข้อมูลเปิดได้' : 'Public list and edit flows are available', ok: report.ok || !report.database.missing_tables.includes('profiles'), to: '/' },
+        { label: language === 'th' ? 'กิจกรรมพร้อมตรวจสถานะ' : 'Event pages are available', ok: report.parent_orientation.event_exists, to: '/events' },
+      ],
+    },
+    {
+      title: language === 'th' ? 'งานทีมงาน' : 'Staff operations',
+      items: [
+        { label: language === 'th' ? 'ข้อมูล assignment พร้อมใช้งาน' : 'Assignments are ready', ok: !report.database.missing_tables.includes('staff_group_assignments'), to: '/staff' },
+        { label: language === 'th' ? 'โควต้างานทีมงานพร้อม' : 'Staff duty quota is ready', ok: report.parent_orientation.quota_total_ok, to: '/admin/staff/attendance' },
+      ],
+    },
+    {
+      title: language === 'th' ? 'เครื่องมือแอดมิน' : 'Admin tools',
+      items: [
+        { label: language === 'th' ? 'Dashboard และฐานข้อมูลบุคคลพร้อม' : 'Dashboard and people database are ready', ok: !report.database.missing_tables.length, to: '/admin/dashboard' },
+        { label: language === 'th' ? 'เครื่องมือตรวจสุขภาพข้อมูลพร้อม' : 'Data health tools are ready', ok: !report.database.missing_functions.length, to: '/admin/data-health' },
+      ],
+    },
+    {
+      title: language === 'th' ? 'ข้อมูลและความปลอดภัย' : 'Data and security',
+      items: [
+        { label: language === 'th' ? 'ตารางและคอลัมน์หลักครบ' : 'Required tables and columns are present', ok: !report.database.missing_tables.length && !report.database.missing_columns.length, to: '/admin/system-readiness' },
+        { label: language === 'th' ? 'RLS เปิดครบในตารางที่ต้องป้องกัน' : 'RLS is enabled where required', ok: !report.security.rls_missing_tables.length, to: '/admin/system-readiness' },
+      ],
+    },
+    {
+      title: language === 'th' ? 'เอกสาร' : 'Documents',
+      items: [
+        { label: language === 'th' ? 'ศูนย์เอกสารพร้อมตรวจข้อมูลตั้งต้น' : 'Document Center can review project information', ok: report.ok, to: '/admin/documents' },
+        { label: language === 'th' ? 'เทมเพลตและการสร้างเอกสารเข้าถึงได้' : 'Templates and generation pages are reachable', ok: !report.database.missing_functions.length, to: '/admin/documents/templates' },
+      ],
+    },
+  ] : [];
 
   async function copySummary() {
     if (!report) return;
@@ -120,6 +158,23 @@ export function SystemReadinessPage() {
               <strong>{report.security.rls_missing_tables.length}</strong>
               <span>{language === 'th' ? 'ตารางที่ RLS ยังไม่เปิด' : 'RLS gaps'}</span>
             </Card>
+          </div>
+
+          <div className="readiness-checklist-grid">
+            {checklistGroups.map((group) => (
+              <Card className="readiness-checklist-card" key={group.title}>
+                <h2>{group.title}</h2>
+                <ul className="checklist-list">
+                  {group.items.map((item) => (
+                    <li className="readiness-check-item" key={item.label}>
+                      {statusBadge(item.ok, item.ok ? (language === 'th' ? 'ผ่าน' : 'Ready') : (language === 'th' ? 'ต้องตรวจ' : 'Check'))}
+                      <span>{item.label}</span>
+                      <Link to={item.to}>{language === 'th' ? 'เปิด' : 'Open'}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ))}
           </div>
 
           <Card className="event-detail-card">

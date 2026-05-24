@@ -123,6 +123,11 @@ export function AdminPeoplePage() {
         actions={<HelpButton topicId="admin.people-directory" variant="link" />}
       />
 
+      <Card className="workflow-explainer-card" variant="soft">
+        <strong>{language === 'th' ? 'ฐานข้อมูลบุคคล' : 'People database'}</strong>
+        <span>{language === 'th' ? 'จัดการข้อมูลกลางของนักศึกษาและผู้เข้าร่วม' : 'Manage central student and participant records.'}</span>
+      </Card>
+
       <div className="stats-grid">
         <DashboardStatCard label={language === 'th' ? 'people ทั้งหมด' : 'Total people'} value={fmt(summary?.total_people)} icon={<UsersRound size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'ปี 2 จาก Excel' : 'Year 2 Excel'} value={fmt(summary?.year2_people)} icon={<Database size={20} />} />

@@ -148,6 +148,11 @@ export function AdminPeopleDedupePage() {
         actions={<HelpButton topicId="admin.people-dedupe" variant="link" />}
       />
 
+      <Card className="workflow-explainer-card" variant="soft">
+        <strong>{language === 'th' ? 'ตรวจข้อมูลซ้ำ' : 'Duplicate check'}</strong>
+        <span>{language === 'th' ? 'รวม/ตรวจรายการที่อาจเป็นคนเดียวกัน' : 'Review records that may belong to the same person.'}</span>
+      </Card>
+
       <div className="stats-grid">
         <DashboardStatCard label={language === 'th' ? 'รหัสซ้ำ' : 'Student ID groups'} value={fmt(data?.summary.duplicate_student_id_groups)} icon={<AlertTriangle size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'อีเมลซ้ำ' : 'Email groups'} value={fmt(data?.summary.duplicate_email_groups)} icon={<AlertTriangle size={20} />} />

@@ -1,5 +1,6 @@
 import { Download, Eye } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { EventSwitcher } from '../components/events/EventSwitcher';
 import { DocumentEventContextCard } from '../components/documents/DocumentEventContextCard';
 import { HelpButton } from '../components/help/HelpButton';
@@ -142,6 +143,7 @@ export function DocumentGeneratePage() {
                   <strong>ข้อมูลโครงการ</strong>
                   <div className="filter-chip-row">{missing.map((item) => <span className="filter-chip" key={item.field}>{item.label}</span>)}</div>
                 </div>
+                <Link className="btn btn-secondary document-readiness-action" to="/admin/documents/settings">ไปกรอกข้อมูลตั้งต้น</Link>
               </div>
             ) : <p>ไม่มีข้อมูลที่ขาดสำหรับเอกสารประเภทนี้</p>}
           </Card>

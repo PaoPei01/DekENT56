@@ -58,6 +58,29 @@
   align-items: end;
 }
 
+.workflow-explainer-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.workflow-explainer-card > div,
+.workflow-explainer-card {
+  min-width: 0;
+}
+
+.workflow-explainer-card strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.workflow-explainer-card span {
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
 .filter-panel-actions,
 .filter-panel-chips,
 .repair-action-panel {
@@ -473,6 +496,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 0.75rem;
+}
+
+.data-health-issue-sections,
+.readiness-checklist-grid {
+  display: grid;
+  gap: 1rem;
 }
 
 .health-issue-card {
@@ -901,6 +930,33 @@
 
 .event-stat-grid strong {
   font-size: 1.25rem;
+}
+
+.readiness-checklist-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.readiness-checklist-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.readiness-checklist-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.readiness-check-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.readiness-check-item a {
+  color: var(--accent-strong);
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .compact-stat-grid {
