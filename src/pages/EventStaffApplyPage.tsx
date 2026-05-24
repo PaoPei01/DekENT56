@@ -19,7 +19,7 @@ import { formatBangkokDateTime } from '../lib/dateTime';
 import { getEventContent } from '../lib/eventContent';
 import { eventPath, eventProfileCheckPath, eventStaffApplicationStatusPath } from '../lib/eventRoutes';
 import type { EventSubmissionResult } from '../lib/eventTypes';
-import { checkStaffApplicationForApplicant, fetchEventBySlug, fetchEventDutyQuotaStatus, lookupPersonForApplication, submitEventStaffApplication, submitPersonUpdateRequest, type ApplicantExistingApplicationResult, type EventDutyQuotaRow, type PersonApplicationLookupResult } from '../services/events';
+import { checkStaffApplicationForApplicant, fetchEventBySlug, fetchEventDutyQuotaStatus, fetchPersonHealthProfileForApplication, lookupPersonForApplication, submitEventStaffApplication, submitPersonUpdateRequest, type ApplicantExistingApplicationResult, type EventDutyQuotaRow, type PersonApplicationLookupResult } from '../services/events';
 import { errorMessage } from '../utils/error';
 
 const cmuEmailPattern = /^[a-zA-Z0-9._%+-]+@cmu\.ac\.th$/;
@@ -166,6 +166,8 @@ export function EventStaffApplyPage() {
   const [foodAllergy, setFoodAllergy] = useState('');
   const [drugAllergy, setDrugAllergy] = useState('');
   const [healthNote, setHealthNote] = useState('');
+  const [healthPrefilledFromProfile, setHealthPrefilledFromProfile] = useState(false);
+  const [healthCurrentConfirmed, setHealthCurrentConfirmed] = useState(false);
   const [note, setNote] = useState('');
   const [consents, setConsents] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
@@ -189,6 +191,7 @@ export function EventStaffApplyPage() {
   const applicantYear = identityLookup?.safe_person?.year_level ? String(identityLookup.safe_person.year_level) : '-';
   const healthDetails = {
     has_health_notice: hasHealthNotice === 'yes',
+    medical_condition: hasHealthNotice === 'yes' ? chronicCondition.trim() : '',
     chronic_condition: hasHealthNotice === 'yes' ? chronicCondition.trim() : '',
     food_allergy: hasHealthNotice === 'yes' ? foodAllergy.trim() : '',
     drug_allergy: hasHealthNotice === 'yes' ? drugAllergy.trim() : '',
@@ -242,6 +245,66 @@ export function EventStaffApplyPage() {
     });
   }
 
+  function hasUserHealthInput() {
+    return Boolean(hasHealthNotice)
+      || Boolean(chronicCondition.trim())
+      || Boolean(foodAllergy.trim())
+      || Boolean(drugAllergy.trim())
+      || Boolean(healthNote.trim());
+  }
+
+  function clearHealthValidationErrors() {
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.health_notice;
+      delete next.health_details;
+      delete next.health_current_confirmed;
+      return next;
+    });
+  }
+
+  function setHealthAnswer(value: HealthNoticeAnswer) {
+    setHasHealthNotice(value);
+    setHealthCurrentConfirmed(false);
+    if (value !== 'yes') setHealthPrefilledFromProfile(false);
+    clearHealthValidationErrors();
+  }
+
+  function clearPrefilledHealth() {
+    setChronicCondition('');
+    setFoodAllergy('');
+    setDrugAllergy('');
+    setHealthNote('');
+    setHasHealthNotice('yes');
+    setHealthPrefilledFromProfile(false);
+    setHealthCurrentConfirmed(false);
+    clearHealthValidationErrors();
+  }
+
+  function updateChronicCondition(value: string) {
+    setChronicCondition(value);
+    setHealthCurrentConfirmed(false);
+    clearHealthValidationErrors();
+  }
+
+  function updateFoodAllergy(value: string) {
+    setFoodAllergy(value);
+    setHealthCurrentConfirmed(false);
+    clearHealthValidationErrors();
+  }
+
+  function updateDrugAllergy(value: string) {
+    setDrugAllergy(value);
+    setHealthCurrentConfirmed(false);
+    clearHealthValidationErrors();
+  }
+
+  function updateHealthNote(value: string) {
+    setHealthNote(value);
+    setHealthCurrentConfirmed(false);
+    clearHealthValidationErrors();
+  }
+
   function validate() {
     const nextErrors: Record<string, string> = {};
     if (!studentId.trim()) nextErrors.student_id = language === 'th' ? 'กรุณากรอกรหัสนักศึกษา' : 'Student ID is required';
@@ -262,6 +325,9 @@ export function EventStaffApplyPage() {
     if (!hasHealthNotice) nextErrors.health_notice = language === 'th' ? 'กรุณาเลือกว่ามีข้อจำกัดด้านสุขภาพหรือการแพ้ที่จำเป็นต้องแจ้งหรือไม่' : 'Please choose whether you have any health or allergy information to report.';
     if (hasHealthNotice === 'yes' && !healthDetails.chronic_condition && !healthDetails.food_allergy && !healthDetails.drug_allergy && !healthDetails.health_note) {
       nextErrors.health_details = language === 'th' ? 'กรุณาระบุรายละเอียดอย่างน้อย 1 รายการ เพื่อให้ทีมงานดูแลได้อย่างเหมาะสม' : 'Please provide at least one detail so the team can support you appropriately.';
+    }
+    if (hasHealthNotice === 'yes' && !healthCurrentConfirmed) {
+      nextErrors.health_current_confirmed = language === 'th' ? 'กรุณายืนยันว่าข้อมูลด้านสุขภาพเป็นปัจจุบัน' : 'Please confirm that your health information is up to date.';
     }
     const missingConsent = recruitment?.consentItemsTh.some((item) => !consents[item]);
     if (missingConsent) nextErrors.consent = language === 'th' ? 'กรุณายืนยันทุกข้อก่อนส่งใบสมัคร' : 'Please confirm every consent item';
@@ -292,6 +358,9 @@ export function EventStaffApplyPage() {
       if (!hasHealthNotice) nextErrors.health_notice = language === 'th' ? 'กรุณาเลือกว่ามีข้อจำกัดด้านสุขภาพหรือการแพ้ที่จำเป็นต้องแจ้งหรือไม่' : 'Please choose whether you have any health or allergy information to report.';
       if (hasHealthNotice === 'yes' && !healthDetails.chronic_condition && !healthDetails.food_allergy && !healthDetails.drug_allergy && !healthDetails.health_note) {
         nextErrors.health_details = language === 'th' ? 'กรุณาระบุรายละเอียดอย่างน้อย 1 รายการ เพื่อให้ทีมงานดูแลได้อย่างเหมาะสม' : 'Please provide at least one detail so the team can support you appropriately.';
+      }
+      if (hasHealthNotice === 'yes' && !healthCurrentConfirmed) {
+        nextErrors.health_current_confirmed = language === 'th' ? 'กรุณายืนยันว่าข้อมูลด้านสุขภาพเป็นปัจจุบัน' : 'Please confirm that your health information is up to date.';
       }
       const missingConsent = recruitment?.consentItemsTh.some((item) => !consents[item]);
       if (missingConsent) nextErrors.consent = language === 'th' ? 'กรุณายืนยันทุกข้อก่อนส่งใบสมัคร' : 'Please confirm every consent item';
@@ -333,6 +402,31 @@ export function EventStaffApplyPage() {
         return;
       }
       setIdentityLookup(lookup);
+      if (lookup.can_continue_application) {
+        try {
+          const profileResult = await fetchPersonHealthProfileForApplication({ eventSlug, studentId, email, phone });
+          const profile = profileResult.health_profile;
+          const profileHasData = Boolean(profile && [
+            profile.medical_condition,
+            profile.chronic_condition,
+            profile.food_allergy,
+            profile.drug_allergy,
+            profile.health_note,
+          ].some((value) => String(value ?? '').trim()));
+          if (profileHasData && !hasUserHealthInput()) {
+            setHasHealthNotice('yes');
+            setChronicCondition(String(profile?.chronic_condition || profile?.medical_condition || ''));
+            setFoodAllergy(String(profile?.food_allergy || ''));
+            setDrugAllergy(String(profile?.drug_allergy || ''));
+            setHealthNote(String(profile?.health_note || ''));
+            setHealthPrefilledFromProfile(true);
+            setHealthCurrentConfirmed(false);
+            clearHealthValidationErrors();
+          }
+        } catch (profileError) {
+          void profileError;
+        }
+      }
       const existing = await checkStaffApplicationForApplicant({ eventSlug, studentId, email });
       setExistingApplication(existing.already_applied ? existing : null);
       setErrors((current) => {
@@ -398,6 +492,14 @@ export function EventStaffApplyPage() {
     }
     try {
       setSaving(true);
+      const submittedAtIso = new Date().toISOString();
+      const submitHealthDetails = {
+        ...healthDetails,
+        confirmed_current: hasHealthNotice === 'yes',
+        confirmed_at: hasHealthNotice === 'yes' ? submittedAtIso : null,
+        prefilled_from_health_profile: hasHealthNotice === 'yes' ? healthPrefilledFromProfile : false,
+        health_profile_source: hasHealthNotice === 'yes' && healthPrefilledFromProfile ? 'person_health_profiles' : 'manual',
+      };
       const submitted = await submitEventStaffApplication({
         eventSlug,
           email,
@@ -422,7 +524,7 @@ export function EventStaffApplyPage() {
           staff_experience: staffExperience,
           experience: staffExperience,
           health_or_limitations: healthSummary || (language === 'th' ? 'ไม่มี' : 'No'),
-          health_details: healthDetails,
+          health_details: submitHealthDetails,
           note,
           consent_confirmed: true,
           consent_items: consents,
@@ -751,28 +853,49 @@ export function EventStaffApplyPage() {
               <fieldset className="event-checkbox-grid full-span">
                 <legend>{language === 'th' ? 'ท่านมีข้อจำกัดด้านสุขภาพ การแพ้อาหาร หรือการแพ้ยาที่จำเป็นต้องแจ้งหรือไม่' : 'Do you have any health limitations, food allergies, or drug allergies that the team should know about?'}</legend>
                 <label>
-                  <input type="radio" name="has-health-notice" value="no" checked={hasHealthNotice === 'no'} onChange={() => setHasHealthNotice('no')} />
+                  <input type="radio" name="has-health-notice" value="no" checked={hasHealthNotice === 'no'} onChange={() => setHealthAnswer('no')} />
                   <span>{language === 'th' ? 'ไม่มี' : 'No'}</span>
                 </label>
                 <label>
-                  <input type="radio" name="has-health-notice" value="yes" checked={hasHealthNotice === 'yes'} onChange={() => setHasHealthNotice('yes')} />
+                  <input type="radio" name="has-health-notice" value="yes" checked={hasHealthNotice === 'yes'} onChange={() => setHealthAnswer('yes')} />
                   <span>{language === 'th' ? 'มี' : 'Yes'}</span>
                 </label>
                 {errors.health_notice ? <small className="field-error" role="alert">{errors.health_notice}</small> : null}
               </fieldset>
               {hasHealthNotice === 'yes' ? (
                 <>
+                  {healthPrefilledFromProfile ? (
+                    <Card className="full-span" variant="soft">
+                      <div className="mobile-row-head">
+                        <div>
+                          <strong>{language === 'th' ? 'พบข้อมูลที่เคยแจ้งไว้' : 'Previous health information found'}</strong>
+                          <span>{language === 'th' ? 'ระบบกรอกข้อมูลด้านสุขภาพเดิมให้เบื้องต้น กรุณาตรวจสอบและแก้ไขให้เป็นปัจจุบันก่อนส่งใบสมัคร' : 'We prefilled your health information. Please review and update it before submitting.'}</span>
+                        </div>
+                        <Button type="button" size="sm" variant="secondary" onClick={clearPrefilledHealth}>
+                          {language === 'th' ? 'ล้างข้อมูลเดิม' : 'Clear previous information'}
+                        </Button>
+                      </div>
+                    </Card>
+                  ) : null}
                   <label className="field full-span">
                     <span>{language === 'th' ? 'โรคประจำตัว / ข้อจำกัดด้านสุขภาพ' : 'Chronic condition / health limitation'}</span>
-                    <textarea value={chronicCondition} onChange={(eventInput) => setChronicCondition(eventInput.target.value)} rows={2} />
+                    <textarea value={chronicCondition} onChange={(eventInput) => updateChronicCondition(eventInput.target.value)} rows={2} />
                   </label>
-                  <Input label={language === 'th' ? 'แพ้อาหาร' : 'Food allergy'} value={foodAllergy} onChange={(eventInput) => setFoodAllergy(eventInput.target.value)} className="full-span" />
-                  <Input label={language === 'th' ? 'แพ้ยา' : 'Drug allergy'} value={drugAllergy} onChange={(eventInput) => setDrugAllergy(eventInput.target.value)} className="full-span" />
+                  <Input label={language === 'th' ? 'แพ้อาหาร' : 'Food allergy'} value={foodAllergy} onChange={(eventInput) => updateFoodAllergy(eventInput.target.value)} className="full-span" />
+                  <Input label={language === 'th' ? 'แพ้ยา' : 'Drug allergy'} value={drugAllergy} onChange={(eventInput) => updateDrugAllergy(eventInput.target.value)} className="full-span" />
                   <label className="field full-span">
                     <span>{language === 'th' ? 'หมายเหตุเพิ่มเติมเกี่ยวกับสุขภาพ' : 'Additional health note'}</span>
-                    <textarea value={healthNote} onChange={(eventInput) => setHealthNote(eventInput.target.value)} rows={2} />
+                    <textarea value={healthNote} onChange={(eventInput) => updateHealthNote(eventInput.target.value)} rows={2} />
                   </label>
                   {errors.health_details ? <small className="field-error full-span" role="alert">{errors.health_details}</small> : null}
+                  <label className="checkbox-row full-span">
+                    <input type="checkbox" checked={healthCurrentConfirmed} onChange={(eventInput) => {
+                      setHealthCurrentConfirmed(eventInput.target.checked);
+                      clearHealthValidationErrors();
+                    }} />
+                    <span>{language === 'th' ? 'ข้าพเจ้ายืนยันว่าข้อมูลด้านสุขภาพและการแพ้ที่แจ้งไว้เป็นปัจจุบัน' : 'I confirm that the health and allergy information provided is up to date.'}</span>
+                  </label>
+                  {errors.health_current_confirmed ? <small className="field-error full-span" role="alert">{errors.health_current_confirmed}</small> : null}
                 </>
               ) : null}
               <label className="field full-span">

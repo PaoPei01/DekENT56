@@ -159,6 +159,15 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Approved applicant sees final duty only after correct identity verification.
 - [ ] Participant registration does not ask for medical information.
 - [ ] Staff application health/limitations text is shown only inside the application form and admin review/export tools.
+- [ ] Applicant with a private health profile verifies identity and sees prefilled health fields only after verification.
+- [ ] Applicant with a private health profile sees the previous-health notice, can edit the values, and can clear the prefilled data.
+- [ ] Applicant with health/allergy information cannot submit until confirming the health information is current.
+- [ ] Applicant without a private health profile verifies identity and sees no prefill notice; health fields remain blank unless they select "มี / Yes".
+- [ ] Health data never appears before identity verification.
+- [ ] Applicant cannot see another person's health data by changing email, phone, or student ID.
+- [ ] Public pages and profile-check/status pages do not show private health profile data.
+- [ ] Admin application detail uses the submitted `staff_applications.answers.health_details` snapshot.
+- [ ] Admin application detail shows the current-health confirmation note when `confirmed_current` is true.
 - [ ] Old `/`, `/edit`, `/staff/attendance`, `/admin/dashboard`, and `/admin/documents` routes still work after applying multi-event foundation migrations.
 - [ ] Do not enable platform homepage redirects until event-scoped participant data is validated.
 

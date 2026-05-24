@@ -220,6 +220,37 @@ export async function lookupPersonForApplication(input: {
   return data as PersonApplicationLookupResult;
 }
 
+export type PersonHealthProfileForApplication = {
+  success: boolean;
+  code: string;
+  message_th?: string;
+  health_profile?: {
+    medical_condition?: string | null;
+    chronic_condition?: string | null;
+    food_allergy?: string | null;
+    drug_allergy?: string | null;
+    health_note?: string | null;
+    confirmed_at?: string | null;
+    updated_at?: string | null;
+  } | null;
+};
+
+export async function fetchPersonHealthProfileForApplication(input: {
+  eventSlug: string;
+  studentId: string;
+  email: string;
+  phone?: string;
+}): Promise<PersonHealthProfileForApplication> {
+  const { data, error } = await supabase.rpc('get_person_health_profile_for_application', {
+    input_event_slug: input.eventSlug,
+    input_student_id: input.studentId.trim(),
+    input_email: cleanEmail(input.email),
+    input_phone: cleanPhone(input.phone ?? ''),
+  });
+  if (error) throw error;
+  return data as PersonHealthProfileForApplication;
+}
+
 export type PersonUpdateRequestResult = {
   success: boolean;
   code: string;

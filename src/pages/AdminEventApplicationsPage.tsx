@@ -123,6 +123,10 @@ function healthValue(row: AdminStaffApplicationRow, key: 'chronic_condition' | '
   return text(healthDetails(row)[key]).trim();
 }
 
+function healthCurrentConfirmed(row: AdminStaffApplicationRow) {
+  return healthDetails(row).confirmed_current === true;
+}
+
 function healthSummary(row: AdminStaffApplicationRow, language: 'th' | 'en') {
   return text(row.answers?.health_or_limitations).trim() || notSpecified(language);
 }
@@ -542,6 +546,8 @@ export function AdminEventApplicationsPage() {
       promotedEventStaffId(row),
       row.answers?.promoted_to_event_staff === true ? 'true' : '',
       finalDuty(row),
+      text(healthDetails(row).health_profile_source),
+      formatBangkokDateTime(text(healthDetails(row).confirmed_at), language),
       text(row.availability?.text) || text(row.answers?.availability),
     ].some(isMeaningfulValue);
   }
@@ -1114,6 +1120,9 @@ export function AdminEventApplicationsPage() {
                 </Card>
                 <Card variant="warning">
                   <h2>{language === 'th' ? 'ข้อมูลสุขภาพและข้อจำกัด' : 'Health and limitations'}</h2>
+                  {healthCurrentConfirmed(detailRow) ? (
+                    <p className="muted">{language === 'th' ? 'ผู้สมัครยืนยันว่าข้อมูลนี้เป็นปัจจุบันแล้ว' : 'The applicant confirmed this health information is current.'}</p>
+                  ) : null}
                   <div className="application-detail-grid">
                     <DetailRow force label={language === 'th' ? 'ข้อจำกัดด้านสุขภาพ / การแพ้อาหาร / การแพ้ยา' : 'Health / allergy / limitation'} value={adminHealthSummary(detailRow)} />
                     {healthEntries(detailRow).map((entry) => (
@@ -1140,6 +1149,8 @@ export function AdminEventApplicationsPage() {
                       <DetailRow label="event_staff_id" value={promotedEventStaffId(detailRow)} />
                       <DetailRow label="promoted_to_event_staff" value={detailRow.answers?.promoted_to_event_staff === true ? 'true' : ''} />
                       <DetailRow label="raw final duty" value={finalDuty(detailRow)} />
+                      <DetailRow label="health_profile_source" value={text(healthDetails(detailRow).health_profile_source)} />
+                      <DetailRow label="health_confirmed_at" value={formatBangkokDateTime(text(healthDetails(detailRow).confirmed_at), language)} />
                       <DetailRow label={language === 'th' ? 'ช่วงเวลาที่สะดวก (ข้อมูลเดิม)' : 'Legacy availability'} value={text(detailRow.availability?.text) || text(detailRow.answers?.availability)} />
                     </div>
                   </details>
