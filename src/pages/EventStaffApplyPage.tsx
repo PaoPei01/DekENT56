@@ -22,6 +22,9 @@ import { checkStaffApplicationForApplicant, fetchEventBySlug, fetchEventDutyQuot
 import { errorMessage } from '../utils/error';
 
 const cmuEmailPattern = /^[a-zA-Z0-9._%+-]+@cmu\.ac\.th$/;
+const parentOrientationStaffCloseAt = new Date('2026-05-30T23:59:59+07:00');
+const parentOrientationStaffSlug = 'parent-orientation-staff-2569';
+type HealthNoticeAnswer = 'no' | 'yes' | '';
 
 function isValidCmuEmail(value: string) {
   const clean = value.trim().toLowerCase();
@@ -111,10 +114,31 @@ function safeNickname(person: PersonApplicationLookupResult['safe_person'] | und
     || 'ไม่พบชื่อเล่นในระบบ';
 }
 
+function workshopUniformOptions(language: 'th' | 'en') {
+  return [
+    {
+      value: 'already_have',
+      label: language === 'th' ? 'มีชุดช็อปแล้ว' : 'Already have the workshop uniform',
+    },
+    {
+      value: 'ordered_not_received',
+      label: language === 'th' ? 'สั่งซื้อไว้แล้ว แต่ยังไม่ได้รับ' : 'Already ordered but have not received it yet',
+    },
+    {
+      value: 'none_or_need_admin',
+      label: language === 'th' ? 'ยังไม่มี / ต้องแจ้งผู้ดูแล' : 'Do not have one yet / need to inform admin',
+    },
+  ];
+}
+
+function workshopUniformLabel(value: string, language: 'th' | 'en') {
+  return workshopUniformOptions(language).find((option) => option.value === value)?.label ?? value;
+}
+
 const applicationSteps = [
   { id: 1, th: 'ยืนยันตัวตน', en: 'Identity' },
   { id: 2, th: 'ตรวจสอบข้อมูล', en: 'Review' },
-  { id: 3, th: 'เลือกฝ่ายและตอบคำถาม', en: 'Duties' },
+  { id: 3, th: 'ข้อมูลจัดสรร', en: 'Assignment details' },
   { id: 4, th: 'ตรวจสอบก่อนส่ง', en: 'Confirm' },
 ] as const;
 
@@ -125,6 +149,8 @@ export function EventStaffApplyPage() {
   const quotaState = useAsync(() => state.data?.id ? fetchEventDutyQuotaStatus(state.data.id) : Promise.resolve(null), [state.data?.id]);
   const content = getEventContent(eventSlug);
   const recruitment = content?.staffRecruitment;
+  const isParentOrientationStaff = eventSlug === parentOrientationStaffSlug;
+  const isApplicationClosed = isParentOrientationStaff && Date.now() > parentOrientationStaffCloseAt.getTime();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [studentId, setStudentId] = useState('');
@@ -144,7 +170,12 @@ export function EventStaffApplyPage() {
   const [canAttendRehearsal, setCanAttendRehearsal] = useState('');
   const [canWorkEventDay, setCanWorkEventDay] = useState('');
   const [staffExperience, setStaffExperience] = useState('');
-  const [healthOrLimitations, setHealthOrLimitations] = useState('');
+  const [hasHealthNotice, setHasHealthNotice] = useState<HealthNoticeAnswer>('');
+  const [chronicCondition, setChronicCondition] = useState('');
+  const [foodAllergy, setFoodAllergy] = useState('');
+  const [drugAllergy, setDrugAllergy] = useState('');
+  const [healthNote, setHealthNote] = useState('');
+  const [workshopUniformStatus, setWorkshopUniformStatus] = useState('');
   const [note, setNote] = useState('');
   const [consents, setConsents] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
@@ -165,6 +196,30 @@ export function EventStaffApplyPage() {
     : (requestedNameTh || 'ไม่พบชื่อ-นามสกุลในระบบ');
   const applicantMajor = identityLookup?.safe_person?.major || requestedMajor || '-';
   const applicantYear = identityLookup?.safe_person?.year_level ? String(identityLookup.safe_person.year_level) : '-';
+  const healthDetails = {
+    has_health_notice: hasHealthNotice === 'yes',
+    chronic_condition: hasHealthNotice === 'yes' ? chronicCondition.trim() : '',
+    food_allergy: hasHealthNotice === 'yes' ? foodAllergy.trim() : '',
+    drug_allergy: hasHealthNotice === 'yes' ? drugAllergy.trim() : '',
+    health_note: hasHealthNotice === 'yes' ? healthNote.trim() : '',
+  };
+  const healthSummary = buildHealthSummary();
+  const needsUniformNote = workshopUniformStatus === 'ordered_not_received' || workshopUniformStatus === 'none_or_need_admin';
+
+  function buildHealthSummary() {
+    if (hasHealthNotice === 'no') return language === 'th' ? 'ไม่มี' : 'No';
+    if (hasHealthNotice !== 'yes') return '';
+    const rows = [
+      [language === 'th' ? 'โรคประจำตัว/ข้อจำกัดด้านสุขภาพ' : 'Chronic condition / health limitation', chronicCondition.trim()],
+      [language === 'th' ? 'แพ้อาหาร' : 'Food allergy', foodAllergy.trim()],
+      [language === 'th' ? 'แพ้ยา' : 'Drug allergy', drugAllergy.trim()],
+      [language === 'th' ? 'หมายเหตุเพิ่มเติม' : 'Additional note', healthNote.trim()],
+    ];
+    return rows
+      .filter(([, value]) => value)
+      .map(([label, value]) => `${label}: ${value}`)
+      .join('\n');
+  }
 
   function existingApplicationFromResult(submitted: EventSubmissionResult): ApplicantExistingApplicationResult {
     return {
@@ -202,6 +257,11 @@ export function EventStaffApplyPage() {
     if (!availability.trim()) nextErrors.availability = language === 'th' ? 'กรุณาระบุช่วงเวลาที่สะดวก' : 'Availability is required';
     if (!canAttendRehearsal) nextErrors.can_attend_rehearsal = language === 'th' ? 'กรุณาตอบคำถามวันซ้อม' : 'Please answer the rehearsal question';
     if (!canWorkEventDay) nextErrors.can_work_event_day = language === 'th' ? 'กรุณาตอบคำถามวันปฏิบัติงาน' : 'Please answer the event day question';
+    if (!workshopUniformStatus) nextErrors.workshop_uniform_status = language === 'th' ? 'กรุณาเลือกสถานะชุดช็อป' : 'Please select your workshop uniform status.';
+    if (!hasHealthNotice) nextErrors.health_notice = language === 'th' ? 'กรุณาเลือกว่ามีข้อจำกัดด้านสุขภาพหรือการแพ้ที่จำเป็นต้องแจ้งหรือไม่' : 'Please choose whether you have any health or allergy information to report.';
+    if (hasHealthNotice === 'yes' && !healthDetails.chronic_condition && !healthDetails.food_allergy && !healthDetails.drug_allergy && !healthDetails.health_note) {
+      nextErrors.health_details = language === 'th' ? 'กรุณาระบุรายละเอียดอย่างน้อย 1 รายการ เพื่อให้ทีมงานดูแลได้อย่างเหมาะสม' : 'Please provide at least one detail so the team can support you appropriately.';
+    }
     const missingConsent = recruitment?.consentItemsTh.some((item) => !consents[item]);
     if (missingConsent) nextErrors.consent = language === 'th' ? 'กรุณายืนยันทุกข้อก่อนส่งใบสมัคร' : 'Please confirm every consent item';
     setErrors(nextErrors);
@@ -225,6 +285,11 @@ export function EventStaffApplyPage() {
       if (!availability.trim()) nextErrors.availability = language === 'th' ? 'กรุณาระบุช่วงเวลาที่สะดวก' : 'Availability is required';
       if (!canAttendRehearsal) nextErrors.can_attend_rehearsal = language === 'th' ? 'กรุณาตอบคำถามวันซ้อม' : 'Please answer the rehearsal question';
       if (!canWorkEventDay) nextErrors.can_work_event_day = language === 'th' ? 'กรุณาตอบคำถามวันปฏิบัติงาน' : 'Please answer the event day question';
+      if (!workshopUniformStatus) nextErrors.workshop_uniform_status = language === 'th' ? 'กรุณาเลือกสถานะชุดช็อป' : 'Please select your workshop uniform status.';
+      if (!hasHealthNotice) nextErrors.health_notice = language === 'th' ? 'กรุณาเลือกว่ามีข้อจำกัดด้านสุขภาพหรือการแพ้ที่จำเป็นต้องแจ้งหรือไม่' : 'Please choose whether you have any health or allergy information to report.';
+      if (hasHealthNotice === 'yes' && !healthDetails.chronic_condition && !healthDetails.food_allergy && !healthDetails.drug_allergy && !healthDetails.health_note) {
+        nextErrors.health_details = language === 'th' ? 'กรุณาระบุรายละเอียดอย่างน้อย 1 รายการ เพื่อให้ทีมงานดูแลได้อย่างเหมาะสม' : 'Please provide at least one detail so the team can support you appropriately.';
+      }
       const missingConsent = recruitment?.consentItemsTh.some((item) => !consents[item]);
       if (missingConsent) nextErrors.consent = language === 'th' ? 'กรุณายืนยันทุกข้อก่อนส่งใบสมัคร' : 'Please confirm every consent item';
     }
@@ -320,6 +385,10 @@ export function EventStaffApplyPage() {
   async function submit(eventObject: FormEvent) {
     eventObject.preventDefault();
     if (saving) return;
+    if (isApplicationClosed) {
+      setToast({ type: 'error', message: language === 'th' ? 'ปิดรับสมัครสตาฟแล้ว ไม่สามารถส่งใบสมัครใหม่ได้' : 'Staff applications are closed. New submissions are no longer accepted.' });
+      return;
+    }
     if (!validate()) {
       setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกข้อมูลที่จำเป็นให้ครบ' : 'Please complete the required fields' });
       return;
@@ -349,7 +418,9 @@ export function EventStaffApplyPage() {
           can_work_event_day: canWorkEventDay,
           staff_experience: staffExperience,
           experience: staffExperience,
-          health_or_limitations: healthOrLimitations,
+          health_or_limitations: healthSummary || (language === 'th' ? 'ไม่มี' : 'No'),
+          health_details: healthDetails,
+          workshop_uniform_status: workshopUniformStatus,
           note,
           consent_confirmed: true,
           consent_items: consents,
@@ -401,7 +472,7 @@ export function EventStaffApplyPage() {
         <EmptyState title={language === 'th' ? 'ไม่พบกิจกรรมนี้' : 'Event not found'} action={<Link className="btn btn-primary" to="/events">{language === 'th' ? 'ดูกิจกรรมทั้งหมด' : 'View events'}</Link>} />
       ) : null}
 
-      {event && eventSlug !== 'parent-orientation-staff-2569' ? (
+      {event && !isParentOrientationStaff ? (
         <EmptyState
           title={language === 'th' ? 'กิจกรรมนี้ยังไม่เปิดรับสมัครสตาฟ' : 'Staff applications are not open for this event'}
           description={language === 'th' ? 'ตอนนี้เปิด pilot สำหรับงานปฐมนิเทศผู้ปกครองเท่านั้น' : 'The pilot application flow is currently enabled only for Parent Orientation.'}
@@ -409,7 +480,7 @@ export function EventStaffApplyPage() {
         />
       ) : null}
 
-      {event && eventSlug === 'parent-orientation-staff-2569' ? (
+      {event && isParentOrientationStaff ? (
         <Card className="event-form-card">
           <div>
             <p className="eyebrow">{eventName}</p>
@@ -469,6 +540,19 @@ export function EventStaffApplyPage() {
                 <Link className="btn btn-secondary" to={eventProfileCheckPath(event.slug)}>{language === 'th' ? 'ติดต่อผู้ดูแล / ขอแก้ไขข้อมูล' : 'Contact admin / request update'}</Link>
               </div>
             </div>
+          ) : isApplicationClosed ? (
+            <EmptyState
+              title={language === 'th' ? 'ปิดรับสมัครสตาฟแล้ว' : 'Staff applications are closed.'}
+              description={language === 'th'
+                ? 'ขอบคุณทุกความสนใจ ระบบปิดรับสมัครเมื่อวันที่ 30 พฤษภาคม 2569 เวลา 23:59 น.'
+                : 'Thank you for your interest. Applications closed on 30 May 2026 at 23:59.'}
+              action={(
+                <div className="event-card-actions">
+                  <Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'กลับไปหน้ากิจกรรม' : 'Back to event'}</Link>
+                  <Link className="btn btn-primary" to={eventStaffApplicationStatusPath(event.slug)}>{language === 'th' ? 'ตรวจสอบสถานะใบสมัคร' : 'Check application status'}</Link>
+                </div>
+              )}
+            />
           ) : (
             <form className="form-grid" onSubmit={submit} noValidate>
               {currentStep === 1 ? (
@@ -569,9 +653,15 @@ export function EventStaffApplyPage() {
               {currentStep === 3 ? (
                 <>
               <div className="event-form-section full-span">
-                <h3>{language === 'th' ? '2. เลือกหน้าที่และเวลาที่สะดวก' : '2. Duties and availability'}</h3>
-                <p className="muted">{language === 'th' ? 'สามารถเลือกได้มากกว่า 1 ฝ่าย ระบบจะจัดสรรฝ่ายเบื้องต้นตามโควต้าและความเหมาะสม' : 'You can choose more than one duty. The system will make a preliminary assignment by quota and fit.'}</p>
+                <h3>{language === 'th' ? 'เลือกฝ่าย เวลาที่สะดวก และข้อมูลประกอบการจัดสรร' : 'Duties, availability, and assignment details'}</h3>
+                <p className="muted">{language === 'th' ? 'สามารถเลือกได้มากกว่า 1 ฝ่าย และกรอกข้อมูลที่จำเป็นต่อการจัดสรรหน้าที่ การดูแลความปลอดภัย และการประสานงานวันปฏิบัติงาน' : 'You may choose more than one preferred duty and provide information needed for duty assignment, safety support, and event-day coordination.'}</p>
               </div>
+              {recruitment?.clothingNoteTh ? (
+                <Card className="full-span" variant="soft">
+                  <strong>{language === 'th' ? 'หมายเหตุเรื่องชุด' : 'Uniform note'}</strong>
+                  <p className="muted">{language === 'th' ? recruitment.clothingNoteTh : recruitment.clothingNoteEn ?? recruitment.clothingNoteTh}</p>
+                </Card>
+              ) : null}
               <fieldset className="event-checkbox-grid full-span">
                 <legend>{language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duties'}</legend>
                 {quotaState.loading ? <span className="muted">{language === 'th' ? 'กำลังโหลดโควต้าฝ่าย...' : 'Loading duty quotas...'}</span> : null}
@@ -621,18 +711,58 @@ export function EventStaffApplyPage() {
               <div className="event-form-section full-span">
                 <h3>{language === 'th' ? '3. ข้อมูลเพิ่มเติม' : '3. Additional information'}</h3>
               </div>
+              <Select
+                label={language === 'th' ? 'สถานะชุดช็อปของท่าน' : 'Workshop uniform status'}
+                placeholder={language === 'th' ? 'โปรดเลือก' : 'Please select'}
+                value={workshopUniformStatus}
+                onChange={(eventInput) => setWorkshopUniformStatus(eventInput.target.value)}
+                options={workshopUniformOptions(language)}
+                required
+                className="full-span"
+              />
+              {errors.workshop_uniform_status ? <small className="field-error full-span" role="alert">{errors.workshop_uniform_status}</small> : null}
+              {needsUniformNote ? (
+                <small className="muted full-span">
+                  {language === 'th'
+                    ? 'กรุณาระบุรายละเอียดเพิ่มเติมในช่องหมายเหตุ เพื่อให้ผู้ดูแลประสานแนวทางการแต่งกาย'
+                    : 'Please add more details in the additional note so the admin team can coordinate the dress-code arrangement.'}
+                </small>
+              ) : null}
               <label className="field full-span">
                 <span>{language === 'th' ? 'เคยมีประสบการณ์เป็นสตาฟหรือไม่' : 'Staff experience'}</span>
                 <textarea value={staffExperience} onChange={(eventInput) => setStaffExperience(eventInput.target.value)} rows={3} placeholder={language === 'th' ? 'ระบุประสบการณ์ที่ผ่านมา หากไม่มีสามารถเว้นว่างได้' : 'Add past staff experience, or leave blank if none.'} />
               </label>
-              <label className="field full-span">
-                <span>{language === 'th' ? 'ข้อจำกัดด้านสุขภาพ/การแพ้อาหารที่จำเป็นต้องแจ้ง' : 'Health or food limitations needed for assignment'}</span>
-                <textarea value={healthOrLimitations} onChange={(eventInput) => setHealthOrLimitations(eventInput.target.value)} rows={3} />
-                <small>{language === 'th' ? 'กรอกเฉพาะข้อมูลที่จำเป็นต่อการจัดสรรหน้าที่และดูแลความปลอดภัย' : 'Only enter what is necessary for duty assignment and safety.'}</small>
-              </label>
+              <fieldset className="event-checkbox-grid full-span">
+                <legend>{language === 'th' ? 'ท่านมีข้อจำกัดด้านสุขภาพ การแพ้อาหาร หรือการแพ้ยาที่จำเป็นต้องแจ้งหรือไม่' : 'Do you have any health limitations, food allergies, or drug allergies that the team should know about?'}</legend>
+                <label>
+                  <input type="radio" name="has-health-notice" value="no" checked={hasHealthNotice === 'no'} onChange={() => setHasHealthNotice('no')} />
+                  <span>{language === 'th' ? 'ไม่มี' : 'No'}</span>
+                </label>
+                <label>
+                  <input type="radio" name="has-health-notice" value="yes" checked={hasHealthNotice === 'yes'} onChange={() => setHasHealthNotice('yes')} />
+                  <span>{language === 'th' ? 'มี' : 'Yes'}</span>
+                </label>
+                {errors.health_notice ? <small className="field-error" role="alert">{errors.health_notice}</small> : null}
+              </fieldset>
+              {hasHealthNotice === 'yes' ? (
+                <>
+                  <label className="field full-span">
+                    <span>{language === 'th' ? 'โรคประจำตัว / ข้อจำกัดด้านสุขภาพ' : 'Chronic condition / health limitation'}</span>
+                    <textarea value={chronicCondition} onChange={(eventInput) => setChronicCondition(eventInput.target.value)} rows={2} />
+                  </label>
+                  <Input label={language === 'th' ? 'แพ้อาหาร' : 'Food allergy'} value={foodAllergy} onChange={(eventInput) => setFoodAllergy(eventInput.target.value)} className="full-span" />
+                  <Input label={language === 'th' ? 'แพ้ยา' : 'Drug allergy'} value={drugAllergy} onChange={(eventInput) => setDrugAllergy(eventInput.target.value)} className="full-span" />
+                  <label className="field full-span">
+                    <span>{language === 'th' ? 'หมายเหตุเพิ่มเติมเกี่ยวกับสุขภาพ' : 'Additional health note'}</span>
+                    <textarea value={healthNote} onChange={(eventInput) => setHealthNote(eventInput.target.value)} rows={2} />
+                  </label>
+                  {errors.health_details ? <small className="field-error full-span" role="alert">{errors.health_details}</small> : null}
+                </>
+              ) : null}
               <label className="field full-span">
                 <span>{language === 'th' ? 'หมายเหตุเพิ่มเติม' : 'Additional note'}</span>
                 <textarea value={note} onChange={(eventInput) => setNote(eventInput.target.value)} rows={3} />
+                <small>{language === 'th' ? 'สามารถแจ้งข้อมูลเพิ่มเติม เช่น สถานะการสั่งซื้อชุดช็อป ข้อจำกัดด้านเวลา หรือข้อมูลที่ผู้ดูแลควรทราบ' : 'You may add extra information such as workshop uniform order status, time limitations, or anything the admin team should know.'}</small>
               </label>
 
               <fieldset className="event-checkbox-grid full-span">
@@ -673,6 +803,8 @@ export function EventStaffApplyPage() {
                   <span><strong>{language === 'th' ? 'วันซ้อม' : 'Rehearsal'}</strong>{canAttendRehearsal || '-'}</span>
                   <span><strong>{language === 'th' ? 'วันปฏิบัติงาน' : 'Event day'}</strong>{canWorkEventDay || '-'}</span>
                   <span><strong>{language === 'th' ? 'ช่วงเวลาที่สะดวก' : 'Availability'}</strong>{availability || '-'}</span>
+                  <span><strong>{language === 'th' ? 'สถานะชุดช็อป' : 'Workshop uniform status'}</strong>{workshopUniformStatus ? workshopUniformLabel(workshopUniformStatus, language) : '-'}</span>
+                  <span><strong>{language === 'th' ? 'ข้อมูลสุขภาพ/การแพ้' : 'Health/allergy information'}</strong>{healthSummary || '-'}</span>
                   <span><strong>{language === 'th' ? 'หมายเหตุ' : 'Note'}</strong>{note || '-'}</span>
                   <span><strong>{language === 'th' ? 'สถานะการยืนยันตัวตน' : 'Identity status'}</strong>{identityStatusLabel(identityLookup?.identity_status ?? 'pending_identity_review', language)}</span>
                   <span><strong>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</strong>{assignmentPreview.duty ? dutyLabel(assignmentPreview.duty) : (language === 'th' ? 'รอผู้ดูแลจัดสรรเพิ่มเติม' : 'Pending admin assignment')}</span>
