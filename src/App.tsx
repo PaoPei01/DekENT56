@@ -9,6 +9,7 @@ import { VerifyEditPage } from './pages/VerifyEditPage';
 
 // Auth, public, admin, and staff pages are grouped here to keep route ownership readable.
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then((module) => ({ default: module.AdminDashboardPage })));
+const AdminCommandCenterPage = lazy(() => import('./pages/AdminCommandCenterPage').then((module) => ({ default: module.AdminCommandCenterPage })));
 const AdminAnnouncementsPage = lazy(() => import('./pages/AdminAnnouncementsPage').then((module) => ({ default: module.AdminAnnouncementsPage })));
 const AuthLoginPage = lazy(() => import('./pages/AuthLoginPage').then((module) => ({ default: module.AuthLoginPage })));
 const AdminStaffProfilePage = lazy(() => import('./pages/AdminStaffProfilePage').then((module) => ({ default: module.AdminStaffProfilePage })));
@@ -36,6 +37,7 @@ const GuideCenterPage = lazy(() => import('./pages/GuideCenterPage').then((modul
 const GuideCategoryPage = lazy(() => import('./pages/GuideCategoryPage').then((module) => ({ default: module.GuideCategoryPage })));
 const GuideTopicPage = lazy(() => import('./pages/GuideTopicPage').then((module) => ({ default: module.GuideTopicPage })));
 const PendingRequestsPage = lazy(() => import('./pages/PendingRequestsPage').then((module) => ({ default: module.PendingRequestsPage })));
+const PortalPage = lazy(() => import('./pages/PortalPage').then((module) => ({ default: module.PortalPage })));
 const AdminEventsPage = lazy(() => import('./pages/AdminEventsPage').then((module) => ({ default: module.AdminEventsPage })));
 const AdminEventDetailPage = lazy(() => import('./pages/AdminEventDetailPage').then((module) => ({ default: module.AdminEventDetailPage })));
 const AdminEventApplicationsPage = lazy(() => import('./pages/AdminEventApplicationsPage').then((module) => ({ default: module.AdminEventApplicationsPage })));
@@ -53,6 +55,7 @@ const StaffImportPage = lazy(() => import('./pages/StaffImportPage').then((modul
 const StaffManagementPage = lazy(() => import('./pages/StaffManagementPage').then((module) => ({ default: module.StaffManagementPage })));
 const StaffMobilePage = lazy(() => import('./pages/StaffMobilePage').then((module) => ({ default: module.StaffMobilePage })));
 const StaffOperationsPage = lazy(() => import('./pages/StaffOperationsPage').then((module) => ({ default: module.StaffOperationsPage })));
+const StaffStartPage = lazy(() => import('./pages/StaffStartPage').then((module) => ({ default: module.StaffStartPage })));
 const StaffProfileEditPage = lazy(() => import('./pages/StaffProfileEditPage').then((module) => ({ default: module.StaffProfileEditPage })));
 const StaffProfilePage = lazy(() => import('./pages/StaffProfilePage').then((module) => ({ default: module.StaffProfilePage })));
 const StaffProfileVerifyPage = lazy(() => import('./pages/StaffProfileVerifyPage').then((module) => ({ default: module.StaffProfileVerifyPage })));
@@ -65,6 +68,7 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<PublicListPage />} />
+        <Route path="portal" element={<Suspense fallback={<LoadingSkeleton />}><PortalPage /></Suspense>} />
         <Route path="announcements" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementsPage /></Suspense>} />
         <Route path="announcements/:id" element={<Suspense fallback={<LoadingSkeleton />}><AnnouncementDetailPage /></Suspense>} />
         <Route path="events" element={<Suspense fallback={<LoadingSkeleton />}><EventsPage /></Suspense>} />
@@ -78,13 +82,14 @@ export function App() {
         <Route path="guide" element={<Suspense fallback={<LoadingSkeleton />}><GuideCenterPage /></Suspense>} />
         <Route path="guide/:category" element={<Suspense fallback={<LoadingSkeleton />}><GuideCategoryPage /></Suspense>} />
         <Route path="guide/:category/:topic" element={<Suspense fallback={<LoadingSkeleton />}><GuideTopicPage /></Suspense>} />
+        <Route path="me" element={<VerifyEditPage titleMode="me" />} />
         <Route path="edit" element={<VerifyEditPage />} />
+        <Route path="staff/start" element={<Suspense fallback={<LoadingSkeleton />}><StaffStartPage /></Suspense>} />
         <Route path="staff/profile/verify" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfileVerifyPage /></Suspense>} />
         <Route path="staff/profile/qr" element={<Suspense fallback={<LoadingSkeleton />}><StaffPersonalQrPage /></Suspense>} />
         <Route path="staff/attendance" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendancePage /></Suspense>} />
         <Route path="staff/attendance/scan" element={<Suspense fallback={<LoadingSkeleton />}><StaffAttendanceScanPage /></Suspense>} />
         <Route path="login" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
-        <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AuthLoginPage /></Suspense>} />
         <Route element={<StaffGuard roles={['staff', 'mentor', 'viewer', 'emergency_staff']} />}>
           <Route path="staff" element={<Suspense fallback={<LoadingSkeleton />}><StaffDashboardPage /></Suspense>} />
           <Route path="staff/profile" element={<Suspense fallback={<LoadingSkeleton />}><StaffProfilePage /></Suspense>} />
@@ -98,6 +103,7 @@ export function App() {
           <Route path="staff/emergency" element={<Suspense fallback={<LoadingSkeleton />}><EmergencyDashboardPage /></Suspense>} />
         </Route>
         <Route element={<AdminGuard />}>
+          <Route path="admin" element={<Suspense fallback={<LoadingSkeleton />}><AdminCommandCenterPage /></Suspense>} />
           <Route path="admin/dashboard" element={<Suspense fallback={<LoadingSkeleton />}><AdminDashboardPage /></Suspense>} />
           <Route path="admin/events" element={<Suspense fallback={<LoadingSkeleton />}><AdminEventsPage /></Suspense>} />
           <Route path="admin/events/:eventId/applications" element={<Suspense fallback={<LoadingSkeleton />}><AdminEventApplicationsPage /></Suspense>} />

@@ -718,6 +718,16 @@ Use this checklist before real event operations and after every production-readi
 
 ## Mobile QA
 
+- [ ] `/portal` loads for public users and shows public, events, my information, staff, announcements, and sign-in options.
+- [ ] `/portal` redirects authenticated staff to `/staff` and authenticated admins to `/admin`.
+- [ ] `/me` loads the My information flow and keeps email + phone verification.
+- [ ] `/edit` still loads the legacy direct edit flow.
+- [ ] `/staff/start` loads for public users and offers staff sign in, email/phone verification, and staff application status check.
+- [ ] `/staff/start` redirects authenticated staff to `/staff`.
+- [ ] `/staff/start` shows admin choices for authenticated admins.
+- [ ] `/admin` redirects unauthenticated users to `/login` with return to `/admin`.
+- [ ] `/admin` shows insufficient permission state for signed-in non-admin accounts.
+- [ ] `/admin` opens the Admin Command Center for admins, while `/admin/dashboard` still works.
 - [ ] `/admin/events` title `จัดการกิจกรรม` displays normally and never wraps one Thai character per line.
 - [ ] `/admin/events/:eventId` event title displays normally and is not squeezed by EventSwitcher/actions.
 - [ ] `/admin/events/:eventId/applications` title and filters are readable at 375px, 768px, and desktop.

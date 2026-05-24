@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Navigate, Outlet, Link } from 'react-router-dom';
+import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { Card } from './ui/Card';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import { supabase } from '../lib/supabase';
 
 export function AdminGuard() {
   const [state, setState] = useState<'loading' | 'allowed' | 'login' | 'forbidden'>('loading');
+  const location = useLocation();
 
   useEffect(() => {
     async function check() {
@@ -21,7 +22,7 @@ export function AdminGuard() {
   }, []);
 
   if (state === 'loading') return <LoadingSkeleton />;
-  if (state === 'login') return <Navigate to="/login" replace state={{ message: 'admin_required' }} />;
+  if (state === 'login') return <Navigate to="/login" replace state={{ message: 'admin_required', returnTo: `${location.pathname}${location.search}` }} />;
   if (state === 'forbidden') {
     return (
       <section className="narrow-page page-stack">

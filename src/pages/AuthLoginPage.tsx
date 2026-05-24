@@ -75,7 +75,7 @@ export function AuthLoginPage() {
       if (target === 'admin') {
         setUser(signedInUser);
         setToast({ type: 'success', message: language === 'th' ? 'เข้าสู่ระบบผู้ดูแลสำเร็จ' : 'Admin sign in successful' });
-        navigate(returnTo?.startsWith('/admin') ? returnTo : '/admin/dashboard');
+        navigate(returnTo?.startsWith('/admin') ? returnTo : '/admin');
         return;
       }
       if (target === 'staff') {
@@ -146,7 +146,7 @@ export function AuthLoginPage() {
           <div className="form-actions">
             {checkingAccess ? <Button disabled>{language === 'th' ? 'กำลังตรวจสอบสิทธิ์...' : 'Checking access...'}</Button> : null}
             {!checkingAccess && accessTarget === 'admin' ? (
-              <Button onClick={() => navigate('/admin/dashboard')}>{language === 'th' ? 'ไปหน้าแดชบอร์ดผู้ดูแล' : 'Go to Admin Dashboard'}</Button>
+              <Button onClick={() => navigate('/admin')}>{language === 'th' ? 'ไปศูนย์ควบคุมระบบ' : 'Go to Admin Command Center'}</Button>
             ) : null}
             {!checkingAccess && accessTarget === 'staff' ? (
               <Button onClick={() => navigate('/staff')}>{language === 'th' ? 'ไปหน้า Staff Mode' : 'Go to Staff Mode'}</Button>

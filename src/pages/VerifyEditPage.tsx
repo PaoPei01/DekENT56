@@ -57,7 +57,11 @@ function hasEditChanges(profile: Profile | null, form: EditableProfileFields | n
   return editableFields.some((field) => normalizeEditValue(profile[field]) !== normalizeEditValue(form[field]));
 }
 
-export function VerifyEditPage() {
+type VerifyEditPageProps = {
+  titleMode?: 'edit' | 'me';
+};
+
+export function VerifyEditPage({ titleMode = 'edit' }: VerifyEditPageProps) {
   const { language } = useLanguage();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -196,8 +200,10 @@ export function VerifyEditPage() {
     <section className={`narrow-page page-stack ${showMobileSubmit ? 'has-sticky-actions' : ''}`}>
       <Toast toast={toast} />
       <PageHeader
-        eyebrow="Edit Request"
-        title={language === 'th' ? 'ตรวจสอบและขอแก้ไขข้อมูลผู้เข้าร่วม' : 'Verify and Request Participant Data Edits'}
+        eyebrow={titleMode === 'me' ? 'My information' : 'Edit Request'}
+        title={titleMode === 'me'
+          ? (language === 'th' ? 'ข้อมูลของฉัน' : 'My information')
+          : (language === 'th' ? 'ตรวจสอบและขอแก้ไขข้อมูลผู้เข้าร่วม' : 'Verify and Request Participant Data Edits')}
         description={language === 'th'
           ? 'กรอกอีเมลและเบอร์โทรที่ใช้ลงทะเบียนเพื่อยืนยันตัวตน จากนั้นเลือกข้อมูลที่ต้องการแก้ไข คำขอจะถูกส่งให้แอดมินตรวจสอบก่อนอัปเดตจริง'
           : 'Enter the email and phone used during registration, then edit allowed fields. Requests are reviewed by admins before updates are applied.'}
