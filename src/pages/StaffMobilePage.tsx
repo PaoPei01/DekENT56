@@ -28,12 +28,12 @@ export function StaffMobilePage() {
   const participants = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (context?.participants ?? []).filter((profile) => {
-      if (quickFilter === 'special' && !hasHealthFlag(profile)) return false;
+      if (quickFilter === 'special' && (!canViewMedical || !hasHealthFlag(profile))) return false;
       if (quickFilter === 'sameMajor' && referenceMajor && profile.major !== referenceMajor) return false;
       if (!term) return true;
       return [profile.name_th, profile.name_en, profile.nickname, profile.nickname_en, profile.major, profile.phone].some((value) => value?.toLowerCase().includes(term));
     });
-  }, [context?.participants, quickFilter, referenceMajor, search]);
+  }, [canViewMedical, context?.participants, quickFilter, referenceMajor, search]);
   const primarySetting = context?.settings?.[0];
   const lastUpdated = new Date().toLocaleString(language === 'th' ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
 
@@ -46,7 +46,7 @@ export function StaffMobilePage() {
       <div className="section-heading">
         <p className="eyebrow">{context.assignment?.main_group ? groupLabel(context.assignment.main_group, context.assignment.subgroup, language) : language === 'th' ? 'ทุกกลุ่ม' : 'All groups'}</p>
         <h1>{language === 'th' ? 'รายชื่อกลุ่มของฉัน' : 'My group list'}</h1>
-        <p>{language === 'th' ? 'ดูรายชื่อ น้องในกลุ่ม จุดนัดหมาย และข้อมูลสำคัญที่ต้องใช้ระหว่างกิจกรรม' : 'View assigned participants, meeting points, and key details for event operations.'}</p>
+        <p>{language === 'th' ? 'ดูรายชื่อ น้องในกลุ่ม จุดนัดหมาย และข้อมูลสำคัญที่ต้องใช้ระหว่างกิจกรรม' : 'View your group list, meeting point, and important event-day information.'}</p>
       </div>
 
       <div className="staff-sticky-actions">
@@ -117,7 +117,7 @@ export function StaffMobilePage() {
       <div className="segmented-control compact-segments" aria-label={language === 'th' ? 'ตัวกรองด่วน' : 'Quick filters'}>
         {[
           { value: 'all', label: language === 'th' ? 'ทั้งหมด' : 'All' },
-          { value: 'special', label: language === 'th' ? 'ต้องดูแลเป็นพิเศษ' : 'Needs special care' },
+          ...(canViewMedical ? [{ value: 'special', label: language === 'th' ? 'ต้องดูแลเป็นพิเศษ' : 'Needs special care' }] : []),
           { value: 'sameMajor', label: language === 'th' ? 'สาขาเดียวกัน' : 'Same major' },
         ].map((item) => (
           <button key={item.value} type="button" className={quickFilter === item.value ? 'active' : ''} onClick={() => setQuickFilter(item.value as typeof quickFilter)}>
@@ -152,7 +152,7 @@ export function StaffMobilePage() {
                 <div>
                   <h2>{language === 'en' ? profile.nickname_en || profile.nickname || profile.name_en || profile.name_th : profile.nickname || profile.name_th}</h2>
                   <p>{language === 'en' ? profile.name_en || profile.name_th : profile.name_th}</p>
-                  {hasHealthFlag(profile) ? <span className="special-care-badge">{language === 'th' ? 'ต้องดูแลเป็นพิเศษ' : 'Needs special care'}</span> : null}
+                  {canViewMedical && hasHealthFlag(profile) ? <span className="special-care-badge">{language === 'th' ? 'ต้องดูแลเป็นพิเศษ' : 'Needs special care'}</span> : null}
                 </div>
               </div>
               <div className="profile-facts">

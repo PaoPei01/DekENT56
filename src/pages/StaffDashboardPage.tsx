@@ -18,7 +18,8 @@ export function StaffDashboardPage() {
   const context = state.data;
   const access = context?.access ?? accessState.data;
   const assignedLabel = context?.assignment?.main_group ? groupLabel(context.assignment.main_group, context.assignment.subgroup, language) : access?.is_admin || access?.roles.includes('emergency_staff') ? (language === 'th' ? 'ทุกกลุ่ม' : 'All groups') : '-';
-  const medicalCount = (context?.participants ?? []).filter((profile) => profile.disease || profile.drug_allergy || profile.food_allergy).length;
+  const canViewMedical = Boolean(access?.is_admin || access?.can_view_emergency || access?.roles.includes('emergency_staff'));
+  const medicalCount = canViewMedical ? (context?.participants ?? []).filter((profile) => profile.disease || profile.drug_allergy || profile.food_allergy).length : 0;
   const isEmergencyOnly = Boolean(access?.roles.includes('emergency_staff') && !access?.roles.some((role) => ['staff', 'mentor', 'viewer'].includes(role)));
   const canUseStaffAttendance = Boolean(access?.is_admin || access?.roles.length || access?.can_mark_attendance);
 
@@ -50,7 +51,7 @@ export function StaffDashboardPage() {
       <div className="stats-grid">
         <DashboardStatCard label={isEmergencyOnly ? (language === 'th' ? 'ขอบเขตสุขภาพ' : 'Health scope') : (language === 'th' ? 'ข้อมูลกลุ่มของฉัน' : 'My group data')} value={context?.participants.length ?? (isEmergencyOnly ? assignedLabel : 0)} icon={<UsersRound size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'พี่กลุ่ม' : 'Group staff'} value={context?.staff_roster.length ?? 0} />
-        <DashboardStatCard label={language === 'th' ? 'ข้อมูลสุขภาพที่เห็น' : 'Medical visible'} value={medicalCount} icon={<AlertTriangle size={20} />} />
+        {canViewMedical ? <DashboardStatCard label={language === 'th' ? 'ข้อมูลสุขภาพที่เห็น' : 'Medical visible'} value={medicalCount} icon={<AlertTriangle size={20} />} /> : null}
       </div>
 
       <div className="section-heading-row">

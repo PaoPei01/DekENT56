@@ -126,6 +126,23 @@
   color: var(--text-soft);
 }
 
+.staff-action-card em {
+  width: fit-content;
+  align-self: end;
+  border-radius: 999px;
+  padding: 0.42rem 0.72rem;
+  color: var(--accent-strong);
+  background: rgba(40, 104, 232, 0.1);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.staff-action-card-primary em {
+  color: #fff;
+  background: var(--accent-strong);
+}
+
 .danger-card {
   border-color: rgba(201, 52, 68, 0.24);
   color: #881c2a;

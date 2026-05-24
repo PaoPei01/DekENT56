@@ -41,7 +41,7 @@ export function StaffProfilePage() {
     <section className="page-stack">
       <PageHeader
         eyebrow="Staff Profile"
-        title={language === 'th' ? 'ดูโปรไฟล์ทีมงานของฉัน' : 'View my staff profile'}
+        title={language === 'th' ? 'โปรไฟล์ทีมงานของฉัน' : 'My staff profile'}
         description={language === 'th' ? 'ดูข้อมูลทีมงานที่แสดงต่อผู้เข้าร่วม ข้อมูลติดต่อภายใน และสถานะคำขอแก้ไข' : 'Review your participant-facing profile, internal contact visibility, and edit request status.'}
         meta={<Link className="btn btn-primary" to="/staff/profile/edit"><Edit3 size={18} />{language === 'th' ? 'แก้ไขโปรไฟล์' : 'Edit profile'}</Link>}
       />

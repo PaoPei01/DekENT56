@@ -170,9 +170,9 @@ export function AuthLoginPage() {
         </form>
       </Card>
       <Card className="privacy-notice">
-        <strong>{language === 'th' ? 'แก้ไขโปรไฟล์ทีมงานรายบุคคล' : 'Individual staff profile update'}</strong>
-        <span>{language === 'th' ? 'สำหรับทีมงานรายบุคคลที่ต้องการแก้ไขโปรไฟล์ ไม่จำเป็นต้องมีบัญชีเข้าสู่ระบบ' : 'For individual staff who need to update their profile. No login account required.'}</span>
-        <Link className="btn btn-secondary" to="/staff/profile/verify">{language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit Staff Profile'}</Link>
+        <strong>{language === 'th' ? 'ยืนยันตัวตนทีมงานแบบไม่ต้องเข้าสู่ระบบ' : 'Staff identity verification without sign-in'}</strong>
+        <span>{language === 'th' ? 'ใช้สำหรับแสดง QR ส่วนตัวหรือขอแก้ไขโปรไฟล์ทีมงาน โดยยืนยันด้วยอีเมลและเบอร์โทร' : 'Use this to show your personal QR or request staff profile changes with email and phone verification.'}</span>
+        <Link className="btn btn-secondary" to="/staff/profile/verify">{language === 'th' ? 'ยืนยันตัวตน' : 'Verify identity'}</Link>
       </Card>
     </section>
   );

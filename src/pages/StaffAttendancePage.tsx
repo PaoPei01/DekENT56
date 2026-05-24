@@ -188,7 +188,7 @@ export function StaffAttendancePage() {
           </div>
           <form className="form-grid" onSubmit={verifyIdentity}>
             <Input label={language === 'th' ? 'อีเมล' : 'Email'} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-            <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} value={phone} onChange={(event) => setPhone(event.target.value)} required />
+            <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} type="tel" inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required />
             <Button type="submit" size="lg" fullWidth loading={verifying}>{language === 'th' ? 'ยืนยันตัวตน' : 'Verify identity'}</Button>
           </form>
         </Card>

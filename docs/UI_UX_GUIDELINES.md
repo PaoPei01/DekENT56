@@ -81,6 +81,10 @@ Destructive actions must live in `DangerZone` or use `ConfirmDialog`. Do not pla
 - Edit request submit buttons should appear only after a real editable-field change; otherwise show a calm hint that users can edit a field first.
 - Event detail pages should act as event hubs with clear actions: `สมัครเข้าร่วมกิจกรรม`, `สมัครเป็นทีมงาน`, `ตรวจสถานะใบสมัคร`, `ตรวจข้อมูลของฉัน`, and `อ่านประกาศกิจกรรม`.
 - Staff copy should be action-oriented.
+- Staff public entry should start at `ศูนย์ทีมงาน / Staff Center` with three clear paths: sign in, verify with email and phone, and check application status.
+- Authenticated `/staff` should be a Today’s Operations hub. Keep live-event actions visually primary and move profile, directory, personal QR, announcements, and guide into a quieter More tools section.
+- Keep both staff attendance paths visible inside `/staff/attendance`: `ให้แอดมินสแกนฉัน` and `ฉันสแกน QR รอบเช็กชื่อเอง`.
+- Do not expose health flags, special-care badges, health counts, or health filters to staff roles that are not allowed to know those flags exist.
 - Admin copy should be precise.
 - Emergency copy should be short and direct.
 - Avoid technical user-facing words such as Auth, RPC, token, database error, JSON, RLS, invalid input syntax, and function does not exist. Use plain recovery copy instead.

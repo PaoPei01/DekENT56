@@ -718,6 +718,19 @@ Use this checklist before real event operations and after every production-readi
 
 ## Mobile QA
 
+- [ ] `/staff/start` shows `ศูนย์ทีมงาน / Staff Center` for unauthenticated users.
+- [ ] `/staff/start` has three primary choices: staff sign in, email/phone verification, and staff application status.
+- [ ] `/staff/start` redirects authenticated staff to `/staff`.
+- [ ] `/staff/start` shows admin choices for authenticated admins: Admin Command Center and Staff tools.
+- [ ] `/staff/start` shows insufficient staff access state for signed-in non-staff accounts with home, My information, and sign out actions.
+- [ ] After `/staff/profile/verify` succeeds, Staff Lite actions show personal QR, staff check-in, edit profile, and sign-in for all tools.
+- [ ] Authenticated `/staff` uses `วันนี้ต้องทำอะไร / Today’s operations` and gives one-tap access to check-in and my group when allowed.
+- [ ] Staff bottom nav order is Staff, Check-in, My group, Emergency or Announcements, More.
+- [ ] `/staff/my-group` title reads `รายชื่อกลุ่มของฉัน / My group list` and shows meeting point, group staff, participants, and details clearly.
+- [ ] Needs-special-care badges and filters appear only for roles allowed to know health flags.
+- [ ] Health details are collapsed by default and show the confidentiality notice for authorized roles.
+- [ ] `/staff/attendance` keeps both methods: admin scans personal QR and staff scans session QR.
+- [ ] `/staff/profile/qr`, `/staff/profile/verify`, `/staff/attendance`, and `/login` still work as direct routes.
 - [ ] Public `/` shows the `สานสัมพันธ์ 69 / Entaneer Bonding 69` participant portal hero above search.
 - [ ] Public portal action card `ค้นหารายชื่อและกลุ่ม` scrolls to participant search and focuses the search input.
 - [ ] Public portal action cards link to `/me`, `/events`, and `/announcements`.

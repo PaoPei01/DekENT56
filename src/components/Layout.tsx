@@ -223,18 +223,18 @@ export function Layout() {
           <>
             <NavLink to="/staff">
               <Shield size={19} />
-              <span>{language === 'th' ? 'ทีมงาน' : 'Staff'}</span>
+              <span>{language === 'th' ? 'หน้าทีมงาน' : 'Staff'}</span>
             </NavLink>
-            {access?.can_view_staff ? (
-              <NavLink to="/staff/my-group">
-                <UsersRound size={19} />
-                <span>{language === 'th' ? 'กลุ่มฉัน' : 'My group'}</span>
-              </NavLink>
-            ) : null}
             {canAttend ? (
               <NavLink to="/staff/attendance">
                 <UserCheck size={19} />
-                <span>{language === 'th' ? 'เช็กชื่อ' : 'Attend'}</span>
+                <span>{language === 'th' ? 'เช็กชื่อ' : 'Check-in'}</span>
+              </NavLink>
+            ) : null}
+            {access?.can_view_staff ? (
+              <NavLink to="/staff/my-group">
+                <UsersRound size={19} />
+                <span>{language === 'th' ? 'กลุ่มของฉัน' : 'My group'}</span>
               </NavLink>
             ) : null}
             {canEmergency ? (
@@ -242,7 +242,12 @@ export function Layout() {
                 <HeartPulse size={19} />
                 <span>{language === 'th' ? 'ฉุกเฉิน' : 'Emergency'}</span>
               </NavLink>
-            ) : null}
+            ) : (
+              <NavLink to="/announcements">
+                <Bell size={19} />
+                <span>{language === 'th' ? 'ประกาศ' : 'Announcements'}</span>
+              </NavLink>
+            )}
             <button type="button" aria-label={language === 'th' ? 'เปิดเมนูเพิ่มเติม' : 'Open more menu'} onClick={() => setMobileMoreOpen(true)}>
               <Menu size={19} />
               <span>{language === 'th' ? 'เพิ่มเติม' : 'More'}</span>

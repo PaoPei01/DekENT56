@@ -681,3 +681,24 @@ QA focus:
 - Edit request submit appears only after real changes and reset restores verified values.
 - Event hub action cards keep old deep routes working.
 - Public routes remain usable on mobile without horizontal scroll.
+
+## Staff Center and Today Operations UX Pass
+
+Status: implemented as a staff UX restructuring pass with no database/schema/RPC/token changes.
+
+Completed:
+
+- Updated `/staff/start` into `ศูนย์ทีมงาน / Staff Center` with clear unauthenticated paths for sign-in, email/phone verification, and staff application status.
+- Preserved authenticated routing: staff goes to `/staff`, admins get admin/staff choices, and signed-in non-staff accounts get a clear no-access state with sign out.
+- Added Staff Lite actions after `/staff/profile/verify` succeeds: show personal QR, staff check-in, edit profile, and sign in for all tools.
+- Kept `/staff` focused on `วันนี้ต้องทำอะไร / Today’s operations` with primary live-event actions and quieter secondary tools.
+- Updated staff mobile bottom navigation ordering and copy.
+- Tightened `/staff/my-group` wording and health privacy behavior so special-care badges/filters appear only for authorized health-aware roles.
+- Clarified staff profile and login-adjacent copy without changing permissions.
+
+QA focus:
+
+- Staff can reach attendance and my group quickly from `/staff`.
+- Both QR attendance methods still work.
+- Old staff direct routes remain available.
+- Unauthorized staff roles do not see health flags, counts, or special-care filters.
