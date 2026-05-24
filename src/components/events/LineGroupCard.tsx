@@ -28,7 +28,7 @@ export function LineGroupCard({ label, note, url, qrImagePath, language }: LineG
         <img
           className="line-group-qr"
           src={qrImagePath}
-          alt={language === 'th' ? 'คิวอาร์โค้ดกลุ่มไลน์สตาฟงานปฐมนิเทศผู้ปกครอง' : 'QR code for the Parent Orientation Staff Line group'}
+          alt={language === 'th' ? 'คิวอาร์โค้ดกลุ่มไลน์สตาฟงานปฐมนิเทศนักศึกษาใหม่' : 'QR code for the Freshmen Orientation Staff Line group'}
           onError={() => setShowQr(false)}
         />
       ) : null}

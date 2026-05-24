@@ -1,5 +1,6 @@
-import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, MessageSquare, RefreshCw, Save, ShieldAlert, UserPlus, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, MessageSquare, RefreshCw, Save, UserPlus, XCircle } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -124,6 +125,39 @@ function healthValue(row: AdminStaffApplicationRow, key: 'chronic_condition' | '
 
 function healthSummary(row: AdminStaffApplicationRow, language: 'th' | 'en') {
   return text(row.answers?.health_or_limitations).trim() || notSpecified(language);
+}
+
+function isMeaningfulValue(value: unknown) {
+  const valueText = text(value).trim();
+  if (!valueText) return false;
+  const normalized = valueText.toLowerCase();
+  return ![
+    '-',
+    'null',
+    'undefined',
+    'parent orientation staff application',
+    'freshmen orientation staff application',
+    'parent_orientation_staff_2569',
+  ].includes(normalized);
+}
+
+function DetailRow({ label, value, force = false }: { label: string; value: ReactNode; force?: boolean }) {
+  if (!force && !isMeaningfulValue(value)) return null;
+  return (
+    <>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </>
+  );
+}
+
+function CompactMatchedPerson({ row, language }: { row: AdminStaffApplicationRow; language: 'th' | 'en' }) {
+  if (!row.people) return <span>{language === 'th' ? 'ยังไม่พบข้อมูลที่ตรงกัน' : 'No matched person found'}</span>;
+  return (
+    <span>
+      {[row.people.student_id, row.people.email, row.people.phone].filter(isMeaningfulValue).join(' · ') || (language === 'th' ? 'ยังไม่พบข้อมูลที่ตรงกัน' : 'No matched person found')}
+    </span>
+  );
 }
 
 function applicantNickname(row: AdminStaffApplicationRow) {
@@ -455,13 +489,61 @@ export function AdminEventApplicationsPage() {
       'ฝ่ายที่เลือก': preferredDutyLabels(row).join(', '),
       'เข้าซ้อมวันที่ 10 มิ.ย. ได้หรือไม่': text(row.answers?.can_attend_rehearsal),
       'ปฏิบัติงานวันที่ 12 มิ.ย. ได้หรือไม่': text(row.answers?.can_work_event_day),
-      'ช่วงเวลาที่สะดวก': text(row.availability?.text ?? row.answers?.availability),
+      'ช่วงเวลาที่สะดวก (ข้อมูลเดิม)': exportCell(row.availability?.text ?? row.answers?.availability),
       'ประสบการณ์สตาฟ': text(row.answers?.staff_experience ?? row.experience),
       'ข้อจำกัดด้านสุขภาพ/การแพ้อาหารที่จำเป็นต้องแจ้ง': healthSummary(row, language),
       'หมายเหตุเพิ่มเติม': text(row.answers?.note ?? row.motivation),
       'หมายเหตุจากผู้ดูแล': row.review_note ?? '',
       'final_duty/manual override if exists': getDutyLabelTh(finalDuty(row)) || assignedDutyLabel(row, dutiesByKey) || '',
     }));
+  }
+
+  function applicantNote(row: AdminStaffApplicationRow) {
+    const note = text(row.answers?.note);
+    if (isMeaningfulValue(note)) return note;
+    return isMeaningfulValue(row.motivation) ? row.motivation : '';
+  }
+
+  function healthEntries(row: AdminStaffApplicationRow) {
+    const details = answerObject(row.answers?.health_details);
+    return [
+      {
+        label: language === 'th' ? 'โรคประจำตัว / ข้อจำกัด' : 'Chronic condition / limitation',
+        value: details.chronic_condition || row.people?.disease,
+      },
+      {
+        label: language === 'th' ? 'แพ้อาหาร' : 'Food allergy',
+        value: details.food_allergy || row.people?.food_allergy,
+      },
+      {
+        label: language === 'th' ? 'แพ้ยา' : 'Drug allergy',
+        value: details.drug_allergy || row.people?.drug_allergy,
+      },
+      {
+        label: language === 'th' ? 'หมายเหตุสุขภาพ' : 'Health note',
+        value: details.health_note,
+      },
+    ].filter((entry) => isMeaningfulValue(entry.value));
+  }
+
+  function adminHealthSummary(row: AdminStaffApplicationRow) {
+    const summary = text(row.answers?.health_or_limitations);
+    if (isMeaningfulValue(summary)) return summary;
+    const entries = healthEntries(row);
+    if (entries.length) return entries.map((entry) => `${entry.label}: ${text(entry.value)}`).join(' · ');
+    return language === 'th' ? 'ไม่ระบุ' : 'Not specified';
+  }
+
+  function hasAdditionalSystemData(row: AdminStaffApplicationRow) {
+    return [
+      consentText(row.answers?.consent, language),
+      formatBangkokDateTime(row.reviewed_at, language),
+      row.reviewed_by,
+      promotedEventStaffId(row),
+      row.answers?.promoted_to_event_staff === true ? 'true' : '',
+      finalDuty(row),
+      text(row.availability?.text) || text(row.answers?.availability),
+    ].some(isMeaningfulValue);
   }
 
   function handoffPosition(row: AdminStaffApplicationRow) {
@@ -532,7 +614,7 @@ export function AdminEventApplicationsPage() {
 
   function requestExcelExport(preset: ExportPreset, dutyKey?: string) {
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const base = 'parent-orientation-staff';
+    const base = 'freshmen-orientation-staff';
     setExportConfirmed(false);
     if (preset === 'all') {
       setExcelExport({ rows, filename: `${base}-all-${date}.xlsx`, scope: 'all', filters: {} });
@@ -829,6 +911,7 @@ export function AdminEventApplicationsPage() {
                   <strong>{applicantName(row)}</strong>
                   {applicantNickname(row) ? <small>{language === 'th' ? `ชื่อเล่น: ${applicantNickname(row)}` : `Nickname: ${applicantNickname(row)}`}</small> : null}
                   <small>{row.people?.student_id ?? row.requested_student_id ?? '-'}</small>
+                  <small>{language === 'th' ? 'ส่งใบสมัครเมื่อ' : 'Submitted at'}: {formatBangkokDateTime(row.submitted_at, language)}</small>
                   {hasNicknameWithoutFullName(row) ? <small className="field-error">{language === 'th' ? 'ข้อมูลนี้มีชื่อเล่น แต่ไม่มีชื่อ-นามสกุลในฐานข้อมูลกลาง' : 'Nickname exists, but full name is missing in the central database.'}</small> : null}
                   {hasNameNicknameConflict(row) ? <small className="field-error">{language === 'th' ? 'ชื่อ-นามสกุลในฐานข้อมูลตรงกับชื่อเล่น ควรตรวจข้อมูลก่อนใช้งานจริง' : 'Full name matches nickname. Review this person data before real use.'}</small> : null}
                 </div>
@@ -986,28 +1069,81 @@ export function AdminEventApplicationsPage() {
                     <p>{language === 'th' ? 'ควรตรวจข้อมูลในฐานข้อมูลกลางหรือคำร้องแก้ไขข้อมูลก่อนใช้งานจริง' : 'Review the central people record or update requests before real operations.'}</p>
                   </Card>
                 ) : null}
-                <div className="application-detail-grid">
-                  <span>{language === 'th' ? 'สถานะตัวตน' : 'Identity status'}</span><strong>{identityStatusLabel(detailRow.identity_status ?? 'unverified', language)}</strong>
-                  <span>{language === 'th' ? 'CMU Mail ที่ผู้สมัครกรอก' : 'Requested CMU Mail'}</span><strong>{detailRow.requested_email ?? '-'}</strong>
-                  <span>{language === 'th' ? 'เบอร์โทรที่ผู้สมัครกรอก' : 'Requested phone'}</span><strong>{detailRow.requested_phone ?? '-'}</strong>
-                  <span>{language === 'th' ? 'รหัสนักศึกษาที่กรอก' : 'Requested student ID'}</span><strong>{detailRow.requested_student_id ?? '-'}</strong>
-                  <span>{language === 'th' ? 'ข้อมูลคนที่ match' : 'Matched person'}</span><strong>{detailRow.people ? `${detailRow.people.student_id ?? '-'} · ${detailRow.people.email ?? '-'} · ${detailRow.people.phone ?? '-'}` : '-'}</strong>
-                  <span>{language === 'th' ? 'ฝ่ายที่เลือก' : 'Preferred duties'}</span><strong>{preferredDutyLabels(detailRow).join(', ') || '-'}</strong>
-                  <span>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</span><strong>{assignedDutyLabel(detailRow, dutiesByKey) || '-'}</strong>
-                  <span>{language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'}</span><strong>{assignmentMethodLabel(detailRow.assignment_method, language)}</strong>
-                  <span>{language === 'th' ? 'หมายเหตุการจัดฝ่าย' : 'Assignment note'}</span><strong>{detailRow.assignment_note ?? '-'}</strong>
-                  <span>{language === 'th' ? 'เวลาว่าง' : 'Availability'}</span><strong>{text(detailRow.availability?.text) || text(detailRow.answers?.availability) || '-'}</strong>
-                  <span>{language === 'th' ? 'วันซ้อม' : 'Rehearsal'}</span><strong>{text(detailRow.answers?.can_attend_rehearsal) || '-'}</strong>
-                  <span>{language === 'th' ? 'วันจริง' : 'Event day'}</span><strong>{text(detailRow.answers?.can_work_event_day) || '-'}</strong>
-                  <span>{language === 'th' ? 'ประสบการณ์' : 'Experience'}</span><strong>{text(detailRow.answers?.staff_experience) || detailRow.experience || '-'}</strong>
-                  <span>{language === 'th' ? 'หมายเหตุผู้สมัคร' : 'Applicant note'}</span><strong>{text(detailRow.answers?.note) || detailRow.motivation || '-'}</strong>
-                  <span>{language === 'th' ? 'Consent' : 'Consent'}</span><strong>{consentText(detailRow.answers?.consent, language)}</strong>
-                  <span>{language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'}</span><strong>{getDutyLabelTh(finalDuty(detailRow)) || '-'}</strong>
-                  <span>{language === 'th' ? 'หมายเหตุรีวิว' : 'Review note'}</span><strong>{detailRow.review_note ?? '-'}</strong>
-                  <span>{language === 'th' ? 'สถานะสตาฟกิจกรรม' : 'Event staff'}</span><strong>{isPromoted(detailRow) ? (language === 'th' ? `เพิ่มแล้ว (${promotedEventStaffId(detailRow)})` : `Promoted (${promotedEventStaffId(detailRow)})`) : '-'}</strong>
-                  <span>{language === 'th' ? 'รีวิวเมื่อ' : 'Reviewed at'}</span><strong>{formatBangkokDateTime(detailRow.reviewed_at, language)}</strong>
-                  <span>{language === 'th' ? 'รีวิวโดย' : 'Reviewed by'}</span><strong>{detailRow.reviewed_by ?? '-'}</strong>
-                </div>
+                <Card>
+                  <h2>{language === 'th' ? 'ข้อมูลใบสมัคร' : 'Application'}</h2>
+                  <div className="application-detail-grid">
+                    <DetailRow force label={language === 'th' ? 'เวลาส่งใบสมัคร' : 'Submitted at'} value={detailRow.submitted_at ? formatBangkokDateTime(detailRow.submitted_at, language) : (language === 'th' ? 'ไม่พบเวลา' : 'Not available')} />
+                    <DetailRow force label={language === 'th' ? 'สถานะใบสมัคร' : 'Application status'} value={getApplicationStatusLabel(detailRow.status, language)} />
+                    <DetailRow force label={language === 'th' ? 'สถานะตัวตน' : 'Identity status'} value={identityStatusLabel(detailRow.identity_status ?? 'unverified', language)} />
+                  </div>
+                </Card>
+                <Card>
+                  <h2>{language === 'th' ? 'ข้อมูลผู้สมัคร' : 'Applicant'}</h2>
+                  <div className="application-detail-grid">
+                    <DetailRow label={language === 'th' ? 'ชื่อ-นามสกุล' : 'Full name'} value={applicantName(detailRow)} />
+                    <DetailRow label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'} value={detailRow.people?.student_id ?? detailRow.requested_student_id} />
+                    <DetailRow label={language === 'th' ? 'สาขา / ชั้นปี' : 'Major / year'} value={`${detailRow.people?.major ?? detailRow.requested_major ?? '-'}${detailRow.people?.year_level ? ` / ${language === 'th' ? 'ปี ' : 'Year '}${detailRow.people.year_level}` : ''}`} />
+                    <DetailRow label={language === 'th' ? 'CMU Mail ที่ผู้สมัครกรอก' : 'Requested CMU Mail'} value={detailRow.requested_email} />
+                    <DetailRow label={language === 'th' ? 'เบอร์โทรที่ผู้สมัครกรอก' : 'Requested phone'} value={detailRow.requested_phone} />
+                    <DetailRow force label={language === 'th' ? 'ข้อมูลที่ตรวจพบจากฐานกลาง' : 'Matched central record'} value={<CompactMatchedPerson row={detailRow} language={language} />} />
+                  </div>
+                </Card>
+                <Card>
+                  <h2>{language === 'th' ? 'ตำแหน่งฝ่าย' : 'Duty position'}</h2>
+                  <div className="application-detail-grid">
+                    <DetailRow label={language === 'th' ? 'ตำแหน่งฝ่ายที่เลือก' : 'Selected duty position'} value={preferredDutyLabels(detailRow).join(', ')} />
+                    <DetailRow label={language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'} value={assignedDutyLabel(detailRow, dutiesByKey)} />
+                  </div>
+                  <details className="filter-disclosure">
+                    <summary>{language === 'th' ? 'รายละเอียดการจัดฝ่าย' : 'Assignment details'}</summary>
+                    <div className="application-detail-grid">
+                      <DetailRow label={language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'} value={assignmentMethodLabel(detailRow.assignment_method, language)} />
+                      <DetailRow label={language === 'th' ? 'หมายเหตุการจัดฝ่าย' : 'Assignment note'} value={detailRow.assignment_note} />
+                      <DetailRow label={language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'} value={getDutyLabelTh(finalDuty(detailRow))} />
+                      <DetailRow label={language === 'th' ? 'สถานะสตาฟกิจกรรม' : 'Event staff'} value={isPromoted(detailRow) ? (language === 'th' ? `เพิ่มแล้ว (${promotedEventStaffId(detailRow)})` : `Promoted (${promotedEventStaffId(detailRow)})`) : ''} />
+                    </div>
+                  </details>
+                </Card>
+                <Card>
+                  <h2>{language === 'th' ? 'ความพร้อมในการปฏิบัติงาน' : 'Work readiness'}</h2>
+                  <div className="application-detail-grid">
+                    <DetailRow label={language === 'th' ? 'วันซ้อม' : 'Rehearsal'} value={text(detailRow.answers?.can_attend_rehearsal)} />
+                    <DetailRow label={language === 'th' ? 'วันจริง' : 'Event day'} value={text(detailRow.answers?.can_work_event_day)} />
+                    <DetailRow label={language === 'th' ? 'ประสบการณ์' : 'Experience'} value={text(detailRow.answers?.staff_experience) || detailRow.experience} />
+                  </div>
+                </Card>
+                <Card variant="warning">
+                  <h2>{language === 'th' ? 'ข้อมูลสุขภาพและข้อจำกัด' : 'Health and limitations'}</h2>
+                  <div className="application-detail-grid">
+                    <DetailRow force label={language === 'th' ? 'ข้อจำกัดด้านสุขภาพ / การแพ้อาหาร / การแพ้ยา' : 'Health / allergy / limitation'} value={adminHealthSummary(detailRow)} />
+                    {healthEntries(detailRow).map((entry) => (
+                      <DetailRow key={entry.label} label={entry.label} value={text(entry.value)} />
+                    ))}
+                  </div>
+                </Card>
+                {(isMeaningfulValue(applicantNote(detailRow)) || isMeaningfulValue(detailRow.review_note)) ? (
+                  <Card>
+                    <h2>{language === 'th' ? 'หมายเหตุ' : 'Notes'}</h2>
+                    <div className="application-detail-grid">
+                      <DetailRow label={language === 'th' ? 'หมายเหตุผู้สมัคร' : 'Applicant note'} value={applicantNote(detailRow)} />
+                      <DetailRow label={language === 'th' ? 'หมายเหตุรีวิว' : 'Review note'} value={detailRow.review_note} />
+                    </div>
+                  </Card>
+                ) : null}
+                {hasAdditionalSystemData(detailRow) ? (
+                  <details className="filter-disclosure">
+                    <summary>{language === 'th' ? 'ข้อมูลระบบเพิ่มเติม' : 'Additional system data'}</summary>
+                    <div className="application-detail-grid">
+                      <DetailRow label={language === 'th' ? 'Consent' : 'Consent'} value={consentText(detailRow.answers?.consent, language)} />
+                      <DetailRow label={language === 'th' ? 'รีวิวเมื่อ' : 'Reviewed at'} value={formatBangkokDateTime(detailRow.reviewed_at, language)} />
+                      <DetailRow label={language === 'th' ? 'รีวิวโดย' : 'Reviewed by'} value={detailRow.reviewed_by} />
+                      <DetailRow label="event_staff_id" value={promotedEventStaffId(detailRow)} />
+                      <DetailRow label="promoted_to_event_staff" value={detailRow.answers?.promoted_to_event_staff === true ? 'true' : ''} />
+                      <DetailRow label="raw final duty" value={finalDuty(detailRow)} />
+                      <DetailRow label={language === 'th' ? 'ช่วงเวลาที่สะดวก (ข้อมูลเดิม)' : 'Legacy availability'} value={text(detailRow.availability?.text) || text(detailRow.answers?.availability)} />
+                    </div>
+                  </details>
+                ) : null}
                 <Card variant="soft">
                   <div className="section-heading">
                     <Save size={20} />
@@ -1039,27 +1175,6 @@ export function AdminEventApplicationsPage() {
                     <Button variant="secondary" icon={<Save size={16} />} loading={savingId === detailRow.id} onClick={() => void saveFinalDuty(detailRow)}>
                       {language === 'th' ? 'บันทึกฝ่ายที่จัดไว้ล่าสุด' : 'Save latest duty'}
                     </Button>
-                  </div>
-                </Card>
-                <Card variant="warning">
-                  <div className="section-heading">
-                    <ShieldAlert size={20} />
-                  <div>
-                    <h2>{language === 'th' ? 'ข้อมูลสุขภาพ/ข้อจำกัด' : 'Health or limitations'}</h2>
-                    <p>{language === 'th' ? 'ข้อมูลนี้ใช้เพื่อจัดสรรหน้าที่และดูแลความปลอดภัยเท่านั้น' : 'Use this only for duty allocation and safety care.'}</p>
-                  </div>
-                </div>
-                  <div className="application-detail-grid">
-                    <span>{language === 'th' ? 'สรุปข้อมูลสุขภาพ' : 'Health summary'}</span>
-                    <strong>{healthSummary(detailRow, language)}</strong>
-                    <span>{language === 'th' ? 'โรคประจำตัว / ข้อจำกัด' : 'Chronic condition / limitation'}</span>
-                    <strong>{healthValue(detailRow, 'chronic_condition') || notSpecified(language)}</strong>
-                    <span>{language === 'th' ? 'แพ้ยา' : 'Drug allergy'}</span>
-                    <strong>{healthValue(detailRow, 'drug_allergy') || notSpecified(language)}</strong>
-                    <span>{language === 'th' ? 'แพ้อาหาร' : 'Food allergy'}</span>
-                    <strong>{healthValue(detailRow, 'food_allergy') || notSpecified(language)}</strong>
-                    <span>{language === 'th' ? 'หมายเหตุสุขภาพเพิ่มเติม' : 'Additional health note'}</span>
-                    <strong>{healthValue(detailRow, 'health_note') || notSpecified(language)}</strong>
                   </div>
                 </Card>
               </div>

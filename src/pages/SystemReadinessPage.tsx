@@ -36,7 +36,7 @@ function buildSummary(report: SystemReadinessReport) {
     `Missing columns: ${report.database.missing_columns.join(', ') || '-'}`,
     `Missing functions: ${report.database.missing_functions.join(', ') || '-'}`,
     `RLS missing: ${report.security.rls_missing_tables.join(', ') || '-'}`,
-    `Parent Orientation quota: ${report.parent_orientation.duty_quota_total}/${report.parent_orientation.expected_quota_total}`,
+    `Freshmen Orientation quota: ${report.parent_orientation.duty_quota_total}/${report.parent_orientation.expected_quota_total}`,
     buildLabel,
   ].join('\n');
 }
@@ -152,7 +152,7 @@ export function SystemReadinessPage() {
             </Card>
             <Card className="event-detail-card" variant={report.parent_orientation.quota_total_ok ? 'soft' : 'warning'}>
               <strong>{report.parent_orientation.duty_quota_total}</strong>
-              <span>{language === 'th' ? 'โควต้ารวม Parent Orientation' : 'Parent Orientation quota'}</span>
+              <span>{language === 'th' ? 'โควต้ารวม Freshmen Orientation' : 'Freshmen Orientation quota'}</span>
             </Card>
             <Card className="event-detail-card" variant={report.security.rls_missing_tables.length ? 'danger' : 'soft'}>
               <strong>{report.security.rls_missing_tables.length}</strong>
@@ -205,7 +205,7 @@ export function SystemReadinessPage() {
           <Card className="event-detail-card">
             <div className="mobile-row-head">
               <div>
-                <p className="eyebrow">Parent Orientation 2569</p>
+                <p className="eyebrow">Freshmen Orientation 2569</p>
                 <h2>{language === 'th' ? 'โควต้ากิจกรรม' : 'Quota status'}</h2>
               </div>
               {statusBadge(Boolean(report.parent_orientation.event_exists && report.parent_orientation.quota_total_ok))}

@@ -160,16 +160,16 @@ export const eventContentBySlug: Record<string, EventContent> = {
   'parent-orientation-staff-2569': {
     slug: 'parent-orientation-staff-2569',
     public: {
-      titleTh: 'เปิดรับสตาฟงานปฐมนิเทศผู้ปกครอง ประจำปีการศึกษา 2569',
-      titleEn: 'Parent Orientation Staff Recruitment 2026',
-      summaryTh: 'เปิดรับสมัครสตาฟช่วยงานปฐมนิเทศผู้ปกครอง ประจำปีการศึกษา 2569 สำหรับนักศึกษาชั้นปีที่ 2–3 โดยผู้สมัครเลือกตำแหน่งฝ่ายที่ต้องการสมัคร 1 ตำแหน่ง และผู้ดูแลสามารถปรับเปลี่ยนได้ตามความเหมาะสม',
-      summaryEn: 'Staff recruitment for the 2026 Parent Orientation event for 2nd- and 3rd-year Engineering students. Applicants choose one preferred duty position, and admins may adjust assignments as needed.',
+      titleTh: 'เปิดรับสตาฟงานปฐมนิเทศนักศึกษาใหม่ ประจำปีการศึกษา 2569',
+      titleEn: 'Freshmen Orientation Staff Recruitment 2026',
+      summaryTh: 'เปิดรับสมัครสตาฟช่วยงานปฐมนิเทศนักศึกษาใหม่ ประจำปีการศึกษา 2569 สำหรับนักศึกษาชั้นปีที่ 2–3 โดยผู้สมัครเลือกตำแหน่งฝ่ายที่ต้องการสมัคร 1 ตำแหน่ง และผู้ดูแลสามารถปรับเปลี่ยนได้ตามความเหมาะสม',
+      summaryEn: 'Staff recruitment for the 2026 Freshmen Orientation event for 2nd- and 3rd-year Engineering students. Applicants choose one preferred duty position, and admins may adjust assignments as needed.',
       targetAudienceTh: 'นักศึกษาชั้นปีที่ 2 และ 3',
       eventDateTh: 'วันที่ 12 มิถุนายน 2569',
       locationTh: 'คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเชียงใหม่',
       capacityTh: 'รับจำนวนประมาณ 130 คน',
       dressCodeTh: ['ชุดช็อปถูกระเบียบ'],
-      publicNoteTh: 'มีการจัดสรรฝ่ายเบื้องต้นโดยระบบตามโควต้า และผู้ดูแลสามารถปรับเปลี่ยนได้ภายหลัง',
+      publicNoteTh: 'มีการจัดสรรฝ่ายเบื้องต้นตามโควต้า และอาจมีการปรับเปลี่ยนตามความเหมาะสม',
     },
     staffRecruitment: {
       capacity: 130,
@@ -179,12 +179,12 @@ export const eventContentBySlug: Record<string, EventContent> = {
       rehearsalTimeTh: '16:00 น.',
       dressCodeTh: 'ชุดช็อปถูกระเบียบ',
       lineGroup: {
-        labelTh: 'เข้ากลุ่มไลน์สตาฟงานปฐมนิเทศผู้ปกครอง',
-        labelEn: 'Join the Parent Orientation Staff Line group',
+        labelTh: 'เข้ากลุ่มไลน์สตาฟงานปฐมนิเทศนักศึกษาใหม่',
+        labelEn: 'Join the Freshmen Orientation Staff Line group',
         url: 'https://line.me/ti/g/8GpVr69MeL',
         qrImagePath: '/line-parent-orientation-staff-2569.png',
-        noteTh: 'หลังส่งใบสมัครแล้ว สามารถเข้ากลุ่มไลน์นี้ได้ทันที เพื่อรับข่าวสาร การนัดหมาย และประกาศเพิ่มเติม ไม่จำเป็นต้องรอผลการคัดเลือก',
-        noteEn: 'After submitting your application, you may join this Line group immediately for updates, schedules, and announcements. You do not need to wait for approval.',
+        noteTh: 'หลังส่งใบสมัครแล้ว สามารถเข้ากลุ่มไลน์นี้ได้ทันที เพื่อรับข่าวสาร การนัดหมาย และประกาศเพิ่มเติม',
+        noteEn: 'After submitting your application, you may join this Line group immediately for updates, schedules, and announcements.',
       },
       dutiesTh: [
         'ฝ่ายจราจร (10 คน)',

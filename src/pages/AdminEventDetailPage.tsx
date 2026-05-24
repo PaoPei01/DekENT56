@@ -220,7 +220,7 @@ export function AdminEventDetailPage() {
                   <div className="split-panel">
                     <div>
                       <p className="eyebrow">{language === 'th' ? 'เปิดรับสตาฟ' : 'Staff recruitment'}</p>
-                      <h2>{language === 'th' ? 'สรุปใบสมัครงานปฐมนิเทศผู้ปกครอง' : 'Recruitment summary'}</h2>
+                      <h2>{language === 'th' ? 'สรุปใบสมัครงานปฐมนิเทศนักศึกษาใหม่' : 'Recruitment summary'}</h2>
                       <p>{language === 'th' ? 'ใช้ดูภาพรวมกำลังคนก่อนจัดหน้าที่จริง' : 'Use this before assigning final duties.'}</p>
                     </div>
                     <Link className="btn btn-primary" to={adminEventApplicationsPath(event.id)}><UserPlus size={17} />{language === 'th' ? 'จัดการใบสมัคร' : 'Manage applications'}</Link>
