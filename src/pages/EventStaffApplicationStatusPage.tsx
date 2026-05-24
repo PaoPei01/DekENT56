@@ -98,6 +98,8 @@ export function EventStaffApplicationStatusPage() {
             </div>
             <Card variant="soft">
               <div className="application-detail-grid">
+                <span>{language === 'th' ? 'ส่งใบสมัครเมื่อ' : 'Submitted at'}</span>
+                <strong>{formatBangkokDateTime(application.submitted_at, language)}</strong>
                 <span>{t('staffApplication.preliminaryAssignedDuty')}</span>
                 <strong>{application.assigned_duty_label_th ?? t('staffApplication.pendingAdminAssignment')}</strong>
                 <span>{t('staffApplication.assignmentMethod')}</span>

@@ -541,7 +541,7 @@ export function EventStaffApplyPage() {
                 <span><strong>{language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'}</strong>{studentId || '-'}</span>
                 <span><strong>{language === 'th' ? 'สาขา' : 'Major'}</strong>{applicantMajor}</span>
                 <span><strong>{language === 'th' ? 'สถานะการยืนยันตัวตน' : 'Identity status'}</strong>{identityStatusLabel(result.application?.identity_status ?? identityLookup?.identity_status ?? 'pending_identity_review', language)}</span>
-                <span><strong>{language === 'th' ? 'เวลาที่ส่งใบสมัคร' : 'Submitted at'}</strong>{formatBangkokDateTime(result.application?.submitted_at ?? submittedAt, language)}</span>
+                <span><strong>{language === 'th' ? 'เวลาส่งใบสมัคร' : 'Submitted at'}</strong>{formatBangkokDateTime(result.application?.submitted_at ?? submittedAt, language)}</span>
                 <span><strong>{language === 'th' ? 'รหัสใบสมัคร' : 'Application ID'}</strong>{result.application?.id ?? '-'}</span>
               </div>
               <span><strong>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</strong>: {result.assignment?.assigned_label_th ?? result.application?.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรรเพิ่มเติม' : 'Pending admin assignment')}</span>
@@ -570,7 +570,7 @@ export function EventStaffApplyPage() {
                 <span><strong>{language === 'th' ? 'สถานะใบสมัคร' : 'Application status'}</strong>{applicationStatusLabel(existingApplication.application?.status ?? 'submitted')}</span>
                 <span><strong>{language === 'th' ? 'สถานะการยืนยันตัวตน' : 'Identity status'}</strong>{identityStatusLabel(existingApplication.application?.identity_status ?? 'pending_identity_review', language)}</span>
                 <span><strong>{language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'}</strong>{existingApplication.application?.assigned_duty_label_th ?? (language === 'th' ? 'รอผู้ดูแลจัดสรร' : 'Pending admin assignment')}</span>
-                <span><strong>{language === 'th' ? 'วันที่ส่งใบสมัคร' : 'Submitted at'}</strong>{formatBangkokDateTime(existingApplication.application?.submitted_at, language)}</span>
+                <span><strong>{language === 'th' ? 'เวลาส่งใบสมัคร' : 'Submitted at'}</strong>{formatBangkokDateTime(existingApplication.application?.submitted_at, language)}</span>
                 <span><strong>{language === 'th' ? 'รหัสใบสมัคร' : 'Application ID'}</strong>{existingApplication.application?.application_id ?? '-'}</span>
               </div>
               <Card variant="soft">

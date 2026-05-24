@@ -210,7 +210,11 @@ export function AdminEventApplicationsPage() {
   const [handoffExporting, setHandoffExporting] = useState(false);
   const [showDuplicateDetails, setShowDuplicateDetails] = useState(false);
   const event = eventState.data;
-  const rows = useMemo(() => applicationsState.data ?? [], [applicationsState.data]);
+  const rows = useMemo(() => [...(applicationsState.data ?? [])].sort((a, b) => {
+    const aTime = a.submitted_at ? new Date(a.submitted_at).getTime() : 0;
+    const bTime = b.submitted_at ? new Date(b.submitted_at).getTime() : 0;
+    return bTime - aTime;
+  }), [applicationsState.data]);
   const quotaDuties = useMemo(() => quotaState.data?.duties ?? [], [quotaState.data?.duties]);
   const dutiesByKey = useMemo(() => new Map(quotaDuties.map((duty) => [duty.duty_key, duty])), [quotaDuties]);
   const canonicalQuotaDuties = useMemo(() => getDutyOptions().map((duty) => {
@@ -810,7 +814,12 @@ export function AdminEventApplicationsPage() {
             emptyText={language === 'th' ? 'ไม่พบใบสมัครตามตัวกรอง' : 'No applications match the filters'}
             mobileTitle={(row) => applicantName(row)}
             mobileSubtitle={(row) => `${row.people?.student_id ?? row.requested_student_id ?? '-'} · ${row.people?.major ?? row.requested_major ?? '-'}${row.people?.year_level ? ` · ปี ${row.people.year_level}` : ''}`}
-            mobileMeta={(row) => <Badge status={getApplicationStatusTone(row.status)}>{getApplicationStatusLabel(row.status, language)}</Badge>}
+            mobileMeta={(row) => (
+              <>
+                <Badge status={getApplicationStatusTone(row.status)}>{getApplicationStatusLabel(row.status, language)}</Badge>
+                <span>{language === 'th' ? 'ส่งเมื่อ' : 'Submitted'} {formatBangkokDateTime(row.submitted_at, language)}</span>
+              </>
+            )}
             mobileActions={(row) => actionButtons(row, true)}
             mobileDetailsLabel={language === 'th' ? 'ดูข้อมูลย่อ' : 'View summary'}
             density="compact"
@@ -824,6 +833,11 @@ export function AdminEventApplicationsPage() {
                   {hasNameNicknameConflict(row) ? <small className="field-error">{language === 'th' ? 'ชื่อ-นามสกุลในฐานข้อมูลตรงกับชื่อเล่น ควรตรวจข้อมูลก่อนใช้งานจริง' : 'Full name matches nickname. Review this person data before real use.'}</small> : null}
                 </div>
               ), priority: 'primary' },
+              { key: 'submitted_at', header: language === 'th' ? 'เวลาส่งใบสมัคร' : 'Submitted at', render: (row) => (
+                <div className="application-duty-stack">
+                  <strong>{formatBangkokDateTime(row.submitted_at, language)}</strong>
+                </div>
+              ) },
               { key: 'year_major', header: language === 'th' ? 'ชั้นปี/สาขา' : 'Year/Major', render: (row) => (
                 <div className="application-duty-stack">
                   <strong>{row.people?.year_level ? `${language === 'th' ? 'ปี ' : 'Year '}${row.people.year_level}` : '-'}</strong>
