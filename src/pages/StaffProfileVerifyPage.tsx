@@ -14,7 +14,7 @@ import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import type { VerifiedStaffAttendanceIdentity } from '../lib/attendanceTypes';
 import { groupLabel } from '../lib/grouping';
-import { identityFromAttendanceResult, saveVerifiedStaffIdentity } from '../lib/verifiedStaffIdentity';
+import { getVerifiedStaffIdentity, identityFromAttendanceResult, saveVerifiedStaffIdentity } from '../lib/verifiedStaffIdentity';
 import { verifyStaffAttendanceIdentity } from '../services/staffAttendance';
 import { submitStaffEditRequestVerified, updateStaffPublicProfileVerified, verifyStaffIdentity, staffDisplayName, type StaffPublicProfileInput, type VerifiedStaffProfileContext } from '../services/staffProfiles';
 import { errorMessage } from '../utils/error';
@@ -42,8 +42,6 @@ function publicFormFromContext(data: VerifiedStaffProfileContext): VerifiedStaff
     avatar_path: data.public_profile?.avatar_path ?? null,
     avatar_url: data.public_profile?.avatar_url ?? '',
     bio: data.public_profile?.bio ?? '',
-    hometown: data.public_profile?.hometown ?? '',
-    interests: data.public_profile?.interests ?? [],
     public_profile_enabled: data.public_profile?.public_profile_enabled ?? true,
     show_instagram: data.public_profile?.show_instagram ?? false,
     show_facebook: data.public_profile?.show_facebook ?? false,
@@ -60,7 +58,7 @@ export function StaffProfileVerifyPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [data, setData] = useState<VerifiedStaffProfileContext | null>(null);
-  const [form, setForm] = useState<VerifiedStaffPublicProfileForm>({ interests: [] });
+  const [form, setForm] = useState<VerifiedStaffPublicProfileForm>({});
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [verifiedAttendanceIdentity, setVerifiedAttendanceIdentity] = useState<VerifiedStaffAttendanceIdentity | null>(null);
@@ -70,7 +68,8 @@ export function StaffProfileVerifyPage() {
   const profileEditRef = useRef<HTMLDivElement | null>(null);
   const firstProfileEditInputRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const mergedForm = useMemo(() => ({ ...(data?.public_profile ?? {}), instagram: data?.profile.instagram ?? '', facebook: data?.profile.facebook ?? '', ...form }), [data, form]);
+  const rememberedIdentity = useMemo(() => getVerifiedStaffIdentity(), []);
+  const mergedForm = useMemo(() => ({ ...(data ? publicFormFromContext(data) : {}), ...form }), [data, form]);
   const preview = data ? {
     staff_profile_id: data.profile.id,
     avatar_path: mergedForm.avatar_path ?? null,
@@ -86,7 +85,7 @@ export function StaffProfileVerifyPage() {
     subgroup: data.assignment?.subgroup ?? null,
     base_number: data.assignment?.base_number ?? null,
     bio: mergedForm.bio ?? null,
-    interests: mergedForm.interests ?? [],
+    interests: [],
     instagram: mergedForm.show_instagram ? mergedForm.instagram ?? null : null,
     line_id: mergedForm.show_line_id ? data.profile.line_id ?? null : null,
     facebook: mergedForm.show_facebook ? mergedForm.facebook ?? null : null,
@@ -236,6 +235,18 @@ export function StaffProfileVerifyPage() {
         </form>
       </Card>
 
+      {!data && rememberedIdentity ? (
+        <Card className="privacy-notice" variant="soft">
+          <strong>{language === 'th' ? 'มีข้อมูลทีมงานที่ยืนยันไว้แล้ว' : 'Verified staff identity found'}</strong>
+          <span>{language === 'th' ? 'สามารถไปหน้าเช็กชื่อ หรือยืนยันตัวตนอีกครั้งเพื่อแก้ไขโปรไฟล์' : 'You can continue to check-in tools or verify again to edit your profile.'}</span>
+          <div className="form-actions">
+            <Link className="btn btn-secondary" to="/staff/attendance">
+              {language === 'th' ? 'ไปหน้าเช็กชื่อ' : 'Go to check-in'}
+            </Link>
+          </div>
+        </Card>
+      ) : null}
+
       {data ? (
         <>
           <Card className="staff-lite-summary-card">
@@ -290,15 +301,13 @@ export function StaffProfileVerifyPage() {
                 </Card>
                 <Card className="privacy-notice full-span" variant="soft">
                   <strong>{language === 'th' ? 'การอัปโหลดรูป' : 'Profile photo upload'}</strong>
-                  <span>{language === 'th' ? 'เพื่อความปลอดภัย การอัปโหลดไฟล์รูปทำได้หลังเข้าสู่ระบบทีมงาน หรือให้แอดมินอัปโหลดให้เท่านั้น หน้านี้ยังแก้ Bio/ความสนใจ/การมองเห็นได้ตามปกติ' : 'For security, image file upload is available after staff login or by admin. This verified page can still edit bio, interests, and visibility settings.'}</span>
+                  <span>{language === 'th' ? 'เพื่อความปลอดภัย การอัปโหลดไฟล์รูปทำได้หลังเข้าสู่ระบบทีมงาน หรือให้แอดมินอัปโหลดให้เท่านั้น หน้านี้ยังแก้ Bio และการมองเห็นข้อมูลได้ตามปกติ' : 'For security, image file upload is available after staff login or by admin. This verified page can still edit bio and visibility settings.'}</span>
                 </Card>
                 <h3 className="full-span form-section-title">{language === 'th' ? 'โปรไฟล์สาธารณะ' : 'Public profile'}</h3>
                 <label className="field">
                   <span>Bio</span>
                   <textarea ref={firstProfileEditInputRef} rows={4} value={mergedForm.bio ?? ''} onChange={(event) => patch({ bio: event.target.value })} />
                 </label>
-                <Input label={language === 'th' ? 'ภูมิลำเนา' : 'Hometown'} value={mergedForm.hometown ?? ''} onChange={(event) => patch({ hometown: event.target.value })} />
-                <Input label={language === 'th' ? 'ความสนใจ (คั่นด้วย comma)' : 'Interests'} value={(mergedForm.interests ?? []).join(', ')} onChange={(event) => patch({ interests: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} />
                 <Input label="Instagram" value={mergedForm.instagram ?? ''} onChange={(event) => patch({ instagram: event.target.value })} />
                 <Input label="Facebook" value={mergedForm.facebook ?? ''} onChange={(event) => patch({ facebook: event.target.value })} />
                 <h3 className="full-span form-section-title">{language === 'th' ? 'การมองเห็นข้อมูล' : 'Visibility'}</h3>
