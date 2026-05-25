@@ -23,13 +23,13 @@ const StaffPersonalQrModal = lazy(() => import('../components/attendance/StaffPe
 
 type VerifiedStaffPublicProfileForm = StaffPublicProfileInput & {
   instagram?: string | null;
+  line_id?: string | null;
   facebook?: string | null;
 };
 
 function requestFormFromContext(data: VerifiedStaffProfileContext, fallbackPhone: string) {
   return {
     phone: data.profile.phone ?? fallbackPhone,
-    line_id: data.profile.line_id ?? '',
     disease: data.medical_info?.disease ?? '',
     drug_allergy: data.medical_info?.drug_allergy ?? '',
     food_allergy: data.medical_info?.food_allergy ?? '',
@@ -49,6 +49,7 @@ function publicFormFromContext(data: VerifiedStaffProfileContext): VerifiedStaff
     show_phone_to_staff: data.public_profile?.show_phone_to_staff ?? true,
     show_phone_to_public: data.public_profile?.show_phone_to_public ?? false,
     instagram: data.profile.instagram ?? '',
+    line_id: data.profile.line_id ?? '',
     facebook: data.profile.facebook ?? '',
   };
 }
@@ -60,7 +61,7 @@ export function StaffProfileVerifyPage() {
   const [data, setData] = useState<VerifiedStaffProfileContext | null>(null);
   const [form, setForm] = useState<VerifiedStaffPublicProfileForm>({});
   const [requestOpen, setRequestOpen] = useState(false);
-  const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
+  const [requestForm, setRequestForm] = useState({ phone: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [verifiedAttendanceIdentity, setVerifiedAttendanceIdentity] = useState<VerifiedStaffAttendanceIdentity | null>(null);
   const [personalQrOpen, setPersonalQrOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -87,7 +88,7 @@ export function StaffProfileVerifyPage() {
     bio: mergedForm.bio ?? null,
     interests: [],
     instagram: mergedForm.show_instagram ? mergedForm.instagram ?? null : null,
-    line_id: mergedForm.show_line_id ? data.profile.line_id ?? null : null,
+    line_id: mergedForm.show_line_id ? mergedForm.line_id ?? null : null,
     facebook: mergedForm.show_facebook ? mergedForm.facebook ?? null : null,
     phone: null,
   } : null;
@@ -158,7 +159,7 @@ export function StaffProfileVerifyPage() {
     setLoading(true);
     try {
       await submitStaffEditRequestVerified(email, phone, {
-        profile: { phone: requestForm.phone, line_id: requestForm.line_id },
+        profile: { phone: requestForm.phone },
         medical: { disease: requestForm.disease, drug_allergy: requestForm.drug_allergy, food_allergy: requestForm.food_allergy, medical_note: requestForm.medical_note },
       });
       setRequestOpen(false);
@@ -309,6 +310,7 @@ export function StaffProfileVerifyPage() {
                   <textarea ref={firstProfileEditInputRef} rows={4} value={mergedForm.bio ?? ''} onChange={(event) => patch({ bio: event.target.value })} />
                 </label>
                 <Input label="Instagram" value={mergedForm.instagram ?? ''} onChange={(event) => patch({ instagram: event.target.value })} />
+                <Input label="LINE ID" value={mergedForm.line_id ?? ''} onChange={(event) => patch({ line_id: event.target.value })} />
                 <Input label="Facebook" value={mergedForm.facebook ?? ''} onChange={(event) => patch({ facebook: event.target.value })} />
                 <h3 className="full-span form-section-title">{language === 'th' ? 'การมองเห็นข้อมูล' : 'Visibility'}</h3>
                 {[
@@ -344,7 +346,6 @@ export function StaffProfileVerifyPage() {
         <div className="form-grid two-col modal-body">
           <h3 className="full-span">{language === 'th' ? 'ข้อมูลติดต่อ' : 'Contact'}</h3>
           <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} value={requestForm.phone} onChange={(event) => setRequestForm({ ...requestForm, phone: event.target.value })} />
-          <Input label="LINE ID" value={requestForm.line_id} onChange={(event) => setRequestForm({ ...requestForm, line_id: event.target.value })} />
           <h3 className="full-span">{language === 'th' ? 'ข้อมูลสุขภาพ' : 'Medical'}</h3>
           <Input label={language === 'th' ? 'โรคประจำตัว' : 'Medical condition'} value={requestForm.disease} onChange={(event) => setRequestForm({ ...requestForm, disease: event.target.value })} />
           <Input label={language === 'th' ? 'แพ้ยา' : 'Drug allergy'} value={requestForm.drug_allergy} onChange={(event) => setRequestForm({ ...requestForm, drug_allergy: event.target.value })} />

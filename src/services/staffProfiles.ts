@@ -99,7 +99,7 @@ export async function submitStaffEditRequest(input: { profile?: Record<string, u
   return data as StaffEditRequest;
 }
 
-export async function updateStaffPublicProfileVerified(email: string, phone: string, input: StaffPublicProfileInput & { instagram?: string | null; facebook?: string | null }) {
+export async function updateStaffPublicProfileVerified(email: string, phone: string, input: StaffPublicProfileInput & { instagram?: string | null; line_id?: string | null; facebook?: string | null }) {
   const { data, error } = await supabase.rpc('update_staff_public_profile_verified', {
     input_email: cleanEmail(email),
     input_phone: normalizePhoneNumber(phone),
