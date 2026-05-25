@@ -106,6 +106,10 @@
   padding: 1.1rem;
   background: var(--card-bg);
   box-shadow: var(--shadow);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
   transition: transform 160ms ease, border-color 160ms ease;
 }
 

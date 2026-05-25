@@ -1,5 +1,5 @@
 import { ClipboardCheck, LogIn, QrCode, Save, SearchCheck, Send, UserRound } from 'lucide-react';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../components/help/HelpButton';
 import { PublicStaffCard } from '../components/PublicStaffCard';
@@ -12,6 +12,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { groupLabel } from '../lib/grouping';
+import { identityFromAttendanceResult, saveVerifiedStaffIdentity } from '../lib/verifiedStaffIdentity';
+import { verifyStaffAttendanceIdentity } from '../services/staffAttendance';
 import { submitStaffEditRequestVerified, updateStaffPublicProfileVerified, verifyStaffIdentity, staffDisplayName, type StaffPublicProfileInput, type VerifiedStaffProfileContext } from '../services/staffProfiles';
 import { errorMessage } from '../utils/error';
 
@@ -25,6 +27,8 @@ export function StaffProfileVerifyPage() {
   const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
+  const profileEditRef = useRef<HTMLDivElement | null>(null);
+  const firstProfileEditInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const mergedForm = useMemo(() => ({ ...(data?.public_profile ?? {}), instagram: data?.profile.instagram ?? '', facebook: data?.profile.facebook ?? '', ...form }), [data, form]);
   const preview = data ? {
@@ -79,6 +83,22 @@ export function StaffProfileVerifyPage() {
         instagram: result.profile.instagram ?? '',
         facebook: result.profile.facebook ?? '',
       });
+      try {
+        const attendanceResult = await verifyStaffAttendanceIdentity(email, phone);
+        const attendanceIdentity = identityFromAttendanceResult(attendanceResult);
+        if (attendanceIdentity) {
+          saveVerifiedStaffIdentity(attendanceIdentity);
+          setToast({
+            type: 'success',
+            message: language === 'th'
+              ? 'ยืนยันตัวตนสำเร็จ สามารถใช้ QR และเช็กชื่อได้ทันที'
+              : 'Identity verified. You can now use QR and attendance tools.',
+          });
+          return;
+        }
+      } catch {
+        // Keep the profile hub usable even if attendance tools are temporarily unavailable.
+      }
       setToast({ type: 'success', message: language === 'th' ? 'ยืนยันข้อมูลทีมงานสำเร็จ' : 'Staff profile verified' });
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ยืนยันข้อมูลไม่สำเร็จ' : 'Verification failed') });
@@ -119,6 +139,11 @@ export function StaffProfileVerifyPage() {
     }
   }
 
+  function scrollToProfileEdit() {
+    profileEditRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => firstProfileEditInputRef.current?.focus(), 350);
+  }
+
   return (
     <section className="narrow-page page-stack has-sticky-actions">
       <Toast toast={toast} />
@@ -156,21 +181,24 @@ export function StaffProfileVerifyPage() {
               <p className="muted">{language === 'th' ? 'บางเครื่องมือใช้อีเมลและเบอร์โทรยืนยันตัวตนได้ โดยไม่ต้องเข้าสู่ระบบ' : 'Some tools support email and phone verification without signing in.'}</p>
             </div>
             <div className="staff-action-grid staff-lite-action-grid">
-              <Link className="staff-action-card" to="/staff/profile/qr">
+              <Link className="staff-action-card" to="/staff/attendance?open=personal-qr">
                 <QrCode size={26} />
                 <strong>{language === 'th' ? 'QR ส่วนตัวสำหรับเช็กชื่อ' : 'Personal check-in QR'}</strong>
-                <span>{language === 'th' ? 'ให้แอดมินหรือหัวหน้าทีมสแกนเพื่อบันทึกการเช็กชื่อ' : 'Let an admin or team lead scan your QR for attendance.'}</span>
+                <span>{language === 'th' ? 'เปิด QR ของคุณทันทีหลังยืนยันตัวตน เพื่อให้แอดมินหรือหัวหน้าทีมสแกน' : 'Open your QR immediately after verification so an admin or team lead can scan it.'}</span>
+                <em>{language === 'th' ? 'เปิด QR ของฉัน' : 'Open my QR'}</em>
               </Link>
               <Link className="staff-action-card" to="/staff/attendance">
                 <ClipboardCheck size={26} />
                 <strong>{language === 'th' ? 'เช็กชื่อทีมงาน' : 'Staff check-in'}</strong>
-                <span>{language === 'th' ? 'เลือกวิธีเช็กชื่อหรือดูประวัติการเช็กชื่อของคุณ' : 'Choose a check-in method or view your attendance history.'}</span>
+                <span>{language === 'th' ? 'เลือกวิธีเช็กชื่อ ดูสถานะล่าสุด และประวัติการเช็กชื่อของคุณ' : 'Choose a check-in method, view your latest status, and see your attendance history.'}</span>
+                <em>{language === 'th' ? 'ไปหน้าเช็กชื่อ' : 'Go to check-in'}</em>
               </Link>
-              <a className="staff-action-card" href="#staff-profile-edit-card">
+              <button className="staff-action-card" type="button" onClick={scrollToProfileEdit}>
                 <UserRound size={26} />
                 <strong>{language === 'th' ? 'แก้ไขโปรไฟล์ทีมงาน' : 'Edit staff profile'}</strong>
-                <span>{language === 'th' ? 'ปรับข้อมูลที่แสดงต่อผู้เข้าร่วม และส่งคำขอแก้ไขข้อมูลสำคัญ' : 'Update information shown to participants and request important data changes.'}</span>
-              </a>
+                <span>{language === 'th' ? 'แก้ไขข้อมูลที่แสดงต่อผู้เข้าร่วมในหน้านี้ หรือส่งคำขอแก้ไขข้อมูลสำคัญ' : 'Edit information shown to participants here, or request changes to important data.'}</span>
+                <em>{language === 'th' ? 'เลื่อนไปแก้โปรไฟล์' : 'Scroll to profile edit'}</em>
+              </button>
               <Link className="staff-action-card" to="/login" state={{ returnTo: '/staff' }}>
                 <LogIn size={26} />
                 <strong>{language === 'th' ? 'เข้าสู่ระบบทีมงาน' : 'Staff sign in'}</strong>
@@ -183,6 +211,7 @@ export function StaffProfileVerifyPage() {
               <h2>{language === 'th' ? 'ตัวอย่างที่น้องเห็น' : 'Public preview'}</h2>
               {preview ? <PublicStaffCard staff={preview} /> : null}
             </Card>
+            <div ref={profileEditRef}>
             <Card id="staff-profile-edit-card">
               <form className="form-grid" onSubmit={savePublic}>
                 <Card className="privacy-notice full-span" variant="soft">
@@ -196,7 +225,7 @@ export function StaffProfileVerifyPage() {
                 <h3 className="full-span form-section-title">{language === 'th' ? 'โปรไฟล์สาธารณะ' : 'Public profile'}</h3>
                 <label className="field">
                   <span>Bio</span>
-                  <textarea rows={4} value={mergedForm.bio ?? ''} onChange={(event) => patch({ bio: event.target.value })} />
+                  <textarea ref={firstProfileEditInputRef} rows={4} value={mergedForm.bio ?? ''} onChange={(event) => patch({ bio: event.target.value })} />
                 </label>
                 <Input label={language === 'th' ? 'ภูมิลำเนา' : 'Hometown'} value={mergedForm.hometown ?? ''} onChange={(event) => patch({ hometown: event.target.value })} />
                 <Input label={language === 'th' ? 'ความสนใจ (คั่นด้วย comma)' : 'Interests'} value={(mergedForm.interests ?? []).join(', ')} onChange={(event) => patch({ interests: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} />
@@ -220,6 +249,7 @@ export function StaffProfileVerifyPage() {
                 </div>
               </form>
             </Card>
+            </div>
           </div>
         </>
       ) : null}

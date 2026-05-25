@@ -10,6 +10,7 @@ import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import type { StaffPersonalQrResult } from '../lib/attendanceTypes';
 import { groupLabel } from '../lib/grouping';
+import { getVerifiedStaffIdentity } from '../lib/verifiedStaffIdentity';
 import { getStaffPersonalQrVerified, regenerateStaffPersonalQrVerified } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
 
@@ -24,6 +25,26 @@ export function StaffPersonalQrPage() {
   const [toast, setToast] = useState<ToastState>(null);
 
   const payload = result?.qr_payload ?? (result?.token ? `staff_identity:${result.token}` : '');
+  const canRegenerate = Boolean(email.trim() && phone.trim());
+
+  useEffect(() => {
+    const rememberedIdentity = getVerifiedStaffIdentity();
+    if (!rememberedIdentity) return;
+    setResult({
+      success: true,
+      code: 'ok',
+      message: 'ok',
+      qr_payload: rememberedIdentity.personal_qr_payload,
+      staff: {
+        staff_profile_id: rememberedIdentity.staff_profile_id,
+        display_name: rememberedIdentity.display_name,
+        nickname: rememberedIdentity.nickname,
+        main_group: rememberedIdentity.main_group,
+        subgroup: rememberedIdentity.subgroup,
+        primary_role: rememberedIdentity.primary_role,
+      },
+    });
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -131,7 +152,9 @@ export function StaffPersonalQrPage() {
           <code className="attendance-scan-url">{payload}</code>
           <div className="form-actions">
             <Button type="button" variant="secondary" icon={<Copy size={18} />} onClick={copyPayload}>{language === 'th' ? 'คัดลอก token' : 'Copy token'}</Button>
-            <Button type="button" variant="secondary" icon={<RefreshCw size={18} />} loading={regenerating} onClick={regenerate}>{language === 'th' ? 'สร้าง QR ใหม่' : 'Regenerate QR'}</Button>
+            {canRegenerate ? (
+              <Button type="button" variant="secondary" icon={<RefreshCw size={18} />} loading={regenerating} onClick={regenerate}>{language === 'th' ? 'สร้าง QR ใหม่' : 'Regenerate QR'}</Button>
+            ) : null}
           </div>
         </Card>
       ) : null}

@@ -1,6 +1,6 @@
 import { Camera, History, Home, LogOut, QrCode, RefreshCw, ShieldCheck } from 'lucide-react';
-import { FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
@@ -52,6 +52,7 @@ function authIdentityFromData(data: MyStaffAttendanceData | null, personalQrPayl
 export function StaffAttendancePage() {
   const { language } = useLanguage();
   const { events } = useEventContext();
+  const [searchParams] = useSearchParams();
   const [data, setData] = useState<MyStaffAttendanceData | null>(null);
   const [verifiedIdentity, setVerifiedIdentity] = useState<VerifiedStaffAttendanceIdentity | null>(() => getVerifiedStaffIdentity());
   const [authPersonalQrPayload, setAuthPersonalQrPayload] = useState('');
@@ -65,10 +66,12 @@ export function StaffAttendancePage() {
   const [personalQrOpen, setPersonalQrOpen] = useState(false);
   const [sessionScannerOpen, setSessionScannerOpen] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
+  const personalQrAutoOpenedRef = useRef(false);
   const records = useMemo(() => data?.records ?? [], [data?.records]);
   const latest = data?.latest_record;
   const activeIdentity = isAuthenticated ? authIdentityFromData(data, authPersonalQrPayload) : verifiedIdentity;
   const latestEventLabel = latest?.session?.event_id ? attendanceEventLabel(latest.session, events, language) : '';
+  const shouldOpenPersonalQr = searchParams.get('open') === 'personal-qr';
 
   const loadAttendance = useCallback(async () => {
     setLoading(true);
@@ -94,8 +97,10 @@ export function StaffAttendancePage() {
         const nextData = await fetchStaffAttendanceHistoryByVerifiedToken(rememberedIdentity.verified_staff_token);
         setData(nextData);
       } catch {
+        clearVerifiedStaffIdentity();
+        setVerifiedIdentity(null);
         setData(null);
-        setHistoryError(language === 'th' ? 'ยังไม่สามารถโหลดประวัติการเช็กชื่อได้ กรุณาลองอัปเดตสถานะอีกครั้ง' : 'Could not load attendance history. Please refresh status again.');
+        setHistoryError(language === 'th' ? 'ข้อมูลยืนยันตัวตนเดิมหมดอายุ กรุณายืนยันตัวตนอีกครั้ง' : 'Your saved verification has expired. Please verify again.');
       }
     } catch (err) {
       setError(errorMessage(err, language === 'th' ? 'โหลดข้อมูลเช็กชื่อไม่สำเร็จ' : 'Could not load attendance'));
@@ -107,6 +112,25 @@ export function StaffAttendancePage() {
   useEffect(() => {
     void loadAttendance();
   }, [loadAttendance]);
+
+  const openPersonalQr = useCallback(async () => {
+    if (isAuthenticated && !authPersonalQrPayload) {
+      try {
+        const qr = await getMyStaffPersonalQr();
+        if (qr.qr_payload) setAuthPersonalQrPayload(qr.qr_payload);
+      } catch (err) {
+        setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'โหลด QR ส่วนตัวไม่สำเร็จ' : 'Could not load personal QR') });
+        return;
+      }
+    }
+    setPersonalQrOpen(true);
+  }, [authPersonalQrPayload, isAuthenticated, language]);
+
+  useEffect(() => {
+    if (!shouldOpenPersonalQr || loading || personalQrAutoOpenedRef.current || !activeIdentity) return;
+    personalQrAutoOpenedRef.current = true;
+    void openPersonalQr();
+  }, [activeIdentity, loading, openPersonalQr, shouldOpenPersonalQr]);
 
   async function verifyIdentity(event: FormEvent) {
     event.preventDefault();
@@ -134,19 +158,6 @@ export function StaffAttendancePage() {
     } finally {
       setVerifying(false);
     }
-  }
-
-  async function openPersonalQr() {
-    if (isAuthenticated && !authPersonalQrPayload) {
-      try {
-        const qr = await getMyStaffPersonalQr();
-        if (qr.qr_payload) setAuthPersonalQrPayload(qr.qr_payload);
-      } catch (err) {
-        setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'โหลด QR ส่วนตัวไม่สำเร็จ' : 'Could not load personal QR') });
-        return;
-      }
-    }
-    setPersonalQrOpen(true);
   }
 
   function clearIdentity() {
