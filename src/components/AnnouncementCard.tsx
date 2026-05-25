@@ -4,12 +4,13 @@ import type { Announcement } from '../services/announcements';
 type AnnouncementCardProps = {
   item: Announcement;
   compact?: boolean;
+  detail?: boolean;
 };
 
-export function AnnouncementCard({ item, compact = false }: AnnouncementCardProps) {
+export function AnnouncementCard({ item, compact = false, detail = false }: AnnouncementCardProps) {
   const icon = item.type === 'emergency' ? <AlertTriangle size={18} /> : item.type === 'map' || item.type === 'traffic' ? <MapPinned size={18} /> : <FileText size={18} />;
   return (
-    <article className={`announcement-card priority-${item.priority} ${compact ? 'compact' : ''}`}>
+    <article className={`announcement-card priority-${item.priority} ${compact ? 'compact' : ''} ${detail ? 'announcement-detail-body' : ''}`}>
       {item.image_url && !compact ? <img src={item.image_url} alt="" loading="lazy" /> : null}
       <div>
         <span className="announcement-type">{icon}{item.type}</span>

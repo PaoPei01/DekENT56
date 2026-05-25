@@ -52,7 +52,7 @@ export function EventAnnouncementDetailPage() {
             {item.is_pinned ? <Badge status="approved">{language === 'th' ? 'ปักหมุด' : 'Pinned'}</Badge> : null}
             {item.priority !== 'normal' ? <Badge status={item.priority === 'critical' ? 'rejected' : 'pending'}>{item.priority}</Badge> : null}
           </div>
-          <AnnouncementCard item={item} />
+          <AnnouncementCard item={item} detail />
           {item.image_url ? <img className="announcement-detail-image" src={item.image_url} alt="" /> : null}
           {item.file_url ? <iframe className="announcement-file-frame" src={item.file_url} title={item.title} /> : null}
         </Card>

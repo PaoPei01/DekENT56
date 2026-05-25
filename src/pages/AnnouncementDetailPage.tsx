@@ -19,7 +19,7 @@ export function AnnouncementDetailPage() {
       {state.error ? <div className="error-state">{state.error}</div> : null}
       {item ? (
         <Card>
-          <AnnouncementCard item={item} />
+          <AnnouncementCard item={item} detail />
           {item.image_url ? <img className="announcement-detail-image" src={item.image_url} alt="" /> : null}
           {item.file_url ? <iframe className="announcement-file-frame" src={item.file_url} title={item.title} /> : null}
         </Card>

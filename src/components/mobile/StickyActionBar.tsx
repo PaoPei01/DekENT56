@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
 
 type StickyActionBarProps = {
@@ -9,6 +9,28 @@ type StickyActionBarProps = {
 
 export function StickyActionBar({ children, className = '', label }: StickyActionBarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const barRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (collapsed) return undefined;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target instanceof Node ? event.target : null;
+      if (target && barRef.current?.contains(target)) return;
+      setCollapsed(true);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setCollapsed(true);
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [collapsed]);
 
   function handleClickCapture(event: MouseEvent<HTMLDivElement>) {
     const target = event.target instanceof HTMLElement ? event.target : null;
@@ -19,7 +41,7 @@ export function StickyActionBar({ children, className = '', label }: StickyActio
   if (collapsed) return null;
 
   return (
-    <div className={`sticky-action-bar ${className}`} aria-label={label} onClickCapture={handleClickCapture}>
+    <div ref={barRef} className={`sticky-action-bar ${className}`} aria-label={label} onClickCapture={handleClickCapture}>
       {children}
     </div>
   );

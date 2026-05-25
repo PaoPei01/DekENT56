@@ -1,4 +1,4 @@
-import { cleanText } from '../lib/cleaners';
+import { cleanMultilineText, cleanText } from '../lib/cleaners';
 import { supabase } from '../lib/supabase';
 import { fetchEventBySlug } from './events';
 
@@ -28,7 +28,7 @@ export type AnnouncementInput = Partial<Announcement>;
 function cleanAnnouncement(input: AnnouncementInput) {
   const payload = {
     title: cleanText(input.title) ?? '',
-    description: cleanText(input.description),
+    description: cleanMultilineText(input.description),
     type: input.type ?? 'update',
     priority: input.priority ?? 'normal',
     audience: input.audience ?? 'public',

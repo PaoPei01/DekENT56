@@ -25,6 +25,16 @@ export function cleanText(value: unknown) {
   return isPlaceholder(text) ? null : text;
 }
 
+export function cleanMultilineText(value: unknown) {
+  const text = String(value ?? '')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => line.replace(/[ \t]+$/g, ''))
+    .join('\n')
+    .trim();
+  return isPlaceholder(text) ? null : text;
+}
+
 export function cleanEmail(value: unknown) {
   const text = cleanText(value);
   return text ? text.toLowerCase() : null;
