@@ -67,6 +67,17 @@ function rosterNameWithRole(staff: GroupStaff) {
   return joinDisplayParts([staff.nickname || staff.name, staff.duty || staff.position], ' ');
 }
 
+function optionalGroupMessage(language: 'th' | 'en') {
+  return language === 'th'
+    ? 'ยังไม่ได้จัดกลุ่มในขณะนี้ แต่คุณยังสามารถตรวจสอบและส่งคำขอแก้ไขข้อมูลของคุณได้ตามปกติ'
+    : 'Group information is not available yet. You can still review your information and submit edit requests.';
+}
+
+function getGroupVisualMeta(mainGroup?: string | null) {
+  if (!mainGroup || !Object.prototype.hasOwnProperty.call(groupMeta, mainGroup)) return null;
+  return groupMeta[mainGroup as keyof typeof groupMeta];
+}
+
 type VerifyEditPageProps = {
   titleMode?: 'edit' | 'me';
 };
@@ -125,21 +136,26 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
       fetchVerifiedGroupContext(email, phone)
         .then((context) => {
           setGroupContext(context);
-          if (!context?.assignment) setGroupSoftMessage(language === 'th' ? 'ยังไม่ได้จัดกลุ่ม หรือไม่สามารถโหลดข้อมูลกลุ่มได้ในขณะนี้' : 'Group information is not available yet.');
+          if (!context?.assignment) {
+            setFriends([]);
+            setGroupSoftMessage(optionalGroupMessage(language));
+            return;
+          }
           if (context?.assignment) {
             fetchPublicStaffCards(context.assignment.main_group, context.assignment.subgroup)
               .then(setPublicStaffCards)
               .catch(() => setPublicStaffCards([]));
+            fetchVerifiedFriendRecommendations(email, phone)
+              .then((recommendations) => setFriends(recommendations ?? []))
+              .catch(() => setFriends([]));
           }
         })
         .catch(() => {
           setGroupContext(null);
-          setGroupSoftMessage(language === 'th' ? 'ยังไม่ได้จัดกลุ่ม หรือไม่สามารถโหลดข้อมูลกลุ่มได้ในขณะนี้' : 'Group information is not available yet.');
+          setFriends([]);
+          setGroupSoftMessage(optionalGroupMessage(language));
         })
         .finally(() => setContextLoading(false));
-      fetchVerifiedFriendRecommendations(email, phone)
-        .then((recommendations) => setFriends(recommendations ?? []))
-        .catch(() => setFriends([]));
     } catch (err) {
       const message = errorMessage(err, language === 'th' ? 'ยืนยันตัวตนไม่สำเร็จ' : 'Verification failed');
       setVerifyError(message);
@@ -205,6 +221,11 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
 
   const visibleStaff = publicStaffCards.slice(0, 2);
   const extraStaff = publicStaffCards.slice(2);
+  const assignment = groupContext?.assignment ?? null;
+  const assignmentMeta = getGroupVisualMeta(assignment?.main_group);
+  const groupCardStyle = assignmentMeta
+    ? ({ '--group-color': assignmentMeta.color, '--group-soft': assignmentMeta.soft } as CSSProperties)
+    : undefined;
 
   return (
     <section className={`narrow-page page-stack ${showMobileSubmit ? 'has-sticky-actions' : ''}`}>
@@ -272,18 +293,18 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
           <div className="edit-section-card">
             <h2 className="edit-section-title">{language === 'th' ? 'ข้อมูลกลุ่มของคุณ' : 'Your Group Information'}</h2>
             {contextLoading ? <LoadingSkeleton count={1} /> : null}
-            {!contextLoading && groupContext?.assignment ? (
-              <Card className="group-reveal" style={{ '--group-color': groupMeta[groupContext.assignment.main_group].color, '--group-soft': groupMeta[groupContext.assignment.main_group].soft } as CSSProperties}>
+            {!contextLoading && assignment ? (
+              <Card className="group-reveal" style={groupCardStyle}>
                 <span className="group-badge-icon" />
                 <div>
                   <p className="eyebrow">{language === 'th' ? 'กลุ่มของคุณ' : 'Your Group'}</p>
-                  <h2>{groupLabel(groupContext.assignment.main_group, groupContext.assignment.subgroup, language)}</h2>
-                  <p>{groupContext.setting?.motto || groupMeta[groupContext.assignment.main_group].motto}</p>
+                  <h2>{groupLabel(assignment.main_group, assignment.subgroup, language)}</h2>
+                  <p>{groupContext?.setting?.motto || assignmentMeta?.motto || (language === 'th' ? 'ข้อมูลกลุ่มของคุณ' : 'Your group information')}</p>
                 </div>
                 <div className="group-details-grid">
-                  <div><strong>{language === 'th' ? 'พี่สตาฟ' : 'Staff'}</strong><span>{publicStaffCards.length ? publicStaffCards.map(staffNameWithRole).join(', ') : groupContext.staff_roster?.length ? groupContext.staff_roster.map(rosterNameWithRole).join(', ') : groupContext.setting?.mentors || groupMeta[groupContext.assignment.main_group].mentors.join(', ')}</span></div>
-                  <div><strong>{language === 'th' ? 'เวลา' : 'Time'}</strong><span>{groupContext.setting?.schedule || groupMeta[groupContext.assignment.main_group].schedule}</span></div>
-                  <div><strong>{language === 'th' ? 'จุดนัดพบ' : 'Meeting point'}</strong><span>{groupContext.setting?.meeting_point || groupMeta[groupContext.assignment.main_group].meetingPoint}</span></div>
+                  <div><strong>{language === 'th' ? 'พี่สตาฟ' : 'Staff'}</strong><span>{publicStaffCards.length ? publicStaffCards.map(staffNameWithRole).join(', ') : groupContext?.staff_roster?.length ? groupContext.staff_roster.map(rosterNameWithRole).join(', ') : groupContext?.setting?.mentors || assignmentMeta?.mentors.join(', ') || '-'}</span></div>
+                  <div><strong>{language === 'th' ? 'เวลา' : 'Time'}</strong><span>{groupContext?.setting?.schedule || assignmentMeta?.schedule || '-'}</span></div>
+                  <div><strong>{language === 'th' ? 'จุดนัดพบ' : 'Meeting point'}</strong><span>{groupContext?.setting?.meeting_point || assignmentMeta?.meetingPoint || '-'}</span></div>
                 </div>
                 {publicStaffCards.length ? (
                   <div className="staff-card-grid full-span">
@@ -300,9 +321,14 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
                 ) : null}
               </Card>
             ) : null}
-            {!contextLoading && !groupContext?.assignment ? (
-              <Card className="empty-state">
-                {groupSoftMessage || (language === 'th' ? 'ยังไม่ได้จัดกลุ่ม หรือระบบยังไม่เปิดเผยข้อมูลกลุ่มในขณะนี้ แต่คุณยังสามารถส่งคำขอแก้ไขข้อมูลได้ตามปกติ' : 'Group information is not available yet. You can still submit an edit request normally.')}
+            {!contextLoading && !assignment ? (
+              <Card className="empty-state group-optional-card">
+                <strong>{language === 'th' ? 'ยังไม่ได้จัดกลุ่ม' : 'Group not assigned yet'}</strong>
+                <span>
+                  {groupSoftMessage || (language === 'th'
+                    ? 'ระบบยังไม่พบข้อมูลกลุ่มของคุณในขณะนี้ สามารถกลับมาตรวจสอบภายหลังได้ โดยยังตรวจสอบและขอแก้ไขข้อมูลส่วนตัวได้ตามปกติ'
+                    : 'Your group information is not available yet. You can check again later, but you can still review and request changes to your personal information.')}
+                </span>
               </Card>
             ) : null}
           </div>

@@ -600,6 +600,22 @@
   scroll-padding-inline: 1rem;
 }
 
+.group-optional-card {
+  display: grid;
+  gap: 0.4rem;
+  text-align: left;
+}
+
+.group-optional-card strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.group-optional-card span {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
 .edit-friend-card {
   display: grid;
   gap: 0.25rem;
