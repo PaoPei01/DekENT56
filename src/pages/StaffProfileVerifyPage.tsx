@@ -21,6 +21,11 @@ import { errorMessage } from '../utils/error';
 
 const StaffPersonalQrModal = lazy(() => import('../components/attendance/StaffPersonalQrModal').then((module) => ({ default: module.StaffPersonalQrModal })));
 
+type VerifiedStaffPublicProfileForm = StaffPublicProfileInput & {
+  instagram?: string | null;
+  facebook?: string | null;
+};
+
 function requestFormFromContext(data: VerifiedStaffProfileContext, fallbackPhone: string) {
   return {
     phone: data.profile.phone ?? fallbackPhone,
@@ -32,12 +37,30 @@ function requestFormFromContext(data: VerifiedStaffProfileContext, fallbackPhone
   };
 }
 
+function publicFormFromContext(data: VerifiedStaffProfileContext): VerifiedStaffPublicProfileForm {
+  return {
+    avatar_path: data.public_profile?.avatar_path ?? null,
+    avatar_url: data.public_profile?.avatar_url ?? '',
+    bio: data.public_profile?.bio ?? '',
+    hometown: data.public_profile?.hometown ?? '',
+    interests: data.public_profile?.interests ?? [],
+    public_profile_enabled: data.public_profile?.public_profile_enabled ?? true,
+    show_instagram: data.public_profile?.show_instagram ?? false,
+    show_facebook: data.public_profile?.show_facebook ?? false,
+    show_line_id: data.public_profile?.show_line_id ?? false,
+    show_phone_to_staff: data.public_profile?.show_phone_to_staff ?? true,
+    show_phone_to_public: data.public_profile?.show_phone_to_public ?? false,
+    instagram: data.profile.instagram ?? '',
+    facebook: data.profile.facebook ?? '',
+  };
+}
+
 export function StaffProfileVerifyPage() {
   const { language } = useLanguage();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [data, setData] = useState<VerifiedStaffProfileContext | null>(null);
-  const [form, setForm] = useState<StaffPublicProfileInput & { instagram?: string | null; facebook?: string | null }>({ interests: [] });
+  const [form, setForm] = useState<VerifiedStaffPublicProfileForm>({ interests: [] });
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [verifiedAttendanceIdentity, setVerifiedAttendanceIdentity] = useState<VerifiedStaffAttendanceIdentity | null>(null);
@@ -65,12 +88,18 @@ export function StaffProfileVerifyPage() {
     bio: mergedForm.bio ?? null,
     interests: mergedForm.interests ?? [],
     instagram: mergedForm.show_instagram ? mergedForm.instagram ?? null : null,
-    line_id: null,
+    line_id: mergedForm.show_line_id ? data.profile.line_id ?? null : null,
     facebook: mergedForm.show_facebook ? mergedForm.facebook ?? null : null,
     phone: null,
   } : null;
 
-  function patch(values: StaffPublicProfileInput & { instagram?: string | null; facebook?: string | null }) {
+  function applyVerifiedContext(result: VerifiedStaffProfileContext, fallbackPhone = phone) {
+    setData(result);
+    setForm(publicFormFromContext(result));
+    setRequestForm(requestFormFromContext(result, fallbackPhone));
+  }
+
+  function patch(values: VerifiedStaffPublicProfileForm) {
     setForm((current) => ({ ...current, ...values }));
   }
 
@@ -85,23 +114,7 @@ export function StaffProfileVerifyPage() {
         setToast({ type: 'error', message: 'ไม่พบข้อมูลทีมงานที่ตรงกับอีเมลและเบอร์โทรนี้' });
         return;
       }
-      setData(result);
-      setRequestForm(requestFormFromContext(result, phone));
-      setForm({
-        avatar_path: result.public_profile?.avatar_path ?? null,
-        avatar_url: result.public_profile?.avatar_url ?? '',
-        bio: result.public_profile?.bio ?? '',
-        hometown: result.public_profile?.hometown ?? '',
-        interests: result.public_profile?.interests ?? [],
-        public_profile_enabled: result.public_profile?.public_profile_enabled ?? true,
-        show_instagram: result.public_profile?.show_instagram ?? false,
-        show_facebook: result.public_profile?.show_facebook ?? false,
-        show_line_id: result.public_profile?.show_line_id ?? false,
-        show_phone_to_staff: result.public_profile?.show_phone_to_staff ?? true,
-        show_phone_to_public: result.public_profile?.show_phone_to_public ?? false,
-        instagram: result.profile.instagram ?? '',
-        facebook: result.profile.facebook ?? '',
-      });
+      applyVerifiedContext(result, phone);
       try {
         const attendanceResult = await verifyStaffAttendanceIdentity(email, phone);
         const attendanceIdentity = identityFromAttendanceResult(attendanceResult);
@@ -132,8 +145,8 @@ export function StaffProfileVerifyPage() {
     setLoading(true);
     try {
       const result = await updateStaffPublicProfileVerified(email, phone, mergedForm);
-      setData(result);
-      setRequestForm(requestFormFromContext(result, phone));
+      const refreshed = await verifyStaffIdentity(email, phone);
+      applyVerifiedContext(refreshed ?? result, phone);
       setToast({ type: 'success', message: language === 'th' ? 'บันทึกโปรไฟล์ทีมงานแล้ว' : 'Staff profile saved' });
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'บันทึกไม่สำเร็จ' : 'Save failed') });
@@ -152,8 +165,7 @@ export function StaffProfileVerifyPage() {
       setRequestOpen(false);
       setToast({ type: 'success', message: language === 'th' ? 'ส่งคำขอแก้ไขแล้ว รอแอดมินอนุมัติ' : 'Request submitted for admin approval' });
       const refreshed = await verifyStaffIdentity(email, phone);
-      setData(refreshed);
-      if (refreshed) setRequestForm(requestFormFromContext(refreshed, phone));
+      if (refreshed) applyVerifiedContext(refreshed, phone);
     } catch (err) {
       setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ส่งคำขอไม่สำเร็จ' : 'Request failed') });
     } finally {
@@ -164,6 +176,11 @@ export function StaffProfileVerifyPage() {
   function scrollToProfileEdit() {
     profileEditRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.setTimeout(() => firstProfileEditInputRef.current?.focus(), 350);
+  }
+
+  function openSensitiveRequest() {
+    if (data) setRequestForm(requestFormFromContext(data, phone));
+    setRequestOpen(true);
   }
 
   async function openPersonalQr() {
@@ -290,6 +307,7 @@ export function StaffProfileVerifyPage() {
                   ['show_instagram', language === 'th' ? 'แสดง Instagram' : 'Show Instagram'],
                   ['show_line_id', language === 'th' ? 'แสดง LINE' : 'Show LINE'],
                   ['show_facebook', language === 'th' ? 'แสดง Facebook' : 'Show Facebook'],
+                  ['show_phone_to_staff', language === 'th' ? 'ให้ทีมงานที่มีสิทธิ์เห็นเบอร์โทร' : 'Show phone to authorized staff'],
                 ].map(([key, label]) => (
                   <label className="check-field" key={key}>
                     <input type="checkbox" checked={Boolean(mergedForm[key as keyof typeof mergedForm])} onChange={(event) => patch({ [key]: event.target.checked } as StaffPublicProfileInput)} />
@@ -298,7 +316,7 @@ export function StaffProfileVerifyPage() {
                 ))}
                 <div className="form-actions">
                   <Button type="submit" disabled={loading} icon={<Save size={18} />}>{language === 'th' ? 'บันทึกโปรไฟล์' : 'Save profile'}</Button>
-                  <Button type="button" variant="secondary" icon={<Send size={18} />} onClick={() => setRequestOpen(true)}>{language === 'th' ? 'ขอแก้ไขข้อมูลสำคัญ' : 'Request sensitive update'}</Button>
+                  <Button type="button" variant="secondary" icon={<Send size={18} />} onClick={openSensitiveRequest}>{language === 'th' ? 'ขอแก้ไขข้อมูลสำคัญ' : 'Request sensitive update'}</Button>
                 </div>
               </form>
             </Card>

@@ -210,10 +210,10 @@ export function StaffAttendancePage() {
         actions={(
           <>
             <HelpButton topicId="staff-attendance.overview" variant="link" />
-            <Link className="btn btn-secondary" to="/staff/profile/verify">
+            {!showVerification ? <Link className="btn btn-secondary" to="/staff/profile/verify">
               <UserRound size={18} />
               {language === 'th' ? 'กลับไปศูนย์ทีมงานทั่วไป' : 'Back to General Staff Access'}
-            </Link>
+            </Link> : null}
             {isAuthenticated ? <Link className="btn btn-secondary" to="/staff"><Home size={18} />{language === 'th' ? 'หน้าทีมงาน' : 'Staff home'}</Link> : null}
           </>
         )}
