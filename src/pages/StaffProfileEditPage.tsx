@@ -20,7 +20,6 @@ const requestFieldLabels: Record<string, { th: string; en: string; type?: 'tel' 
   phone: { th: 'เบอร์โทร', en: 'Phone', type: 'tel' },
   line_id: { th: 'LINE ID', en: 'LINE ID' },
   instagram: { th: 'Instagram', en: 'Instagram' },
-  facebook: { th: 'Facebook', en: 'Facebook' },
   disease: { th: 'โรคประจำตัว', en: 'Medical condition' },
   drug_allergy: { th: 'แพ้ยา', en: 'Drug allergy' },
   food_allergy: { th: 'แพ้อาหาร', en: 'Food allergy' },
@@ -35,7 +34,7 @@ export function StaffProfileEditPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarDisplayUrl, setAvatarDisplayUrl] = useState<string | null>(null);
   const [requestOpen, setRequestOpen] = useState(false);
-  const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', instagram: '', facebook: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
+  const [requestForm, setRequestForm] = useState({ phone: '', line_id: '', instagram: '', disease: '', drug_allergy: '', food_allergy: '', medical_note: '' });
   const [form, setForm] = useState<StaffPublicProfileInput>({
     interests: [],
   });
@@ -59,7 +58,6 @@ export function StaffProfileEditPage() {
     interests: mergedForm.interests ?? [],
     instagram: mergedForm.show_instagram ? state.data.profile.instagram : null,
     line_id: mergedForm.show_line_id ? state.data.profile.line_id : null,
-    facebook: mergedForm.show_facebook ? state.data.profile.facebook : null,
     phone: null,
   } : null;
 
@@ -98,7 +96,6 @@ export function StaffProfileEditPage() {
           phone: requestForm.phone,
           line_id: requestForm.line_id,
           instagram: requestForm.instagram,
-          facebook: requestForm.facebook,
         },
         medical: {
           disease: requestForm.disease,
@@ -188,7 +185,6 @@ export function StaffProfileEditPage() {
                 ['public_profile_enabled', language === 'th' ? 'เปิด/ปิดโปรไฟล์พื้นฐาน' : 'Basic profile on/off'],
                 ['show_instagram', language === 'th' ? 'แสดง Instagram' : 'Show Instagram'],
                 ['show_line_id', language === 'th' ? 'แสดง LINE' : 'Show LINE'],
-                ['show_facebook', language === 'th' ? 'แสดง Facebook' : 'Show Facebook'],
                 ['show_phone_to_staff', language === 'th' ? 'ให้ทีมงานที่มีสิทธิ์เห็นเบอร์โทร' : 'Show phone to authorized staff'],
               ].map(([key, label]) => (
                 <label className="check-field" key={key}>

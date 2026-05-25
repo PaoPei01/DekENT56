@@ -15,7 +15,7 @@ function csvEscape(value: unknown) {
   return `"${String(value ?? '').replace(/"/g, '""')}"`;
 }
 
-const headers = ['student_id', 'email', 'name_th', 'name_en', 'nickname', 'nickname_th', 'nickname_en', 'phone', 'major', 'position', 'role', 'main_group', 'subgroup', 'instagram', 'line_id', 'facebook'];
+const headers = ['student_id', 'email', 'name_th', 'name_en', 'nickname', 'nickname_th', 'nickname_en', 'phone', 'major', 'position', 'role', 'main_group', 'subgroup', 'instagram', 'line_id'];
 
 export function exportStaffCsv(rows: StaffManagementRow[]) {
   const csv = [
@@ -36,7 +36,6 @@ export function exportStaffCsv(rows: StaffManagementRow[]) {
       row.assignment?.subgroup,
       row.instagram,
       row.line_id,
-      row.facebook,
     ].map(csvEscape).join(',')),
   ].join('\n');
   downloadBlob(new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' }), `staff-list-${new Date().toISOString().slice(0, 10)}.csv`);
@@ -63,7 +62,6 @@ export async function exportStaffXlsx(rows: StaffManagementRow[]) {
     { header: 'Group', key: 'group', width: 18 },
     { header: 'Instagram', key: 'instagram', width: 18 },
     { header: 'Line ID', key: 'line_id', width: 18 },
-    { header: 'Facebook', key: 'facebook', width: 18 },
   ];
   rows.forEach((row) => staff.addRow({
     student_id: row.student_id,
@@ -80,7 +78,6 @@ export async function exportStaffXlsx(rows: StaffManagementRow[]) {
     group: groupLabel(row.assignment?.main_group, row.assignment?.subgroup),
     instagram: row.instagram,
     line_id: row.line_id,
-    facebook: row.facebook,
   }));
 
   const medical = workbook.addWorksheet('Medical admin only');

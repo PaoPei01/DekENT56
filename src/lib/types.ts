@@ -148,7 +148,6 @@ export type StaffProfile = {
   major: string | null;
   instagram: string | null;
   line_id: string | null;
-  facebook: string | null;
   other_contact: string | null;
   position: string | null;
   created_at: string | null;
@@ -291,7 +290,6 @@ export type GroupStaff = {
   phone: string | null;
   instagram?: string | null;
   line_id?: string | null;
-  facebook?: string | null;
   other_contact?: string | null;
   disease: string | null;
   drug_allergy: string | null;
