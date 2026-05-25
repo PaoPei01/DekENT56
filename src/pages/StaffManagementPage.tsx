@@ -1,4 +1,4 @@
-import { BarChart3, Download, FileSpreadsheet, Pencil, RefreshCw, Search, SlidersHorizontal, Trash2, UserRound } from 'lucide-react';
+import { BarChart3, Download, FileSpreadsheet, Pencil, RefreshCw, Search, SlidersHorizontal, Trash2, UserPlus, UserRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ContactLinks } from '../components/ContactLinks';
@@ -22,7 +22,15 @@ import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { majorCatalog, majorCodeOptions, majorLabel, normalizeMajor } from '../lib/major';
 import { normalizeStaffOperationalRole, normalizeStaffSecondaryRoles, staffOperationalRoles } from '../lib/staffRoles';
 import type { MainGroup, StaffAssignment, StaffManagementRow, StaffMedicalInfo, StaffRole, Subgroup } from '../lib/types';
-import { deleteStaffProfile, fetchAdminStaffProfiles, syncStaffRoster, updateStaffProfile } from '../services/staffManagement';
+import {
+  createStaffProfileFromPerson,
+  deleteStaffProfile,
+  fetchAdminStaffProfiles,
+  lookupPersonForStaffAdd,
+  syncStaffRoster,
+  updateStaffProfile,
+  type StaffPersonLookupResult,
+} from '../services/staffManagement';
 import { errorMessage } from '../utils/error';
 import { exportStaffCsv, exportStaffXlsx } from '../utils/staffExport';
 
@@ -48,6 +56,16 @@ export function StaffManagementPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [editing, setEditing] = useState<StaffManagementRow | null>(null);
   const [deleting, setDeleting] = useState<StaffManagementRow | null>(null);
+  const [addingOpen, setAddingOpen] = useState(false);
+  const [addStudentId, setAddStudentId] = useState('');
+  const [addPosition, setAddPosition] = useState('');
+  const [addPrimaryRole, setAddPrimaryRole] = useState('');
+  const [addSystemRole, setAddSystemRole] = useState<StaffRole>('staff');
+  const [addMainGroup, setAddMainGroup] = useState('');
+  const [addSubgroup, setAddSubgroup] = useState('');
+  const [addLookupResult, setAddLookupResult] = useState<StaffPersonLookupResult | null>(null);
+  const [addLoading, setAddLoading] = useState(false);
+  const [addSaving, setAddSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const state = useAsync(() => fetchAdminStaffProfiles({ search, position, mainGroup, subgroup, major }), [search, position, mainGroup, subgroup, major]);
@@ -131,6 +149,93 @@ export function StaffManagementPage() {
     }
   }
 
+  function resetAddForm() {
+    setAddStudentId('');
+    setAddPosition('');
+    setAddPrimaryRole('');
+    setAddSystemRole('staff');
+    setAddMainGroup('');
+    setAddSubgroup('');
+    setAddLookupResult(null);
+  }
+
+  function openAddModal() {
+    resetAddForm();
+    setAddingOpen(true);
+  }
+
+  function closeAddModal() {
+    setAddingOpen(false);
+    resetAddForm();
+  }
+
+  async function lookupAddPerson() {
+    const studentId = addStudentId.trim();
+    if (!studentId) {
+      setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกรหัสนักศึกษา' : 'Please enter a student ID' });
+      return;
+    }
+    try {
+      setAddLoading(true);
+      const result = await lookupPersonForStaffAdd(studentId);
+      setAddLookupResult(result);
+      if (!result.success) {
+        setToast({ type: 'error', message: language === 'th' ? result.message_th ?? 'ไม่พบข้อมูลจากรหัสนักศึกษานี้' : 'No person found for this student ID' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ค้นหาข้อมูลไม่สำเร็จ' : 'Lookup failed') });
+    } finally {
+      setAddLoading(false);
+    }
+  }
+
+  function patchAddPosition(value: string) {
+    setAddPosition(value);
+    if (!addPrimaryRole) setAddPrimaryRole(normalizeStaffOperationalRole(value) ?? '');
+  }
+
+  async function submitAddStaff() {
+    if (!addStudentId.trim()) {
+      setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกรหัสนักศึกษา' : 'Please enter a student ID' });
+      return;
+    }
+    if (!addLookupResult?.success || !addLookupResult.person) {
+      setToast({ type: 'error', message: language === 'th' ? 'กรุณาค้นหาข้อมูลจากฐานก่อนเพิ่มสตาฟ' : 'Please find the person before adding staff' });
+      return;
+    }
+    if (addLookupResult.existing_staff_profile_id) {
+      setToast({ type: 'error', message: language === 'th' ? 'รายชื่อนี้มีอยู่ในทีมงานแล้ว' : 'This person is already staff' });
+      return;
+    }
+    if (!addPosition.trim()) {
+      setToast({ type: 'error', message: language === 'th' ? 'กรุณากรอกตำแหน่ง' : 'Please enter a position' });
+      return;
+    }
+    try {
+      setAddSaving(true);
+      const result = await createStaffProfileFromPerson({
+        studentId: addStudentId,
+        position: addPosition,
+        primaryRole: addPrimaryRole || normalizeStaffOperationalRole(addPosition) || addPosition,
+        systemRole: addSystemRole,
+        mainGroup: addMainGroup || null,
+        subgroup: addSubgroup || null,
+      });
+      if (!result.success) {
+        setToast({ type: 'error', message: language === 'th' ? result.message_th ?? 'เพิ่มรายชื่อทีมงานไม่สำเร็จ' : result.code === 'already_staff' ? 'This person is already staff' : 'Could not add staff' });
+        return;
+      }
+      setToast({ type: 'success', message: language === 'th' ? result.message_th ?? 'เพิ่มรายชื่อทีมงานแล้ว' : 'Staff member added' });
+      setSearch(addStudentId.trim());
+      closeAddModal();
+      await state.reload();
+    } catch (err) {
+      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'เพิ่มรายชื่อทีมงานไม่สำเร็จ' : 'Could not add staff') });
+    } finally {
+      setAddSaving(false);
+    }
+  }
+
   async function syncRoster() {
     try {
       setSyncing(true);
@@ -165,6 +270,7 @@ export function StaffManagementPage() {
       <Card className="group-action-panel">
         <div className="form-actions">
           <Link className="btn btn-primary" to="/admin/staff/import"><FileSpreadsheet size={18} />{language === 'th' ? 'นำเข้า Excel' : 'Import Excel'}</Link>
+          <Button variant="secondary" icon={<UserPlus size={18} />} onClick={openAddModal}>{language === 'th' ? 'เพิ่มสตาฟรายบุคคล' : 'Add individual staff'}</Button>
           <Link className="btn btn-secondary" to="/admin/staff/operations"><BarChart3 size={18} />{language === 'th' ? 'โควตาทีมงาน' : 'Staff Ops'}</Link>
           <Button variant="secondary" icon={<RefreshCw size={18} />} onClick={syncRoster} disabled={syncing}>{language === 'th' ? 'ซิงค์ข้อมูลพี่กลุ่ม' : 'Sync Staff Roster'}</Button>
           <ExportActions
@@ -291,9 +397,104 @@ export function StaffManagementPage() {
         ) : null}
       </Modal>
 
+      <Modal open={addingOpen} title={language === 'th' ? 'เพิ่มสตาฟรายบุคคล' : 'Add individual staff'} onClose={closeAddModal}>
+        <div className="modal-body page-stack">
+          <Card variant="soft" className="privacy-notice">
+            <strong>{language === 'th' ? 'เพิ่มจากฐานข้อมูลกลาง' : 'Add from central people database'}</strong>
+            <span>{language === 'th' ? 'กรอกรหัสนักศึกษาและตำแหน่ง ระบบจะดึงข้อมูลชื่อ อีเมล เบอร์โทร สาขา และข้อมูลที่เกี่ยวข้องจากฐานข้อมูลกลางให้อัตโนมัติ' : 'Enter a student ID and position. The system will pull name, email, phone, major, and related data from the central people database.'}</span>
+          </Card>
+          <div className="form-grid two-col">
+            <Input
+              label={language === 'th' ? 'รหัสนักศึกษา' : 'Student ID'}
+              value={addStudentId}
+              onChange={(event) => {
+                setAddStudentId(event.target.value);
+                setAddLookupResult(null);
+              }}
+              required
+            />
+            <div className="field field-align-end">
+              <span>{language === 'th' ? 'ค้นหาข้อมูล' : 'Lookup'}</span>
+              <Button type="button" variant="secondary" icon={<Search size={18} />} loading={addLoading} onClick={lookupAddPerson}>
+                {language === 'th' ? 'ค้นหาข้อมูลจากฐาน' : 'Find person'}
+              </Button>
+            </div>
+          </div>
+
+          {addLookupResult && !addLookupResult.success ? (
+            <Card variant="warning" className="privacy-notice">
+              <strong>{language === 'th' ? 'ไม่พบข้อมูลจากรหัสนักศึกษานี้' : 'Person not found'}</strong>
+              <span>{language === 'th' ? addLookupResult.message_th ?? 'กรุณาตรวจสอบรหัสนักศึกษาอีกครั้ง' : 'Please check the student ID and try again.'}</span>
+            </Card>
+          ) : null}
+
+          {addLookupResult?.person ? (
+            <Card variant={addLookupResult.existing_staff_profile_id ? 'warning' : 'default'}>
+              <div className="participant-admin-cell">
+                <strong>{addLookupResult.person.name_th || addLookupResult.person.name_en || addLookupResult.person.nickname || '-'}</strong>
+                <span>{[
+                  addLookupResult.person.student_id,
+                  addLookupResult.person.email,
+                  addLookupResult.person.phone,
+                  majorLabel(addLookupResult.person.major, language),
+                  addLookupResult.person.year_level ? `${language === 'th' ? 'ชั้นปี' : 'Year'} ${addLookupResult.person.year_level}` : '',
+                ].filter(Boolean).join(' · ')}</span>
+              </div>
+              {addLookupResult.existing_staff_profile_id ? (
+                <div className="page-stack">
+                  <Card variant="warning" className="privacy-notice">
+                    <strong>{language === 'th' ? 'รายชื่อนี้มีอยู่ในทีมงานแล้ว' : 'This person is already staff'}</strong>
+                    <span>{addLookupResult.existing_position || '-'}</span>
+                  </Card>
+                  <div className="form-actions">
+                    <Link className="btn btn-secondary" to={`/admin/staff/${addLookupResult.existing_staff_profile_id}/profile`} onClick={closeAddModal}>
+                      {language === 'th' ? 'เปิดโปรไฟล์เดิม' : 'Open existing profile'}
+                    </Link>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSearch(addLookupResult.person?.student_id ?? addStudentId);
+                        closeAddModal();
+                      }}
+                    >
+                      {language === 'th' ? 'ค้นหาในรายชื่อทีมงาน' : 'Search staff list'}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+          ) : null}
+
+          <div className="form-grid two-col">
+            <Input label={language === 'th' ? 'ตำแหน่ง' : 'Position'} value={addPosition} onChange={(event) => patchAddPosition(event.target.value)} required />
+            <Select label={language === 'th' ? 'หน้าที่หลัก' : 'Primary Duty'} value={addPrimaryRole} options={operationalRoles} onChange={(event) => setAddPrimaryRole(event.target.value)} />
+            <Select label={language === 'th' ? 'สิทธิ์ระบบ' : 'System role'} value={addSystemRole} options={roles} onChange={(event) => setAddSystemRole((event.target.value || 'staff') as StaffRole)} />
+            <Select label={language === 'th' ? 'สี' : 'Color'} value={addMainGroup} options={mainGroups.map((item) => ({ value: item, label: language === 'th' ? groupMeta[item].th : groupMeta[item].en }))} onChange={(event) => setAddMainGroup(event.target.value)} />
+            <Select label={language === 'th' ? 'กลุ่มย่อย' : 'Subgroup'} value={addSubgroup} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} onChange={(event) => setAddSubgroup(event.target.value)} />
+          </div>
+
+          <Card variant="soft" className="privacy-notice">
+            <strong>{language === 'th' ? 'ความเป็นส่วนตัว' : 'Privacy'}</strong>
+            <span>{language === 'th' ? 'ข้อมูลสุขภาพจะแสดงเฉพาะผู้ดูแลหรือทีมที่เกี่ยวข้องเท่านั้น' : 'Health information is visible only to admins or authorized safety staff.'}</span>
+          </Card>
+
+          <div className="form-actions">
+            <Button
+              icon={<UserPlus size={18} />}
+              loading={addSaving}
+              disabled={Boolean(addLookupResult?.existing_staff_profile_id)}
+              onClick={submitAddStaff}
+            >
+              {language === 'th' ? 'เพิ่มเป็นสตาฟ' : 'Add staff'}
+            </Button>
+            <Button variant="secondary" onClick={closeAddModal}>{language === 'th' ? 'ยกเลิก' : 'Cancel'}</Button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal open={Boolean(deleting)} title={language === 'th' ? 'ยืนยันการลบรายชื่อทีมงาน' : 'Confirm staff deletion'} onClose={() => setDeleting(null)}>
         <div className="modal-body">
-          <p>{language === 'th' ? `ต้องการลบข้อมูลทีมงานของ ${deleting?.name_th ?? deleting?.nickname_th ?? deleting?.nickname ?? deleting?.student_id} หรือไม่ ข้อมูลสุขภาพและ assignment ที่ผูกกับรายชื่อนี้จะถูกลบด้วย` : `Delete staff record for ${deleting?.name_en ?? deleting?.name_th ?? deleting?.nickname_en ?? deleting?.nickname ?? deleting?.student_id}? Linked medical info and assignment will also be deleted.`}</p>
+          <p>{language === 'th' ? `ต้องการลบรายชื่อทีมงานนี้หรือไม่ การลบจะนำข้อมูลทีมงานของ ${deleting?.name_th ?? deleting?.nickname_th ?? deleting?.nickname ?? deleting?.student_id ?? '-'} ออกจากหน้านี้ และอาจลบข้อมูลหน้าที่หรือข้อมูลสุขภาพที่ผูกกับรายชื่อนี้ด้วย` : `Delete this staff record for ${deleting?.name_en ?? deleting?.name_th ?? deleting?.nickname_en ?? deleting?.nickname ?? deleting?.student_id ?? '-'}? This removes the staff member from this page and may delete linked assignment or health data.`}</p>
           <div className="form-actions">
             <Button variant="danger" icon={<Trash2 size={18} />} onClick={confirmDelete}>
               {language === 'th' ? 'ลบรายชื่อทีมงาน' : 'Delete staff'}

@@ -33,6 +33,39 @@ export type StaffUpdatePayload = {
 
 export type StaffImportMode = 'full' | 'major_only' | 'contact_only' | 'medical_only';
 
+export type StaffPersonLookupResult = {
+  success: boolean;
+  code: string;
+  message_th?: string;
+  person?: {
+    person_id: string;
+    student_id: string | null;
+    name_th: string | null;
+    name_en: string | null;
+    nickname: string | null;
+    nickname_th: string | null;
+    nickname_en: string | null;
+    email: string | null;
+    phone: string | null;
+    major: string | null;
+    year_level: number | null;
+    instagram: string | null;
+    line_id: string | null;
+    facebook: string | null;
+    other_contact: string | null;
+  } | null;
+  existing_staff_profile_id?: string | null;
+  existing_position?: string | null;
+};
+
+export type CreateStaffFromPersonResult = {
+  success: boolean;
+  code: string;
+  message_th?: string;
+  staff_profile_id?: string;
+  existing_staff_profile_id?: string | null;
+};
+
 export async function fetchAdminStaffProfiles(filters: StaffFilters = {}): Promise<StaffManagementRow[]> {
   const { data, error } = await supabase.rpc('get_admin_staff_profiles');
   if (error) throw error;
@@ -88,6 +121,32 @@ export async function updateStaffProfile(id: string, payload: StaffUpdatePayload
 export async function deleteStaffProfile(id: string) {
   const { error } = await supabase.rpc('delete_staff_profile_admin', { input_staff_profile_id: id });
   if (error) throw error;
+}
+
+export async function lookupPersonForStaffAdd(studentId: string): Promise<StaffPersonLookupResult> {
+  const { data, error } = await supabase.rpc('lookup_person_for_staff_add_admin', { input_student_id: cleanNullableText(studentId) });
+  if (error) throw error;
+  return data as StaffPersonLookupResult;
+}
+
+export async function createStaffProfileFromPerson(input: {
+  studentId: string;
+  position: string;
+  primaryRole?: string | null;
+  systemRole?: string | null;
+  mainGroup?: string | null;
+  subgroup?: string | null;
+}): Promise<CreateStaffFromPersonResult> {
+  const { data, error } = await supabase.rpc('create_staff_profile_from_person_admin', {
+    input_student_id: cleanNullableText(input.studentId),
+    input_position: cleanNullableText(input.position),
+    input_primary_role: cleanNullableText(input.primaryRole),
+    input_system_role: cleanNullableText(input.systemRole),
+    input_main_group: cleanNullableText(input.mainGroup),
+    input_subgroup: cleanNullableText(input.subgroup),
+  });
+  if (error) throw error;
+  return data as CreateStaffFromPersonResult;
 }
 
 export async function importStaffRecords(rows: StaffImportRow[], mode: StaffImportMode = 'full') {
