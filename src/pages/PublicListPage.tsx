@@ -17,7 +17,6 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Select } from '../components/ui/Select';
 import { useLanguage } from '../context/LanguageContext';
 import { useAsync } from '../hooks/useAsync';
-import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { copy } from '../lib/copy';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
@@ -29,20 +28,25 @@ export function PublicListPage() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [submittedSearch, setSubmittedSearch] = useState('');
   const [major, setMajor] = useState('');
   const [mainGroup, setMainGroup] = useState('');
   const [subgroup, setSubgroup] = useState('');
   const [selected, setSelected] = useState<PublicProfile | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const debouncedSearch = useDebouncedValue(search, 300);
   const { data: majors } = useAsync(fetchPublicMajors, []);
-  const { data, loading, error } = useAsync(() => fetchPublicProfiles({ search: debouncedSearch, major, mainGroup, subgroup }), [debouncedSearch, major, mainGroup, subgroup]);
-  const participants = data ?? [];
+  const hasSearchIntent = Boolean(submittedSearch || major || mainGroup || subgroup);
+  const { data, loading, error } = useAsync(
+    () => hasSearchIntent ? fetchPublicProfiles({ search: submittedSearch, major, mainGroup, subgroup }) : Promise.resolve([]),
+    [hasSearchIntent, submittedSearch, major, mainGroup, subgroup],
+    { initialLoading: false, keepPreviousData: false },
+  );
+  const participants = hasSearchIntent ? data ?? [] : [];
   const isInitialLoading = loading && !data;
   const isUpdating = loading && Boolean(data);
   const resultText = useMemo(() => `${participants.length.toLocaleString(language === 'th' ? 'th-TH' : 'en-US')} ${language === 'th' ? 'คน' : 'people'}`, [language, participants.length]);
-  const hasFilters = Boolean(search || major || mainGroup || subgroup);
+  const hasFilters = Boolean(search || submittedSearch || major || mainGroup || subgroup);
   const activeFilters = [
     major ? majorLabel(`(${major})`, language) : '',
     mainGroup ? (language === 'th' ? groupMeta[mainGroup as MainGroup].th : groupMeta[mainGroup as MainGroup].en) : '',
@@ -51,9 +55,14 @@ export function PublicListPage() {
 
   function clearFilters() {
     setSearch('');
+    setSubmittedSearch('');
     setMajor('');
     setMainGroup('');
     setSubgroup('');
+  }
+
+  function applySearch(nextSearch = search) {
+    setSubmittedSearch(nextSearch.trim());
   }
 
   function scrollToSearch() {
@@ -108,7 +117,7 @@ export function PublicListPage() {
           eyebrow={t.participants}
           title={language === 'th' ? 'ค้นหารายชื่อผู้เข้าร่วม' : 'Search participants'}
           description={language === 'th' ? 'ค้นหารายชื่อ สาขา และกลุ่มของผู้เข้าร่วม โดยไม่แสดงข้อมูลส่วนตัว' : 'Search participants by name, major, and group without showing private details.'}
-          meta={<strong className="count-badge">{resultText}</strong>}
+          meta={hasSearchIntent ? <strong className="count-badge">{resultText}</strong> : undefined}
           actions={<HelpButton topicId="participant.search" variant="link" />}
         />
       </div>
@@ -124,8 +133,10 @@ export function PublicListPage() {
         value={search}
         onChange={setSearch}
         placeholder={language === 'th' ? 'ค้นหาชื่อ ชื่อเล่น สาขา' : 'Search name, nickname, major'}
-        resultText={resultText}
+        resultText={hasSearchIntent ? resultText : undefined}
         inputRef={searchInputRef}
+        onSubmit={applySearch}
+        submitLabel={language === 'th' ? 'ค้นหา' : 'Search'}
         trailing={(
           <>
             <Button type="button" variant="secondary" icon={<SlidersHorizontal size={17} />} onClick={() => setFiltersOpen(true)}>
@@ -149,15 +160,16 @@ export function PublicListPage() {
           </>
         )}
       >
-        <div className="toolbar">
+        <form className="toolbar" onSubmit={(event) => { event.preventDefault(); applySearch(); }}>
           <div className="search-shell">
             <Search size={18} aria-hidden="true" />
             <Input label={t.search} value={search} onChange={(event) => setSearch(event.target.value)} placeholder={language === 'th' ? 'ชื่อ ชื่อเล่น หรือสาขา' : 'Name, nickname, or major'} />
           </div>
+          <Button type="submit" icon={<Search size={17} />}>{language === 'th' ? 'ค้นหา' : 'Search'}</Button>
           <Select label={t.filterMajor} value={major} onChange={(event) => setMajor(event.target.value)} options={(majors ?? []).map((code) => ({ value: code, label: majorLabel(`(${code})`, language) }))} placeholder={t.all} />
           <Select label={t.filterGroup} value={mainGroup} onChange={(event) => setMainGroup(event.target.value)} options={mainGroups.map((group) => ({ value: group, label: language === 'th' ? groupMeta[group].th : groupMeta[group].en }))} placeholder={t.all} />
           <Select label={t.filterSubgroup} value={subgroup} onChange={(event) => setSubgroup(event.target.value)} options={subgroups.map((item) => ({ value: item, label: `Group ${item}` }))} placeholder={t.all} />
-        </div>
+        </form>
       </FilterDrawer>
 
       <MobileFilterSheet
@@ -188,9 +200,20 @@ export function PublicListPage() {
       ) : null}
       {isInitialLoading ? <LoadingSkeleton /> : null}
       {error ? <div className="error-state">{error}</div> : null}
-      {!isInitialLoading && !error && participants.length === 0 ? <EmptyState title={language === 'th' ? 'ไม่พบรายชื่อ' : 'No participants found'} description={language === 'th' ? copy.th.tryPublicSearch : copy.en.tryPublicSearch} /> : null}
+      {!isInitialLoading && !error && !hasSearchIntent ? (
+        <EmptyState
+          title={language === 'th' ? 'ค้นหาข้อมูลผู้เข้าร่วม' : 'Search participants'}
+          description={language === 'th' ? 'กรอกชื่อ รหัสนักศึกษา ชื่อเล่น หรือกลุ่ม เพื่อค้นหาข้อมูลที่ต้องการ' : 'Enter a name, student ID, nickname, or group to find participant information.'}
+        />
+      ) : null}
+      {!isInitialLoading && !error && hasSearchIntent && participants.length === 0 ? (
+        <EmptyState
+          title={language === 'th' ? 'ไม่พบข้อมูลที่ตรงกับคำค้นหา' : 'No matching results found.'}
+          description={language === 'th' ? copy.th.tryPublicSearch : copy.en.tryPublicSearch}
+        />
+      ) : null}
 
-      <div className="participant-grid">
+      <div className="participant-grid participant-card-list">
         {participants.map((profile) => {
           const nickname = language === 'th' ? profile.nickname : profile.nickname_en || profile.nickname;
           const fullName = (language === 'th' ? profile.name_th : profile.name_en) || profile.name_th || profile.name_en || '';

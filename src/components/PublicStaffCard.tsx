@@ -1,6 +1,7 @@
 import { Facebook, Instagram, Phone } from 'lucide-react';
 import { StaffAvatar } from './StaffAvatar';
 import { groupLabel } from '../lib/grouping';
+import { joinDisplayParts } from '../lib/display';
 import { useLanguage } from '../context/LanguageContext';
 import type { PublicStaffCardData } from '../services/staffProfiles';
 import { staffDisplayName } from '../services/staffProfiles';
@@ -17,6 +18,7 @@ export function PublicStaffCard({ staff, internal = false }: PublicStaffCardProp
   const scope = staff.base_number
     ? `${language === 'th' ? 'ฐาน' : 'Base'} ${staff.base_number}`
     : groupLabel(staff.main_group, staff.subgroup, language);
+  const roleLine = joinDisplayParts([role, scope], ' · ');
 
   return (
     <article className="public-staff-card">
@@ -24,7 +26,7 @@ export function PublicStaffCard({ staff, internal = false }: PublicStaffCardProp
       <div className="public-staff-body">
         <div>
           <strong>{displayName}</strong>
-          <span>{role} · {scope}</span>
+          <span>{roleLine}</span>
         </div>
         {staff.bio ? <p>{staff.bio}</p> : null}
         {staff.interests?.length ? <small>{staff.interests.join(' · ')}</small> : null}

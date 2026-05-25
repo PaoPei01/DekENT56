@@ -1,4 +1,4 @@
-import { Save, SearchCheck } from 'lucide-react';
+import { CheckCircle2, Save, SearchCheck } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,10 +14,11 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { editableFields, fieldLabel } from '../lib/constants';
+import { joinDisplayParts } from '../lib/display';
 import { groupLabel } from '../lib/grouping';
 import { groupMeta } from '../lib/groups';
 import { majorLabel } from '../lib/major';
-import type { EditableProfileFields, Profile } from '../lib/types';
+import type { EditableProfileFields, GroupStaff, Profile } from '../lib/types';
 import { fetchVerifiedFriendRecommendations, fetchVerifiedGroupContext } from '../services/groups';
 import { createEditRequest, pickEditableFields, verifyProfileIdentity } from '../services/profiles';
 import { fetchPublicStaffCards, type PublicStaffCardData } from '../services/staffProfiles';
@@ -55,6 +56,15 @@ function normalizeEditValue(value: unknown) {
 function hasEditChanges(profile: Profile | null, form: EditableProfileFields | null) {
   if (!profile || !form) return false;
   return editableFields.some((field) => normalizeEditValue(profile[field]) !== normalizeEditValue(form[field]));
+}
+
+function staffNameWithRole(staff: PublicStaffCardData) {
+  const name = staff.nickname_th || staff.nickname || staff.nickname_en || staff.name_th || staff.name_en;
+  return joinDisplayParts([name, staff.primary_role || staff.position], ' ');
+}
+
+function rosterNameWithRole(staff: GroupStaff) {
+  return joinDisplayParts([staff.nickname || staff.name, staff.duty || staff.position], ' ');
 }
 
 type VerifyEditPageProps = {
@@ -271,7 +281,7 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
                   <p>{groupContext.setting?.motto || groupMeta[groupContext.assignment.main_group].motto}</p>
                 </div>
                 <div className="group-details-grid">
-                  <div><strong>{language === 'th' ? 'พี่สตาฟ' : 'Staff'}</strong><span>{publicStaffCards.length ? publicStaffCards.map((staff) => staff.nickname_th || staff.nickname || staff.nickname_en || staff.name_th).join(', ') : groupContext.staff_roster?.length ? groupContext.staff_roster.map((staff) => `${staff.nickname || staff.name}`).join(', ') : groupContext.setting?.mentors || groupMeta[groupContext.assignment.main_group].mentors.join(', ')}</span></div>
+                  <div><strong>{language === 'th' ? 'พี่สตาฟ' : 'Staff'}</strong><span>{publicStaffCards.length ? publicStaffCards.map(staffNameWithRole).join(', ') : groupContext.staff_roster?.length ? groupContext.staff_roster.map(rosterNameWithRole).join(', ') : groupContext.setting?.mentors || groupMeta[groupContext.assignment.main_group].mentors.join(', ')}</span></div>
                   <div><strong>{language === 'th' ? 'เวลา' : 'Time'}</strong><span>{groupContext.setting?.schedule || groupMeta[groupContext.assignment.main_group].schedule}</span></div>
                   <div><strong>{language === 'th' ? 'จุดนัดพบ' : 'Meeting point'}</strong><span>{groupContext.setting?.meeting_point || groupMeta[groupContext.assignment.main_group].meetingPoint}</span></div>
                 </div>
@@ -298,9 +308,12 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
           </div>
 
           {submitted ? (
-            <Card className="edit-success-card" aria-live="polite">
-              <h2>{language === 'th' ? 'ส่งคำขอแก้ไขแล้ว' : 'Edit request submitted'}</h2>
-              <p>{language === 'th' ? 'แอดมินจะตรวจสอบและอนุมัติก่อนอัปเดตข้อมูลจริง หากต้องการแก้ไขเพิ่มเติมสามารถส่งคำขอใหม่ได้' : 'Admins will review and approve before applying updates. You can change a field and submit another request if needed.'}</p>
+            <Card className="edit-success-card" variant="success" aria-live="polite">
+              <div className="success-title-row">
+                <CheckCircle2 size={24} aria-hidden="true" />
+                <h2>{language === 'th' ? 'ส่งคำขอสำเร็จ' : 'Request submitted'}</h2>
+              </div>
+              <p>{language === 'th' ? 'ระบบได้รับคำขอของคุณแล้ว กรุณารอผู้ดูแลตรวจสอบ' : 'Your request has been received and is pending review.'}</p>
               <div className="form-actions">
                 <Link className="btn btn-secondary" to="/">{language === 'th' ? 'กลับหน้าแรก' : 'Back home'}</Link>
                 <Button variant="secondary" onClick={() => setSubmitted(false)}>{language === 'th' ? 'ตรวจสอบข้อมูลอีกครั้ง' : 'Review again'}</Button>
@@ -354,7 +367,7 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
           </Card>
 
           {friends.length ? (
-            <details className="edit-section-card edit-collapsible edit-friend-panel">
+            <details className="edit-section-card edit-collapsible edit-friend-panel people-you-may-know-section">
               <summary>
                 <span>
                   <strong>{language === 'th' ? 'เพื่อนในกลุ่มที่เปิดโปรไฟล์สาธารณะ' : 'Group members with public profiles'}</strong>
@@ -362,7 +375,7 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
                 </span>
                 <em>{language === 'th' ? 'ตัวเลือกเสริม' : 'Optional'}</em>
               </summary>
-              <div className="edit-friend-grid">
+              <div className="edit-friend-grid people-you-may-know-list">
                 {friends.map((friend) => {
                   const displayName = friend.nickname || friend.name_th || '-';
                   const showThaiName = friend.name_th && friend.name_th !== displayName;

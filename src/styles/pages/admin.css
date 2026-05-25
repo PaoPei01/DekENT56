@@ -507,6 +507,17 @@
   margin: 0;
 }
 
+.success-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--success-soft-text);
+}
+
+.success-title-row svg {
+  flex: 0 0 auto;
+}
+
 .edit-collapsible {
   border-radius: 22px;
 }
@@ -578,6 +589,15 @@
   max-height: 340px;
   overflow: auto;
   padding-top: 0.75rem;
+}
+
+.people-you-may-know-section {
+  padding-inline: clamp(0.85rem, 2vw, 1.1rem);
+}
+
+.people-you-may-know-list {
+  gap: 0.75rem;
+  scroll-padding-inline: 1rem;
 }
 
 .edit-friend-card {
