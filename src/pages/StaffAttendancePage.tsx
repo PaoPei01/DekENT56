@@ -1,6 +1,6 @@
 import { Camera, History, Home, LogOut, QrCode, RefreshCw, ShieldCheck } from 'lucide-react';
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Button } from '../components/ui/Button';
@@ -53,6 +53,7 @@ export function StaffAttendancePage() {
   const { language } = useLanguage();
   const { events } = useEventContext();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [data, setData] = useState<MyStaffAttendanceData | null>(null);
   const [verifiedIdentity, setVerifiedIdentity] = useState<VerifiedStaffAttendanceIdentity | null>(() => getVerifiedStaffIdentity());
   const [authPersonalQrPayload, setAuthPersonalQrPayload] = useState('');
@@ -170,6 +171,16 @@ export function StaffAttendancePage() {
     setToast({ type: 'success', message: language === 'th' ? 'ล้างข้อมูลที่จำไว้แล้ว' : 'Remembered identity cleared' });
   }
 
+  function switchStaffIdentity() {
+    clearVerifiedStaffIdentity();
+    setVerifiedIdentity(null);
+    setData(null);
+    setHistoryError('');
+    setEmail('');
+    setPhone('');
+    navigate('/staff/profile/verify');
+  }
+
   if (loading) return <LoadingSkeleton />;
   if (error) {
     return (
@@ -259,7 +270,7 @@ export function StaffAttendancePage() {
             </div>
             {!isAuthenticated ? (
               <div className="staff-attendance-secondary-actions">
-                <button type="button" onClick={clearIdentity}><LogOut size={16} />{language === 'th' ? 'เปลี่ยนบัญชีทีมงานนี้' : 'Change staff identity'}</button>
+                <button type="button" onClick={switchStaffIdentity}><LogOut size={16} />{language === 'th' ? 'เปลี่ยนบัญชีทีมงานนี้' : 'Switch staff identity'}</button>
                 <button type="button" onClick={clearIdentity}>{language === 'th' ? 'ล้างข้อมูลที่จำไว้ในเครื่อง' : 'Clear remembered identity'}</button>
               </div>
             ) : null}
