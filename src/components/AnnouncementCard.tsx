@@ -14,7 +14,7 @@ export function AnnouncementCard({ item, compact = false }: AnnouncementCardProp
       <div>
         <span className="announcement-type">{icon}{item.type}</span>
         <h3>{item.title}</h3>
-        {item.description ? <p>{item.description}</p> : null}
+        {item.description ? <p className="announcement-description">{item.description}</p> : null}
         <div className="staff-contact-row">
           {item.file_url ? <a href={item.file_url} target="_blank" rel="noreferrer">PDF / File</a> : null}
           {item.external_url ? <a href={item.external_url} target="_blank" rel="noreferrer">Link</a> : null}
