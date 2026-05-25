@@ -415,6 +415,7 @@ Use this checklist before real event operations and after every production-readi
 - [ ] Column mapping is visible.
 - [ ] Convert the Engineering year 2 Excel file to CSV manually.
 - [ ] Upload CSV into `people_import_year2_2569` using Supabase Table Editor.
+- [ ] If the source file has Facebook, map it to `facebook_raw` and confirm it imports to `people.facebook`.
 - [ ] Run `preview_year2_people_import()`.
 - [ ] Confirm row count is about 1111.
 - [ ] Confirm duplicate student IDs, invalid phones, and invalid emails are surfaced when present.

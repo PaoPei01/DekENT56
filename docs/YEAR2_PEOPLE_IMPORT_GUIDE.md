@@ -16,7 +16,7 @@ Use `people` because it is the multi-event identity/contact base. Existing publi
 
 1. Open the Excel file in Numbers, Excel, or Google Sheets.
 2. Confirm the header row contains the expected columns:
-   `ON`, `Email`, `StudentID`, `FullNameEN`, `FullNameTH`, `NicknameEN`, `NicknameTH`, `PhoneNumber`, `Instagram`, `IDLine`, `MajorEN`, `MajorTH`, `CurriculumTypeEN`, `CurriculumTypeTH`, `ProgramType`, `MedicalCondition`, `DrugAllergy`, `FoodAllergy`.
+   `ON`, `Email`, `StudentID`, `FullNameEN`, `FullNameTH`, `NicknameEN`, `NicknameTH`, `PhoneNumber`, `Instagram`, `Facebook` if available, `IDLine`, `MajorEN`, `MajorTH`, `CurriculumTypeEN`, `CurriculumTypeTH`, `ProgramType`, `MedicalCondition`, `DrugAllergy`, `FoodAllergy`.
 3. Export or download as CSV.
 4. Keep a private copy of the original file and CSV. Do not commit either file.
 
@@ -36,6 +36,7 @@ Use Supabase Table Editor:
    - `NicknameTH` -> `nickname_th_raw`
    - `PhoneNumber` -> `phone_raw`
    - `Instagram` -> `instagram_raw`
+   - `Facebook` -> `facebook_raw` if the file has a Facebook column
    - `IDLine` -> `line_id_raw`
    - `MajorEN` -> `major_en_raw`
    - `MajorTH` -> `major_th_raw`

@@ -11,7 +11,7 @@ import type {
   PersonRecord,
 } from '../lib/personTypes';
 
-const personFields = 'id,student_id,name_th,name_en,nickname,email,phone,faculty,department,major,year_level,line_id,instagram,source,created_at,updated_at';
+const personFields = 'id,student_id,name_th,name_en,nickname,email,phone,faculty,department,major,year_level,line_id,instagram,facebook,source,created_at,updated_at';
 
 export async function fetchAdminPeople(params?: AdminPeopleFilters): Promise<PersonRecord[] | AdminPeopleSearchResult> {
   if (params) {

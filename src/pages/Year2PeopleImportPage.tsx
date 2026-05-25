@@ -34,6 +34,7 @@ const mappingRows: MappingRow[] = [
   { excel: 'NicknameTH', staging: 'nickname_th_raw', people: 'nickname, nickname_th' },
   { excel: 'PhoneNumber', staging: 'phone_raw', people: 'phone' },
   { excel: 'Instagram', staging: 'instagram_raw', people: 'instagram' },
+  { excel: 'Facebook', staging: 'facebook_raw', people: 'facebook' },
   { excel: 'IDLine', staging: 'line_id_raw', people: 'line_id' },
   { excel: 'MajorTH', staging: 'major_th_raw', people: 'major' },
   { excel: 'MajorEN', staging: 'major_en_raw', people: 'metadata.major_en' },

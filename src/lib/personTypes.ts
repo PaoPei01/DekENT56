@@ -14,6 +14,7 @@ export type PersonRecord = {
   year_level: number | null;
   line_id: string | null;
   instagram: string | null;
+  facebook?: string | null;
   source: string | null;
   created_at: string | null;
   updated_at: string | null;
