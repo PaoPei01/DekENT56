@@ -6,7 +6,6 @@ import { ContactLinks } from '../components/ContactLinks';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { PublicStaffCard } from '../components/PublicStaffCard';
-import { StickyActionBar } from '../components/mobile/StickyActionBar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -101,7 +100,6 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
 
   const hasChanges = hasEditChanges(profile, form);
   const currentStep = submitted ? 4 : profile && hasChanges ? 3 : profile ? 2 : 1;
-  const showMobileSubmit = Boolean(profile && form && hasChanges && !submitted);
 
   function updateForm(values: Partial<EditableProfileFields>) {
     if (!form) return;
@@ -228,7 +226,7 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
     : undefined;
 
   return (
-    <section className={`narrow-page page-stack ${showMobileSubmit ? 'has-sticky-actions' : ''}`}>
+    <section className="narrow-page page-stack">
       <Toast toast={toast} />
       <PageHeader
         eyebrow={language === 'th' ? 'ข้อมูลของฉัน' : 'My information'}
@@ -248,7 +246,7 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
         ].map((label, index) => {
           const step = index + 1;
           return (
-            <span className={`edit-step ${currentStep === step ? 'edit-step-active' : ''} ${currentStep > step || (submitted && step === 3) ? 'edit-step-done' : ''}`} key={label}>
+            <span className={`edit-step ${currentStep === step ? 'edit-step-active' : ''} ${currentStep > step || (submitted && step === 4) ? 'edit-step-done' : ''}`} key={label}>
               <b>{step}</b>
               {label}
             </span>
@@ -383,9 +381,9 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
               </section>
               <div className="form-actions full-span">
                 {hasChanges ? <Button type="button" variant="secondary" onClick={resetChanges}>{language === 'th' ? 'ล้างการแก้ไข' : 'Reset changes'}</Button> : null}
-                {hasChanges ? (
-                  <Button type="submit" loading={submitting} disabled={submitted} icon={<Save size={18} />}>
-                    {submitted ? (language === 'th' ? 'ส่งคำขอแล้ว' : 'Submitted') : (language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit edit request')}
+                {hasChanges && !submitted ? (
+                  <Button type="submit" loading={submitting} icon={<Save size={18} />}>
+                    {language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit edit request'}
                   </Button>
                 ) : null}
               </div>
@@ -420,14 +418,6 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
         </>
       ) : null}
 
-      {showMobileSubmit ? (
-        <StickyActionBar label={language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit edit request'}>
-          <div className="mobile-submit-hint">{language === 'th' ? 'รอแอดมินอนุมัติก่อนอัปเดตจริง' : 'Admin approval is required before updates apply.'}</div>
-          <Button loading={submitting} disabled={submitted} icon={<Save size={18} />} onClick={() => void handleSubmit()}>
-            {submitted ? (language === 'th' ? 'ส่งคำขอแล้ว' : 'Submitted') : (language === 'th' ? 'ส่งคำขอแก้ไข' : 'Submit request')}
-          </Button>
-        </StickyActionBar>
-      ) : null}
     </section>
   );
 }

@@ -539,6 +539,7 @@
 }
 
 .edit-friend-panel {
+  padding: clamp(0.9rem, 3vw, 1.1rem);
   background: var(--card-bg-soft);
   box-shadow: var(--shadow-soft);
 }

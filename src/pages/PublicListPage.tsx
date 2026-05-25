@@ -36,7 +36,7 @@ export function PublicListPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const { data: majors } = useAsync(fetchPublicMajors, []);
-  const hasSearchIntent = Boolean(submittedSearch || major || mainGroup || subgroup);
+  const hasSearchIntent = Boolean(submittedSearch.trim());
   const { data, loading, error } = useAsync(
     () => hasSearchIntent ? fetchPublicProfiles({ search: submittedSearch, major, mainGroup, subgroup }) : Promise.resolve([]),
     [hasSearchIntent, submittedSearch, major, mainGroup, subgroup],
@@ -45,7 +45,12 @@ export function PublicListPage() {
   const participants = hasSearchIntent ? data ?? [] : [];
   const isInitialLoading = loading && !data;
   const isUpdating = loading && Boolean(data);
-  const resultText = useMemo(() => `${participants.length.toLocaleString(language === 'th' ? 'th-TH' : 'en-US')} ${language === 'th' ? 'คน' : 'people'}`, [language, participants.length]);
+  const resultText = useMemo(
+    () => hasSearchIntent
+      ? `${participants.length.toLocaleString(language === 'th' ? 'th-TH' : 'en-US')} ${language === 'th' ? 'คน' : 'people'}`
+      : (language === 'th' ? 'พร้อมค้นหา' : 'Ready'),
+    [hasSearchIntent, language, participants.length],
+  );
   const hasFilters = Boolean(search || submittedSearch || major || mainGroup || subgroup);
   const activeFilters = [
     major ? majorLabel(`(${major})`, language) : '',
@@ -213,7 +218,7 @@ export function PublicListPage() {
         />
       ) : null}
 
-      <div className="participant-grid participant-card-list">
+      {hasSearchIntent ? <div className="participant-grid participant-card-list public-search-result-list">
         {participants.map((profile) => {
           const nickname = language === 'th' ? profile.nickname : profile.nickname_en || profile.nickname;
           const fullName = (language === 'th' ? profile.name_th : profile.name_en) || profile.name_th || profile.name_en || '';
@@ -242,11 +247,11 @@ export function PublicListPage() {
             >
               <div className="participant-card-head">
                 {profile.main_group ? <span className="group-dot participant-group-dot" aria-hidden="true" /> : null}
-                <div>
-                  <h2>{nickname || fullName || (language === 'th' ? 'ไม่ระบุชื่อ' : 'Name not specified')}</h2>
-                  <p>{fullName && fullName !== nickname ? fullName : (language === 'th' ? 'ชื่อเต็มถูกซ่อนไว้บางส่วนตามความเป็นส่วนตัว' : 'Full name may be partially hidden for privacy')}</p>
-                </div>
-              </div>
+	                <div>
+	                  <h2>{nickname || fullName || (language === 'th' ? 'ไม่ระบุชื่อ' : 'Name not specified')}</h2>
+	                  <p>{fullName && fullName !== nickname ? fullName : (language === 'th' ? 'ชื่อเต็มถูกซ่อนไว้บางส่วนตามความเป็นส่วนตัว' : 'Full name may be partially hidden for privacy')}</p>
+	                </div>
+	              </div>
               <div className="participant-card-badges">
                 <span className="major-badge">{majorLabel(profile.major, language)}</span>
                 <small className="group-badge">{groupLabel(profile.main_group, profile.subgroup, language)}</small>
@@ -254,7 +259,7 @@ export function PublicListPage() {
             </Card>
           );
         })}
-      </div>
+      </div> : null}
 
       <Modal open={Boolean(selected)} title={language === 'th' ? 'โปรไฟล์ผู้เข้าร่วม' : 'Participant profile'} onClose={() => setSelected(null)}>
         {selected ? (
