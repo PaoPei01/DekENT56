@@ -143,7 +143,12 @@ export function StaffProfileVerifyPage() {
     try {
       const result = await verifyStaffIdentity(email, phone);
       if (!result) {
-        setToast({ type: 'error', message: 'ไม่พบข้อมูลทีมงานที่ตรงกับอีเมลและเบอร์โทรนี้' });
+        setToast({
+          type: 'error',
+          message: language === 'th'
+            ? 'ไม่พบข้อมูลทีมงานจาก CMU Mail และเบอร์โทรนี้ กรุณาตรวจสอบข้อมูลอีกครั้ง หรือสอบถามผู้ดูแลกิจกรรม'
+            : 'Staff information was not found for this CMU Mail and phone number. Please check your information or contact the event admin.',
+        });
         return;
       }
       applyVerifiedContext(result, phone);
@@ -166,7 +171,15 @@ export function StaffProfileVerifyPage() {
       }
       setToast({ type: 'success', message: language === 'th' ? 'ยืนยันข้อมูลทีมงานสำเร็จ' : 'Staff profile verified' });
     } catch (err) {
-      setToast({ type: 'error', message: errorMessage(err, language === 'th' ? 'ยืนยันข้อมูลไม่สำเร็จ' : 'Verification failed') });
+      setToast({
+        type: 'error',
+        message: errorMessage(
+          err,
+          language === 'th'
+            ? 'ไม่พบข้อมูลทีมงานจาก CMU Mail และเบอร์โทรนี้ กรุณาตรวจสอบข้อมูลอีกครั้ง หรือสอบถามผู้ดูแลกิจกรรม'
+            : 'Staff information was not found for this CMU Mail and phone number. Please check your information or contact the event admin.',
+        ),
+      });
     } finally {
       setLoading(false);
     }
@@ -251,8 +264,8 @@ export function StaffProfileVerifyPage() {
       <Toast toast={toast} />
       <PageHeader
         eyebrow={language === 'th' ? 'ทีมงานทั่วไป' : 'General staff'}
-        title={language === 'th' ? 'เข้าสู่โหมดทีมงานทั่วไป' : 'General staff access'}
-        description={language === 'th' ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทร เพื่อแสดง QR ส่วนตัว เช็กชื่อ แก้ไขโปรไฟล์ หรือส่งคำขอแก้ไขข้อมูลสำคัญ โดยไม่ต้องเข้าสู่ระบบ' : 'Verify with email and phone to show your personal QR, check in, edit your profile, or request important data updates without signing in.'}
+        title={language === 'th' ? 'เข้าสู่โหมดทีมงานทั่วไป' : 'General Staff Access'}
+        description={language === 'th' ? 'สำหรับทีมงานและสตาฟ ใช้ยืนยันตัวตน เปิด QR เช็กชื่อ ดูประวัติการเช็กชื่อ และแก้ไขข้อมูลทีมงาน' : 'For staff members to verify identity, open check-in QR, view attendance history, and update staff information.'}
         meta={(
           <>
             <HelpButton topicId="staff.profile-verify" variant="link" />
@@ -262,7 +275,15 @@ export function StaffProfileVerifyPage() {
       />
       <Card>
         <form className="form-grid" onSubmit={verify}>
-          <Input label={language === 'th' ? 'อีเมล' : 'Email'} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <Input
+            label="CMU Mail"
+            placeholder={language === 'th' ? 'เช่น name_surname@cmu.ac.th' : 'e.g. name_surname@cmu.ac.th'}
+            hint={language === 'th' ? 'กรุณากรอก CMU Mail ที่ใช้ลงทะเบียนเป็นทีมงาน' : 'Enter the CMU Mail used for staff registration.'}
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
           <Input label={language === 'th' ? 'เบอร์โทร' : 'Phone'} value={phone} onChange={(event) => setPhone(event.target.value)} required />
           <Button type="submit" disabled={loading} icon={<SearchCheck size={18} />}>{language === 'th' ? 'ยืนยันตัวตน' : 'Verify identity'}</Button>
         </form>

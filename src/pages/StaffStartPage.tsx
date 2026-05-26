@@ -47,7 +47,7 @@ export function StaffStartPage() {
           <span>{language === 'th' ? 'หากคุณเป็นทีมงาน กรุณาติดต่อผู้ดูแลเพื่อตรวจสอบบัญชี' : 'If you are staff, please contact an admin to check this account.'}</span>
           <div className="form-actions">
             <Link className="btn btn-primary" to="/">{language === 'th' ? 'กลับหน้าแรก' : 'Go to public home'}</Link>
-            <Link className="btn btn-secondary" to="/me">{language === 'th' ? 'ข้อมูลของฉัน' : 'My information'}</Link>
+            <Link className="btn btn-secondary" to="/me">{language === 'th' ? 'ข้อมูลของฉัน (ผู้เข้าร่วม)' : 'My Information (Participant)'}</Link>
             <Button variant="secondary" onClick={() => void signOut()}>{language === 'th' ? 'ออกจากระบบ' : 'Sign out'}</Button>
           </div>
         </Card>
@@ -75,9 +75,9 @@ export function StaffStartPage() {
         <PortalActionCard
           to="/staff/profile/verify"
           icon={<UserCheck size={28} />}
-          title={language === 'th' ? 'เข้าสู่โหมดทีมงานทั่วไป' : 'General staff access'}
-          description={language === 'th' ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทร เพื่อแสดง QR ส่วนตัว เช็กชื่อ แก้ไขโปรไฟล์ หรือส่งคำขอแก้ไขข้อมูลสำคัญ โดยไม่ต้องเข้าสู่ระบบ' : 'Verify with email and phone to show your personal QR, check in, edit your profile, or request important data updates without signing in.'}
-          actionLabel={language === 'th' ? 'ยืนยันตัวตน' : 'Verify identity'}
+          title={language === 'th' ? 'ทีมงานทั่วไป' : 'General Staff Access'}
+          description={language === 'th' ? 'สำหรับทีมงานและสตาฟ ใช้ยืนยันตัวตน เปิด QR เช็กชื่อ ดูประวัติการเช็กชื่อ และแก้ไขข้อมูลทีมงาน' : 'For staff members to verify identity, open check-in QR, view attendance history, and update staff information.'}
+          actionLabel={language === 'th' ? 'เข้าสู่ระบบทีมงานทั่วไป' : 'Open Staff Access'}
         />
       </div>
     </section>

@@ -120,8 +120,8 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
       const verified = await verifyProfileIdentity(email, phone);
       if (!verified) {
         const message = language === 'th'
-          ? 'ไม่พบข้อมูลที่ตรงกับอีเมลและเบอร์โทรนี้ กรุณาตรวจสอบตัวสะกดหรือเบอร์โทรอีกครั้ง'
-          : 'No profile matches this email and phone number. Please check the spelling or phone number.';
+          ? 'ไม่พบข้อมูลผู้เข้าร่วมจากข้อมูลที่กรอก หากคุณเป็นทีมงาน กรุณาใช้เมนู “ทีมงานทั่วไป”'
+          : 'Participant information was not found. If you are a staff member, please use “General Staff Access”.';
         setVerifyError(message);
         setToast({ type: 'error', message });
         return;
@@ -229,11 +229,11 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
     <section className="narrow-page page-stack">
       <Toast toast={toast} />
       <PageHeader
-        eyebrow={language === 'th' ? 'ข้อมูลของฉัน' : 'My information'}
-        title={language === 'th' ? 'ข้อมูลของฉัน' : 'My information'}
+        eyebrow={language === 'th' ? 'ข้อมูลผู้เข้าร่วม' : 'Participant information'}
+        title={language === 'th' ? 'ข้อมูลของฉัน (ผู้เข้าร่วม)' : 'My Information (Participant)'}
         description={language === 'th'
-          ? 'ยืนยันตัวตนด้วยอีเมลและเบอร์โทรที่ใช้ลงทะเบียน เพื่อตรวจสอบข้อมูล กลุ่ม และส่งคำขอแก้ไขให้แอดมินอนุมัติ'
-          : 'Verify with the email and phone used during registration to review your information, group details, and request admin-approved changes.'}
+          ? 'สำหรับผู้เข้าร่วมกิจกรรม ใช้อีเมลและเบอร์โทรที่ลงทะเบียนไว้เพื่อตรวจสอบข้อมูล กลุ่ม และส่งคำขอแก้ไข'
+          : 'For participants to verify with registered email and phone, review information and group details, and submit edit requests.'}
         actions={<HelpButton topicId="participant.edit-info" variant="link" />}
       />
 
@@ -256,6 +256,15 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
 
       <Card className="edit-verify-card">
         <form className="form-grid" onSubmit={handleVerify}>
+          <Card className="privacy-notice full-span" variant="soft">
+            <strong>{language === 'th' ? 'สำหรับผู้เข้าร่วมกิจกรรม' : 'For participants'}</strong>
+            <span>{language === 'th' ? 'หมายเหตุ: หน้านี้สำหรับผู้เข้าร่วมกิจกรรม หากคุณเป็นทีมงาน กรุณาใช้เมนู “ทีมงานทั่วไป”' : 'Note: This page is for participants. If you are a staff member, please use “General Staff Access”.'}</span>
+            <div className="form-actions">
+              <Link className="btn btn-secondary" to="/staff/profile/verify">
+                {language === 'th' ? 'ไปที่ทีมงานทั่วไป' : 'Go to General Staff Access'}
+              </Link>
+            </div>
+          </Card>
           <div className="full-span">
             <div className="section-title-row">
               <h2 className="edit-section-title">{language === 'th' ? 'ยืนยันตัวตน' : 'Identity Verification'}</h2>
@@ -267,7 +276,14 @@ export function VerifyEditPage(_props: VerifyEditPageProps = {}) {
           <Button type="submit" size="lg" fullWidth loading={verifying} icon={<SearchCheck size={18} />}>
             {verifying ? (language === 'th' ? 'กำลังตรวจสอบ...' : 'Checking...') : (language === 'th' ? 'ตรวจสอบข้อมูล' : 'Verify')}
           </Button>
-          {verifyError ? <div className="edit-inline-error full-span" aria-live="polite">{verifyError}</div> : null}
+          {verifyError ? (
+            <div className="edit-inline-error full-span" aria-live="polite">
+              <span>{verifyError}</span>
+              <Link className="btn btn-secondary btn-sm" to="/staff/profile/verify">
+                {language === 'th' ? 'ไปที่ทีมงานทั่วไป' : 'Go to General Staff Access'}
+              </Link>
+            </div>
+          ) : null}
         </form>
       </Card>
 

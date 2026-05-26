@@ -29,7 +29,7 @@ export function PortalPage() {
         </Card>
         <div className="staff-action-grid">
           <PortalActionCard to="/" icon={<Home size={28} />} title={language === 'th' ? 'ไปหน้าหลัก' : 'Go to public home'} description={language === 'th' ? 'ค้นหารายชื่อและข้อมูลสาธารณะ' : 'Search public participant information.'} primary />
-          <PortalActionCard to="/me" icon={<Pencil size={28} />} title={language === 'th' ? 'ข้อมูลของฉัน' : 'My information'} description={language === 'th' ? 'ตรวจสอบข้อมูลและส่งคำร้องแก้ไข' : 'Review your information and request changes.'} />
+          <PortalActionCard to="/me" icon={<Pencil size={28} />} title={language === 'th' ? 'ข้อมูลของฉัน (ผู้เข้าร่วม)' : 'My Information (Participant)'} description={language === 'th' ? 'สำหรับผู้เข้าร่วมกิจกรรม ใช้ตรวจสอบข้อมูลส่วนตัว กลุ่ม และส่งคำขอแก้ไขข้อมูล' : 'For participants to review personal information, group details, and submit edit requests.'} />
           <PortalActionCard to="/guide" icon={<LifeBuoy size={28} />} title={language === 'th' ? 'ขอความช่วยเหลือ' : 'Ask for help'} description={language === 'th' ? 'เปิดคู่มือหรือขอให้ทีมงานช่วยตรวจสอบสิทธิ์' : 'Open the guide or ask staff to check your access.'} />
         </div>
       </section>
@@ -46,12 +46,11 @@ export function PortalPage() {
       <div className="staff-action-grid">
         <PortalActionCard to="/" icon={<Home size={28} />} title={language === 'th' ? 'รายชื่อผู้เข้าร่วม' : 'Participants'} description={language === 'th' ? 'ค้นหารายชื่อและข้อมูลสาธารณะที่เปิดให้ดูได้' : 'Search public participant information.'} primary />
         <PortalActionCard to="/events" icon={<CalendarDays size={28} />} title={language === 'th' ? 'กิจกรรม' : 'Events'} description={language === 'th' ? 'ดูหน้ากิจกรรม ประกาศ และการสมัครที่เปิดอยู่' : 'Open event pages, announcements, and available applications.'} />
-        <PortalActionCard to="/me" icon={<Pencil size={28} />} title={language === 'th' ? 'ข้อมูลของฉัน' : 'My information'} description={language === 'th' ? 'ยืนยันตัวตน ตรวจข้อมูล และส่งคำร้องแก้ไข' : 'Verify, review, and request information changes.'} />
-        <PortalActionCard to="/staff/start" icon={<UserCheck size={28} />} title={language === 'th' ? 'ทีมงาน' : 'Staff'} description={language === 'th' ? 'เข้าสู่ระบบทีมงาน ยืนยันตัวตน หรือดูสถานะใบสมัคร' : 'Sign in, verify, or check staff application status.'} />
+        <PortalActionCard to="/me" icon={<Pencil size={28} />} title={language === 'th' ? 'ข้อมูลของฉัน (ผู้เข้าร่วม)' : 'My Information (Participant)'} description={language === 'th' ? 'สำหรับผู้เข้าร่วมกิจกรรม ใช้ตรวจสอบข้อมูลส่วนตัว กลุ่ม และส่งคำขอแก้ไขข้อมูล' : 'For participants to review personal information, group details, and submit edit requests.'} />
+        <PortalActionCard to="/staff/start" icon={<UserCheck size={28} />} title={language === 'th' ? 'ทีมงานทั่วไป' : 'General Staff Access'} description={language === 'th' ? 'สำหรับทีมงานและสตาฟ ใช้ยืนยันตัวตน เปิด QR เช็กชื่อ ดูประวัติการเช็กชื่อ และแก้ไขข้อมูลทีมงาน' : 'For staff members to verify identity, open check-in QR, view attendance history, and update staff information.'} />
         <PortalActionCard to="/announcements" icon={<Bell size={28} />} title={language === 'th' ? 'ประกาศ' : 'Announcements'} description={language === 'th' ? 'อ่านประกาศสำคัญและอัปเดตกิจกรรม' : 'Read important announcements and event updates.'} />
         <PortalActionCard to="/login" icon={<Shield size={28} />} title={language === 'th' ? 'เข้าสู่ระบบ' : 'Sign in'} description={language === 'th' ? 'สำหรับบัญชีทีมงานหรือผู้ดูแลระบบ' : 'For staff and admin accounts.'} />
       </div>
     </section>
   );
 }
-
