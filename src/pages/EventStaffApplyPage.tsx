@@ -23,7 +23,7 @@ import { checkStaffApplicationForApplicant, fetchEventBySlug, fetchEventDutyQuot
 import { errorMessage } from '../utils/error';
 
 const cmuEmailPattern = /^[a-zA-Z0-9._%+-]+@cmu\.ac\.th$/;
-const parentOrientationStaffCloseAt = new Date('2026-05-30T23:59:59+07:00');
+const parentOrientationStaffCloseAt = new Date('2026-05-31T23:59:59+07:00');
 const parentOrientationStaffSlug = 'parent-orientation-staff-2569';
 type HealthNoticeAnswer = 'no' | 'yes' | '';
 
@@ -834,8 +834,8 @@ export function EventStaffApplyPage({ previewMode = false, previewEventSlug, pre
             <EmptyState
               title={language === 'th' ? 'ปิดรับสมัครสตาฟแล้ว' : 'Staff applications are closed.'}
               description={language === 'th'
-                ? 'ขอบคุณทุกความสนใจ ระบบปิดรับสมัครเมื่อวันที่ 30 พฤษภาคม 2569 เวลา 23:59 น.'
-                : 'Thank you for your interest. Applications closed on 30 May 2026 at 23:59.'}
+                ? 'ขอบคุณทุกความสนใจ ระบบปิดรับสมัครเมื่อวันที่ 31 พฤษภาคม 2569 เวลา 23:59 น.'
+                : 'Thank you for your interest. Applications closed on 31 May 2026 at 23:59.'}
               action={(
                 <div className="event-card-actions">
                   <Link className="btn btn-secondary" to={eventPath(event.slug)}>{language === 'th' ? 'กลับไปหน้ากิจกรรม' : 'Back to event'}</Link>
