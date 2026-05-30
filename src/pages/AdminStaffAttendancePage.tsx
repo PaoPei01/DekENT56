@@ -1,12 +1,14 @@
-import { CalendarClock, Plus, RefreshCw, UsersRound } from 'lucide-react';
+import { CalendarClock, Plus, RefreshCw } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EventSwitcher } from '../components/events/EventSwitcher';
 import { HelpButton } from '../components/help/HelpButton';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { DashboardStatCard } from '../components/ui/DashboardStatCard';
+import { EmptyState } from '../components/ui/EmptyState';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -19,13 +21,37 @@ import { useAsync } from '../hooks/useAsync';
 import { groupMeta, mainGroups, subgroups } from '../lib/groups';
 import { staffOperationalRoles } from '../lib/staffRoles';
 import type { StaffAttendanceSessionInput } from '../lib/attendanceTypes';
-import { attendanceEventBadgeLabel, attendanceEventIsLegacy, attendanceEventLabel } from '../lib/attendanceEventContext';
+import { attendanceEventBadgeLabel, attendanceEventIsLegacy } from '../lib/attendanceEventContext';
 import { formatBangkokDateTime, isoToDatetimeLocal } from '../lib/dateTime';
 import { createStaffAttendanceSession, fetchAdminStaffAttendance } from '../services/staffAttendance';
 import { errorMessage } from '../utils/error';
 
 const sessionTypes = ['check_in', 'check_out', 'shift_start', 'shift_end', 'roll_call', 'emergency', 'meeting'];
 const targetScopes = ['all', 'main_group', 'subgroup', 'role', 'emergency_staff'];
+
+function sessionTypeLabel(value: string, language: 'th' | 'en') {
+  const labels: Record<string, { th: string; en: string }> = {
+    check_in: { th: 'เช็กชื่อเข้า', en: 'Check-in' },
+    check_out: { th: 'เช็กชื่อออก', en: 'Check-out' },
+    shift_start: { th: 'เริ่มกะ', en: 'Shift start' },
+    shift_end: { th: 'จบกะ', en: 'Shift end' },
+    roll_call: { th: 'เรียกชื่อ', en: 'Roll call' },
+    emergency: { th: 'เหตุฉุกเฉิน', en: 'Emergency' },
+    meeting: { th: 'ประชุม', en: 'Meeting' },
+  };
+  return labels[value]?.[language] ?? value;
+}
+
+function targetScopeLabel(value: string, language: 'th' | 'en') {
+  const labels: Record<string, { th: string; en: string }> = {
+    all: { th: 'ทุกคน', en: 'Everyone' },
+    main_group: { th: 'เฉพาะกลุ่มสี', en: 'Color group only' },
+    subgroup: { th: 'เฉพาะกลุ่มย่อย', en: 'Subgroup only' },
+    role: { th: 'เฉพาะฝ่าย', en: 'Duty team only' },
+    emergency_staff: { th: 'ทีมฉุกเฉิน', en: 'Emergency staff' },
+  };
+  return labels[value]?.[language] ?? value;
+}
 
 function localDatetimeValue(offsetMinutes = 0) {
   return isoToDatetimeLocal(new Date(Date.now() + offsetMinutes * 60_000).toISOString());
@@ -59,6 +85,8 @@ export function AdminStaffAttendancePage() {
   });
 
   const sessions = useMemo(() => state.data?.sessions ?? [], [state.data?.sessions]);
+  const activeSessions = useMemo(() => sessions.filter((session) => session.status === 'active'), [sessions]);
+  const latestSessions = useMemo(() => sessions.filter((session) => session.status !== 'active'), [sessions]);
   const currentEventLabel = currentEvent
     ? (language === 'th' ? currentEvent.name_th : currentEvent.name_en || currentEvent.name_th)
     : (language === 'th' ? 'กิจกรรมเดิม' : 'Legacy/default event');
@@ -69,10 +97,33 @@ export function AdminStaffAttendancePage() {
       sum.present += session.summary?.present ?? 0;
       sum.late += session.summary?.late ?? 0;
       sum.missing += session.summary?.missing ?? 0;
+      if (session.status === 'active') sum.active += 1;
       return sum;
     },
-    { total: 0, present: 0, late: 0, missing: 0 },
+    { active: 0, total: 0, present: 0, late: 0, missing: 0 },
   ), [sessions]);
+
+  function renderSessionTable(list: typeof sessions, emptyText: string) {
+    return (
+      <ResponsiveDataTable
+        rows={list}
+        getKey={(row) => row.id}
+        emptyText={emptyText}
+        mobileTitle={(row) => row.title}
+        mobileSubtitle={(row) => `${attendanceEventBadgeLabel(row, events, language)} · ${sessionTypeLabel(row.session_type, language)}`}
+        mobileMeta={(row) => `${statusLabel(row.status, language)} · ${formatBangkokDateTime(row.starts_at, language)}`}
+        mobileActions={(row) => <Link className="btn btn-primary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'เปิดรอบนี้' : 'Open session'}</Link>}
+        columns={[
+          { key: 'title', header: language === 'th' ? 'รอบเช็กชื่อ' : 'Session', render: (row) => <div className="participant-admin-cell"><strong>{row.title}</strong><span>{sessionTypeLabel(row.session_type, language)}</span></div>, priority: 'primary' },
+          { key: 'event', header: language === 'th' ? 'กิจกรรม' : 'Event', render: (row) => <span className={`status-pill ${attendanceEventIsLegacy(row) ? 'status-draft' : 'status-active'}`}>{attendanceEventBadgeLabel(row, events, language)}</span> },
+          { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
+          { key: 'time', header: language === 'th' ? 'เวลาเริ่ม' : 'Starts', render: (row) => formatBangkokDateTime(row.starts_at, language) },
+          { key: 'summary', header: language === 'th' ? 'เช็กชื่อแล้ว / ยังไม่เช็ก' : 'Checked / missing', render: (row) => `${row.summary?.present ?? 0}/${row.summary?.total_targeted ?? 0} · ${language === 'th' ? 'ขาด' : 'missing'} ${row.summary?.missing ?? 0}` },
+          { key: 'action', header: language === 'th' ? 'จัดการ' : 'Action', render: (row) => <Link className="btn btn-secondary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'เปิดรอบนี้' : 'Open session'}</Link>, align: 'right', mobileHidden: true },
+        ]}
+      />
+    );
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -109,11 +160,11 @@ export function AdminStaffAttendancePage() {
         )}
       />
 
-      <div className="stats-grid">
-        <DashboardStatCard label={language === 'th' ? 'จำนวนรอบ' : 'Sessions'} value={sessions.length} icon={<CalendarClock size={20} />} />
-        <DashboardStatCard label={language === 'th' ? 'ทีมงานในรอบทั้งหมด' : 'Targeted staff'} value={totals.total} icon={<UsersRound size={20} />} />
+      <div className="stats-grid attendance-op-summary">
+        <DashboardStatCard label={language === 'th' ? 'รอบที่เปิดอยู่' : 'Active sessions'} value={totals.active} icon={<CalendarClock size={20} />} />
         <DashboardStatCard label={language === 'th' ? 'เช็กชื่อแล้ว' : 'Checked in'} value={totals.present} />
         <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in'} value={totals.missing} />
+        <DashboardStatCard label={language === 'th' ? 'มาสาย' : 'Late'} value={totals.late} />
       </div>
 
       <Card className="attendance-event-context-card" variant="soft">
@@ -132,24 +183,27 @@ export function AdminStaffAttendancePage() {
       {state.loading ? <LoadingSkeleton /> : null}
       {state.error ? <div className="error-state">{state.error}</div> : null}
 
-      <ResponsiveDataTable
-        rows={sessions}
-        getKey={(row) => row.id}
-        emptyText={language === 'th' ? 'ยังไม่มีรอบเช็กชื่อ' : 'No attendance sessions yet'}
-        mobileTitle={(row) => row.title}
-        mobileSubtitle={(row) => `${attendanceEventBadgeLabel(row, events, language)} · ${statusLabel(row.status, language)}`}
-        mobileMeta={(row) => `${formatBangkokDateTime(row.starts_at, language)} · ${language === 'th' ? 'เช็กชื่อแล้ว' : 'Checked in'} ${row.summary?.present ?? 0} · ${language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in'} ${row.summary?.missing ?? 0}`}
-        mobileActions={(row) => <Link className="btn btn-primary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'เปิดรายละเอียด' : 'Open detail'}</Link>}
-        columns={[
-          { key: 'title', header: language === 'th' ? 'รอบเช็กชื่อ' : 'Session', render: (row) => <div className="participant-admin-cell"><strong>{row.title}</strong><span>{attendanceEventLabel(row, events, language)}</span></div> },
-          { key: 'event', header: language === 'th' ? 'กิจกรรม' : 'Event', render: (row) => <span className={`status-pill ${attendanceEventIsLegacy(row) ? 'status-draft' : 'status-active'}`}>{attendanceEventBadgeLabel(row, events, language)}</span> },
-          { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.status}`}>{statusLabel(row.status, language)}</span> },
-          { key: 'type', header: language === 'th' ? 'ประเภท' : 'Type', render: (row) => row.session_type },
-          { key: 'time', header: language === 'th' ? 'เวลาเริ่ม' : 'Starts', render: (row) => formatBangkokDateTime(row.starts_at, language) },
-          { key: 'summary', header: language === 'th' ? 'สรุป' : 'Summary', render: (row) => `${row.summary?.present ?? 0}/${row.summary?.total_targeted ?? 0} · late ${row.summary?.late ?? 0}` },
-          { key: 'action', header: '', render: (row) => <Link className="btn btn-secondary" to={`/admin/staff/attendance/${row.id}`}>{language === 'th' ? 'รายละเอียด' : 'Detail'}</Link>, align: 'right' },
-        ]}
-      />
+      <Card className="attendance-session-section">
+        <div className="section-heading-row">
+          <div>
+            <p className="eyebrow">{language === 'th' ? 'หน้างาน' : 'Live'}</p>
+            <h2>{language === 'th' ? 'รอบที่เปิดอยู่' : 'Active sessions'}</h2>
+          </div>
+          <Badge status="approved">{String(activeSessions.length)}</Badge>
+        </div>
+        {activeSessions.length ? renderSessionTable(activeSessions, language === 'th' ? 'ยังไม่มีรอบที่เปิดอยู่' : 'No active sessions') : <EmptyState title={language === 'th' ? 'ยังไม่มีรอบที่เปิดอยู่' : 'No active sessions'} description={language === 'th' ? 'สร้างรอบเช็กชื่อใหม่เพื่อเริ่มใช้งานหน้างาน' : 'Create a session to start event-day check-in.'} action={<Button icon={<Plus size={18} />} onClick={() => setCreating(true)}>{language === 'th' ? 'สร้างรอบเช็กชื่อ' : 'Create session'}</Button>} />}
+      </Card>
+
+      <Card className="attendance-session-section">
+        <div className="section-heading-row">
+          <div>
+            <p className="eyebrow">{language === 'th' ? 'ประวัติล่าสุด' : 'Latest'}</p>
+            <h2>{language === 'th' ? 'รอบล่าสุด' : 'Latest sessions'}</h2>
+          </div>
+          <Badge status="pending">{String(latestSessions.length)}</Badge>
+        </div>
+        {renderSessionTable(latestSessions, language === 'th' ? 'ยังไม่มีรอบเช็กชื่อ' : 'No attendance sessions yet')}
+      </Card>
 
       <Modal open={creating} title={language === 'th' ? 'สร้างรอบเช็กชื่อ' : 'Create attendance session'} onClose={() => setCreating(false)}>
         <form className="form-grid" onSubmit={submit}>
@@ -162,8 +216,8 @@ export function AdminStaffAttendancePage() {
             <span>{language === 'th' ? 'กิจกรรม' : 'Event'}</span>
             <div className="form-static-value">{currentEvent ? (language === 'th' ? currentEvent.name_th : currentEvent.name_en || currentEvent.name_th) : (language === 'th' ? 'กิจกรรมเดิม' : 'Legacy/default event')}</div>
           </div>
-          <Select label={language === 'th' ? 'ประเภท' : 'Type'} value={form.session_type ?? 'check_in'} onChange={(event) => setForm({ ...form, session_type: event.target.value as StaffAttendanceSessionInput['session_type'] })} options={sessionTypes} />
-          <Select label={language === 'th' ? 'กลุ่มเป้าหมาย' : 'Target'} value={form.target_scope ?? 'all'} onChange={(event) => setForm({ ...form, target_scope: event.target.value as StaffAttendanceSessionInput['target_scope'] })} options={targetScopes} />
+          <Select label={language === 'th' ? 'ประเภท' : 'Type'} value={form.session_type ?? 'check_in'} onChange={(event) => setForm({ ...form, session_type: event.target.value as StaffAttendanceSessionInput['session_type'] })} options={sessionTypes.map((type) => ({ value: type, label: sessionTypeLabel(type, language) }))} />
+          <Select label={language === 'th' ? 'กลุ่มเป้าหมาย' : 'Target group'} value={form.target_scope ?? 'all'} onChange={(event) => setForm({ ...form, target_scope: event.target.value as StaffAttendanceSessionInput['target_scope'] })} options={targetScopes.map((scope) => ({ value: scope, label: targetScopeLabel(scope, language) }))} />
           {form.target_scope === 'main_group' || form.target_scope === 'subgroup' ? (
             <Select label={language === 'th' ? 'สี' : 'Color'} value={form.main_group ?? ''} onChange={(event) => setForm({ ...form, main_group: event.target.value as StaffAttendanceSessionInput['main_group'] })} options={mainGroups.map((group) => ({ value: group, label: language === 'th' ? groupMeta[group].th : groupMeta[group].en }))} />
           ) : null}

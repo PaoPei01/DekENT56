@@ -224,6 +224,57 @@
   font-weight: 950;
 }
 
+.attendance-op-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.attendance-session-section,
+.attendance-top-action-bar,
+.attendance-action-stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.attendance-top-action-bar {
+  position: sticky;
+  top: 72px;
+  z-index: 9;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  box-shadow: var(--shadow-soft);
+}
+
+.attendance-top-action-bar .btn {
+  min-height: 46px;
+  justify-content: center;
+}
+
+.attendance-session-qr-panel .attendance-qr-image {
+  width: min(100%, 380px);
+}
+
+.attendance-status-chips {
+  position: sticky;
+  top: 132px;
+  z-index: 7;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 0.65rem;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-soft);
+}
+
+.attendance-action-stack {
+  justify-items: end;
+}
+
+.attendance-secondary-actions {
+  width: auto;
+}
+
+.attendance-secondary-actions > div {
+  min-width: min(15rem, 78vw);
+}
+
 .command-center-grid {
   grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
   align-items: start;
@@ -378,6 +429,34 @@
   .people-hub-card .badge {
     grid-column: 2;
     justify-self: start;
+  }
+
+  .attendance-op-summary,
+  .attendance-top-action-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-top-action-bar {
+    top: 64px;
+  }
+
+  .attendance-status-chips {
+    top: 64px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .attendance-status-chips .btn {
+    flex: 0 0 auto;
+  }
+
+  .attendance-action-stack {
+    justify-items: stretch;
+  }
+
+  .attendance-action-stack > .btn,
+  .attendance-action-stack summary {
+    min-height: 44px;
   }
 }
 

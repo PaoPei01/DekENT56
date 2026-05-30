@@ -42,6 +42,8 @@ const manualStatuses: Array<{ value: StaffAttendanceStatus; th: string; en: stri
   { value: 'checked_out', th: 'เช็กออกแล้ว', en: 'Checked out' },
 ];
 
+const secondaryManualStatuses = manualStatuses.filter((item) => item.value !== 'present');
+
 const StaffQrScannerModal = lazy(() => import('../components/attendance/StaffQrScannerModal').then((module) => ({ default: module.StaffQrScannerModal })));
 
 function statusText(status: string | undefined | null, language: 'th' | 'en') {
@@ -179,6 +181,36 @@ export function AdminStaffAttendanceSessionPage() {
     }
   }
 
+  function scrollToPanel(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderRosterActions(row: StaffAttendanceAdminRow, compact = false) {
+    return (
+      <div className="attendance-action-stack">
+        <Button
+          size="sm"
+          icon={<CheckCircle2 size={16} />}
+          loading={workingId === `${row.staff_profile_id}-present`}
+          onClick={() => mark(row, 'present')}
+        >
+          {language === 'th' ? 'เช็กชื่อแล้ว' : 'Checked in'}
+        </Button>
+        <details className="application-more-actions attendance-secondary-actions">
+          <summary>{language === 'th' ? 'สถานะอื่น' : 'Other status'}</summary>
+          <div>
+            {secondaryManualStatuses.map((item) => (
+              <Button key={item.value} size="sm" variant={row.record?.status === item.value ? 'primary' : 'secondary'} loading={workingId === `${row.staff_profile_id}-${item.value}`} onClick={() => mark(row, item.value)}>
+                {language === 'th' ? item.th : item.en}
+              </Button>
+            ))}
+          </div>
+        </details>
+        {!compact && row.record?.method ? <small className="muted">{attendanceMethodLabel(row.record.method, language)}</small> : null}
+      </div>
+    );
+  }
+
   if (state.loading) return <LoadingSkeleton />;
   if (state.error) return <div className="error-state">{state.error}</div>;
   if (!session) return <div className="empty-state">{language === 'th' ? 'ไม่พบรอบเช็กชื่อ' : 'Attendance session not found'}</div>;
@@ -213,6 +245,12 @@ export function AdminStaffAttendanceSessionPage() {
         <DashboardStatCard label={language === 'th' ? 'ยังไม่เช็ก' : 'Missing'} value={summary?.missing ?? 0} icon={<XCircle size={20} />} />
       </div>
 
+      <Card className="attendance-top-action-bar" variant="soft" aria-label={language === 'th' ? 'การทำงานหลักของรอบเช็กชื่อ' : 'Primary attendance actions'}>
+        <Button icon={<QrCode size={18} />} onClick={() => scrollToPanel('session-qr-panel')}>{language === 'th' ? 'เปิด QR รอบนี้' : 'Open session QR'}</Button>
+        <Button variant="secondary" icon={<QrCode size={18} />} onClick={() => setScannerOpen(true)}>{language === 'th' ? 'สแกน QR ทีมงาน' : 'Scan staff QR'}</Button>
+        <Button variant="secondary" icon={<CheckCircle2 size={18} />} onClick={() => scrollToPanel('manual-roster-panel')}>{language === 'th' ? 'เช็กชื่อ manual' : 'Manual check-in'}</Button>
+      </Card>
+
       <Card className={`attendance-event-context-card ${isLegacySession ? 'attendance-event-context-warning' : ''}`} variant={isLegacySession ? 'warning' : 'soft'}>
         <div>
           <p className="eyebrow">{language === 'th' ? 'รอบนี้อยู่ในกิจกรรม' : 'Session event'}</p>
@@ -227,7 +265,7 @@ export function AdminStaffAttendanceSessionPage() {
       </Card>
 
       <div className="attendance-session-layout">
-        <Card className="attendance-qr-card" variant="soft">
+        <Card className="attendance-qr-card attendance-session-qr-panel" variant="soft" id="session-qr-panel">
           <div>
             <div className="section-title-row">
               <div>
@@ -237,8 +275,8 @@ export function AdminStaffAttendanceSessionPage() {
               <HelpButton topicId="admin-attendance.session-qr" variant="compact" />
             </div>
             <p>{language === 'th'
-              ? 'ทีมงานสแกนด้วยมือถือของตัวเอง QR นี้ใช้สำหรับกิจกรรมและรอบเช็กชื่อที่แสดงด้านบน'
-              : 'Staff scan this with their own phone. This QR belongs to the event and session shown above.'}</p>
+              ? 'ทีมงานสแกน QR รอบเช็กชื่อด้วยมือถือของตัวเอง'
+              : 'Staff scan the session QR with their own phone.'}</p>
           </div>
           {canShowQr && qrDataUrl ? <img className="attendance-qr-image" src={qrDataUrl} alt={language === 'th' ? `QR เช็กชื่อ ${eventLabel}` : `${eventLabel} attendance QR`} /> : (
             <div className="attendance-qr-fallback">
@@ -258,30 +296,30 @@ export function AdminStaffAttendanceSessionPage() {
           </div>
         </Card>
 
-        <Card className="attendance-manual-panel">
+        <Card className="attendance-manual-panel" id="staff-scan-panel">
           <div>
             <div className="section-title-row">
               <div>
                 <p className="eyebrow">{language === 'th' ? 'เครื่องมือเช็กชื่อ' : 'Check-in tools'}</p>
-                <h2>{language === 'th' ? 'Manual และ QR ส่วนตัวทีมงาน' : 'Manual and staff personal QR'}</h2>
+              <h2>{language === 'th' ? 'สแกน QR ทีมงาน' : 'Scan staff QR'}</h2>
               </div>
             </div>
-            <p>{language === 'th' ? 'ใช้เมื่อทีมงานสแกนเองไม่ได้ หรือใช้ QR ส่วนตัวเพื่อเช็กชื่อแทนอย่างรวดเร็ว' : 'Use manual controls or a staff personal QR when staff cannot self check-in.'}</p>
+            <p>{language === 'th' ? 'ใช้เมื่อทีมงานเปิด QR ส่วนตัวให้แอดมินสแกน หรือวาง token เป็นวิธีสำรอง' : 'Use the camera scanner first, or paste a personal QR token as a fallback.'}</p>
           </div>
+          <Button type="button" icon={<QrCode size={18} />} onClick={() => setScannerOpen(true)}>
+            {language === 'th' ? 'เปิดกล้องสแกน QR ทีมงาน' : 'Open camera scanner'}
+          </Button>
           <details className="filter-disclosure">
             <summary>{language === 'th' ? 'เพิ่มหมายเหตุ' : 'Add note'}</summary>
             <Input label={language === 'th' ? 'หมายเหตุ' : 'Note'} value={note} onChange={(event) => setNote(event.target.value)} placeholder={language === 'th' ? 'เช่น มาลงทะเบียนกับแอดมิน' : 'e.g. checked in by admin'} />
           </details>
           <details className="filter-disclosure attendance-personal-qr-tool">
-            <summary>{language === 'th' ? 'สแกน QR ส่วนตัวทีมงาน' : 'Scan staff personal QR'}</summary>
+            <summary>{language === 'th' ? 'วาง token จาก QR ทีมงาน' : 'Paste staff QR token'}</summary>
             <div className="form-grid">
               <div className="section-title-row full-span">
                 <span className="form-hint">{language === 'th' ? 'ใช้เมื่อทีมงานเปิด QR ส่วนตัวให้แอดมินสแกน' : 'Use when staff show their personal QR for admin-assisted check-in.'}</span>
                 <HelpButton topicId="admin-attendance.scan-staff-qr" variant="compact" />
               </div>
-              <Button type="button" icon={<QrCode size={18} />} onClick={() => setScannerOpen(true)}>
-                {language === 'th' ? 'สแกน QR ทีมงาน' : 'Scan Staff QR'}
-              </Button>
               <Input
                 label={language === 'th' ? 'Token หรือข้อความจาก QR' : 'Token or QR text'}
                 value={staffQrInput}
@@ -306,13 +344,22 @@ export function AdminStaffAttendanceSessionPage() {
         trailing={<Select label={language === 'th' ? 'สถานะ' : 'Status'} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} options={[{ value: 'missing', label: language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in' }, ...manualStatuses.map((item) => ({ value: item.value, label: language === 'th' ? item.th : item.en }))]} />}
       />
 
-      <Card className="toolbar desktop-filter-panel">
+      <Card className="toolbar desktop-filter-panel" id="manual-roster-panel">
         <div className="search-shell">
           <Search size={18} />
           <Input label={language === 'th' ? 'ค้นหาทีมงาน' : 'Search staff'} value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
         <Select label={language === 'th' ? 'สถานะ' : 'Status'} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} options={[{ value: 'missing', label: language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Not checked in' }, ...manualStatuses.map((item) => ({ value: item.value, label: language === 'th' ? item.th : item.en }))]} />
       </Card>
+      <div className="filter-panel-chips attendance-status-chips">
+        <Button size="sm" variant={statusFilter === '' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('')}>{language === 'th' ? 'ทั้งหมด' : 'All'}</Button>
+        <Button size="sm" variant={statusFilter === 'missing' ? 'primary' : 'secondary'} onClick={() => setStatusFilter('missing')}>{language === 'th' ? 'ยังไม่เช็กชื่อ' : 'Missing'}</Button>
+        {manualStatuses.map((item) => (
+          <Button key={item.value} size="sm" variant={statusFilter === item.value ? 'primary' : 'secondary'} onClick={() => setStatusFilter(item.value)}>
+            {language === 'th' ? item.th : item.en}
+          </Button>
+        ))}
+      </div>
 
       <ResponsiveDataTable
         rows={roster}
@@ -322,13 +369,7 @@ export function AdminStaffAttendanceSessionPage() {
         mobileSubtitle={(row) => `${row.primary_role || row.position || '-'} · ${groupLabel(row.main_group, row.subgroup, language)}`}
         mobileMeta={(row) => statusText(row.record?.status, language)}
         mobileActions={(row) => (
-          <div className="attendance-manual-actions">
-            {manualStatuses.map((item) => (
-              <Button key={item.value} size="sm" variant={row.record?.status === item.value ? 'primary' : 'secondary'} loading={workingId === `${row.staff_profile_id}-${item.value}`} onClick={() => mark(row, item.value)}>
-                {language === 'th' ? item.th : item.en}
-              </Button>
-            ))}
-          </div>
+          renderRosterActions(row, true)
         )}
         columns={[
           { key: 'name', header: language === 'th' ? 'ทีมงาน' : 'Staff', render: (row) => <div className="participant-admin-cell"><strong>{staffAttendanceDisplayName(row)}</strong><span>{row.name_th || row.name_en || row.email}</span></div> },
@@ -337,15 +378,7 @@ export function AdminStaffAttendanceSessionPage() {
           { key: 'status', header: language === 'th' ? 'สถานะ' : 'Status', render: (row) => <span className={`status-pill status-${row.record?.status ?? 'missing'}`}>{staffAttendanceStatusLabel(row.record?.status, language)}</span> },
           { key: 'time', header: language === 'th' ? 'เวลา' : 'Time', render: (row) => formatBangkokDateTime(row.record?.scanned_at ?? null, language) },
           { key: 'method', header: language === 'th' ? 'วิธี' : 'Method', render: (row) => attendanceMethodLabel(row.record?.method, language) },
-          { key: 'actions', header: language === 'th' ? 'Manual' : 'Manual', render: (row) => (
-            <div className="attendance-row-actions">
-              {manualStatuses.slice(0, 4).map((item) => (
-                <Button key={item.value} size="sm" variant={row.record?.status === item.value ? 'primary' : 'secondary'} loading={workingId === `${row.staff_profile_id}-${item.value}`} onClick={() => mark(row, item.value)}>
-                  {language === 'th' ? item.th : item.en}
-                </Button>
-              ))}
-            </div>
-          ) },
+          { key: 'actions', header: language === 'th' ? 'Manual' : 'Manual', render: (row) => renderRosterActions(row), align: 'right' },
         ]}
       />
 
