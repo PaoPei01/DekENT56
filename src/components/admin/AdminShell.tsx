@@ -178,7 +178,7 @@ export function AdminShell({ children }: AdminShellProps) {
         </nav>
       </aside>
 
-      <div className="admin-shell-main">
+      <div className="admin-shell-main admin-main">
         <nav className="admin-breadcrumbs" aria-label={language === 'th' ? 'ตำแหน่งในแอดมิน' : 'Admin breadcrumbs'}>
           <Link to="/admin">{language === 'th' ? 'แอดมิน' : 'Admin'}</Link>
           {hub.to !== '/admin' ? <Link to={hub.to}>{label(hub, language)}</Link> : null}

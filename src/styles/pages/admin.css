@@ -1,4 +1,123 @@
 /* Admin, group management, participant edit, and event operations pages. */
+.admin-main {
+  --admin-card-radius: 20px;
+  --admin-panel-gap: 1rem;
+  --admin-panel-padding: clamp(0.9rem, 1.8vw, 1.15rem);
+  --admin-control-radius: 14px;
+  max-width: 1180px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.admin-section,
+.admin-main :where(.admin-command-section, .admin-review-queue, .admin-secondary-stack, .attendance-session-section) {
+  display: grid;
+  gap: var(--admin-panel-gap);
+  min-width: 0;
+}
+
+.admin-toolbar,
+.admin-main :where(.toolbar, .attendance-top-action-bar, .admin-app-quick-filters) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.admin-summary-strip,
+.admin-main :where(.admin-app-summary-sticky, .attendance-op-summary, .people-summary-grid) {
+  border: 1px solid var(--border);
+  border-radius: var(--admin-card-radius);
+  background: var(--card-bg-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-filter-panel,
+.admin-main :where(.filter-panel, .people-directory-search, .people-data-health-panel, .admin-secondary-panel) {
+  border: 1px solid var(--border);
+  border-radius: var(--admin-card-radius);
+  padding: var(--admin-panel-padding);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-action-panel,
+.admin-main :where(.export-actions, .attendance-action-stack, .event-card-actions) {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.admin-detail-drawer,
+.admin-main :where(.modal, .application-detail-nav) {
+  border-color: var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.admin-mobile-card,
+.admin-main :where(.mobile-row, .attendance-session-mobile-card) {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 0.95rem;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-danger-zone,
+.admin-main :where(.danger-zone, .card-danger) {
+  border: 1px solid color-mix(in srgb, var(--danger) 26%, var(--border));
+  border-radius: var(--admin-card-radius);
+  background: var(--danger-surface);
+  color: var(--text);
+}
+
+.admin-main :where(.card, .event-detail-card, .event-form-card, .admin-card, .admin-panel, .admin-table-card) {
+  border-radius: var(--admin-card-radius);
+}
+
+.admin-main :where(.event-detail-card, .event-form-card, .admin-card, .admin-panel, .admin-table-card) {
+  padding: var(--admin-panel-padding);
+}
+
+.admin-main :where(.card .card, .event-detail-card .card, .event-form-card .card) {
+  box-shadow: none;
+}
+
+.admin-main :where(.btn, button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.admin-main :where(.btn, button) {
+  min-height: 42px;
+}
+
+.admin-main :where(.btn-danger) {
+  box-shadow: none;
+}
+
+.admin-main :where(.table-wrap) {
+  border-radius: var(--admin-card-radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-main :where(th, td) {
+  border-bottom-color: color-mix(in srgb, var(--border) 72%, transparent);
+}
+
+.admin-main :where(.badge) {
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.admin-main :where([aria-label]:empty) {
+  min-width: 42px;
+}
+
 .command-center-grid,
 .needs-review-list,
 .admin-quick-action-grid {
@@ -372,6 +491,21 @@
 }
 
 @media (max-width: 900px) {
+  .admin-main {
+    --admin-card-radius: 18px;
+    --admin-panel-padding: 0.9rem;
+  }
+
+  .admin-toolbar,
+  .admin-main :where(.toolbar, .attendance-top-action-bar, .admin-app-quick-filters, .admin-action-panel) {
+    align-items: stretch;
+  }
+
+  .admin-toolbar > *,
+  .admin-main :where(.toolbar, .attendance-top-action-bar, .admin-app-quick-filters, .admin-action-panel) > * {
+    min-width: 0;
+  }
+
   .command-center-grid,
   .admin-command-review-list,
   .admin-command-hub-grid,
@@ -461,6 +595,15 @@
 }
 
 @media (max-width: 520px) {
+  .admin-main {
+    gap: 0.85rem;
+  }
+
+  .admin-summary-strip,
+  .admin-main :where(.admin-app-summary-sticky, .attendance-op-summary, .people-summary-grid) {
+    border-radius: 16px;
+  }
+
   .admin-app-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1062,6 +1205,38 @@
 :root[data-theme="dark"] .edit-success-card {
   border-color: color-mix(in srgb, var(--success) 34%, transparent);
   background: var(--success-soft);
+}
+
+:root[data-theme="dark"] .admin-summary-strip,
+:root[data-theme="dark"] .admin-filter-panel,
+:root[data-theme="dark"] .admin-action-panel,
+:root[data-theme="dark"] .admin-detail-drawer,
+:root[data-theme="dark"] .admin-mobile-card,
+:root[data-theme="dark"] .admin-main :where(.admin-app-summary-sticky, .attendance-op-summary, .people-summary-grid, .filter-panel, .people-directory-search, .people-data-health-panel, .admin-secondary-panel, .mobile-row, .table-wrap, .modal, .application-detail-nav) {
+  border-color: var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-main :where(.table-sticky th) {
+  background: var(--card-bg-strong);
+}
+
+:root[data-theme="dark"] .admin-main :where(.admin-app-summary-grid span, .edit-privacy-grid > span, .edit-privacy-grid .check-field) {
+  background: var(--subtle-card-bg);
+  color: var(--text-soft);
+}
+
+:root[data-theme="dark"] .admin-main :where(.admin-app-tabs button, .people-hub-card, .admin-quick-action-card) {
+  border-color: var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-main :where(.admin-app-tabs button.active, .application-detail-nav a) {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-soft);
+  color: var(--accent-strong);
 }
 
 :root[data-theme="dark"] .edit-inline-error {
