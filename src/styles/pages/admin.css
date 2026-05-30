@@ -16,6 +16,141 @@
   gap: 0.85rem;
 }
 
+.admin-app-summary-sticky {
+  position: sticky;
+  top: 72px;
+  z-index: 8;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.65rem;
+  background: var(--card-bg-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-app-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.admin-app-summary-grid span {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  border-radius: 14px;
+  padding: 0.65rem;
+  background: var(--subtle-card-bg);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.admin-app-summary-grid strong {
+  color: var(--text-strong);
+  font-size: 1.15rem;
+}
+
+.admin-app-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.admin-app-tabs button {
+  display: grid;
+  gap: 0.1rem;
+  min-height: 58px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0.7rem 0.8rem;
+  color: var(--text);
+  background: var(--card-bg);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.admin-app-tabs button.active {
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  background: var(--primary-soft);
+  color: var(--accent-strong);
+}
+
+.admin-app-tabs span {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.admin-app-quick-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.admin-review-queue,
+.admin-secondary-stack,
+.admin-secondary-panel,
+.admin-duty-quota-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-secondary-panel > details {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-secondary-panel > details > summary,
+.application-detail-nav a {
+  min-height: 42px;
+  border-radius: 14px;
+  font-weight: 900;
+}
+
+.admin-secondary-panel > details > summary {
+  cursor: pointer;
+  color: var(--accent-strong);
+}
+
+.application-detail-nav {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card-bg);
+}
+
+.application-detail-nav a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.65rem;
+  color: var(--accent-strong);
+  background: var(--primary-soft);
+  text-decoration: none;
+}
+
+.mobile-filter-trigger {
+  display: none;
+}
+
+.admin-mobile-filter-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.75rem;
+  background: var(--card-bg);
+}
+
 .command-center-grid {
   grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
   align-items: start;
@@ -116,12 +251,69 @@
   .command-center-grid,
   .admin-command-review-list,
   .admin-command-hub-grid,
-  .admin-command-live-grid {
+  .admin-command-live-grid,
+  .admin-app-summary-grid,
+  .admin-app-tabs {
     grid-template-columns: 1fr;
   }
 
   .admin-command-page .page-header {
     border-radius: 22px;
+  }
+
+  .admin-app-summary-sticky {
+    top: 64px;
+  }
+
+  .admin-app-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-app-tabs {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scroll-snap-type: x proximity;
+  }
+
+  .admin-app-tabs button {
+    min-width: 148px;
+    scroll-snap-align: start;
+  }
+
+  .admin-app-quick-filters {
+    align-items: stretch;
+  }
+
+  .admin-app-quick-filters > div:first-child {
+    width: 100%;
+  }
+
+  .desktop-filter-panel {
+    display: none;
+  }
+
+  .mobile-filter-trigger {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-app-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-detail-nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .application-detail-nav a {
+    white-space: nowrap;
   }
 }
 

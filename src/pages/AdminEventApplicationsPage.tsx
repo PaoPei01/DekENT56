@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, MessageSquare, RefreshCw, Save, Trash2, UserPlus, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, Eye, FileSpreadsheet, Filter, MessageSquare, RefreshCw, Save, Trash2, UserPlus, XCircle } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -18,7 +18,6 @@ import { Select } from '../components/ui/Select';
 import { Toast, ToastState } from '../components/ui/Toast';
 import { useLanguage } from '../context/LanguageContext';
 import { getApplicationStatusLabel, getApplicationStatusTone, STAFF_APPLICATION_STATUSES, type StaffApplicationStatus } from '../lib/applicationStatus';
-import { copy } from '../lib/copy';
 import { useAsync } from '../hooks/useAsync';
 import { formatBangkokDateTime } from '../lib/dateTime';
 import { eventPath } from '../lib/eventRoutes';
@@ -30,6 +29,7 @@ import { errorMessage } from '../utils/error';
 import { explainSupabaseSchemaError } from '../utils/supabaseDiagnostics';
 
 type ExportPreset = 'all' | 'filtered' | 'by_assigned_duty';
+type ApplicationsTab = 'overview' | 'review' | 'assignment' | 'export' | 'duplicates';
 
 type ExcelExportRequest = {
   rows: AdminStaffApplicationRow[];
@@ -217,7 +217,6 @@ function downloadBlob(filename: string, blob: Blob) {
 
 export function AdminEventApplicationsPage() {
   const { language } = useLanguage();
-  const commonCopy = copy[language];
   const { eventId = '' } = useParams();
   const eventState = useAsync(() => fetchAdminEventById(eventId), [eventId]);
   const applicationsState = useAsync(() => fetchAdminEventStaffApplications(eventId), [eventId]);
@@ -247,8 +246,8 @@ export function AdminEventApplicationsPage() {
   const [assignmentOverride, setAssignmentOverride] = useState<{ row: AdminStaffApplicationRow; dutyKey: string; isFull: boolean } | null>(null);
   const [excelExport, setExcelExport] = useState<ExcelExportRequest | null>(null);
   const [exportConfirmed, setExportConfirmed] = useState(false);
-  const [handoffExporting, setHandoffExporting] = useState(false);
-  const [showDuplicateDetails, setShowDuplicateDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState<ApplicationsTab>('overview');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const event = eventState.data;
   const rows = useMemo(() => [...(applicationsState.data ?? [])].sort((a, b) => {
     const aTime = a.submitted_at ? new Date(a.submitted_at).getTime() : 0;
@@ -322,6 +321,23 @@ export function AdminEventApplicationsPage() {
     if (filters.eventDay && text(row.answers?.can_work_event_day) !== filters.eventDay) return false;
     return true;
   }), [dutiesByKey, filters, rows]);
+
+  const reviewQueueRows = useMemo(() => [...filteredRows].sort((a, b) => {
+    function score(row: AdminStaffApplicationRow) {
+      let value = 0;
+      if (row.identity_status !== 'verified') value += 80;
+      if (!getApplicationAssignedDutyKey(row)) value += 60;
+      if (row.status === 'submitted' || row.status === 'under_review') value += 40;
+      if (row.status === 'approved') value += 10;
+      if (row.status === 'rejected') value -= 30;
+      return value;
+    }
+    const scoreDiff = score(b) - score(a);
+    if (scoreDiff) return scoreDiff;
+    const aTime = a.submitted_at ? new Date(a.submitted_at).getTime() : 0;
+    const bTime = b.submitted_at ? new Date(b.submitted_at).getTime() : 0;
+    return bTime - aTime;
+  }), [filteredRows]);
 
   const summary = useMemo(() => {
     const approved = rows.filter((row) => row.status === 'approved');
@@ -477,20 +493,20 @@ export function AdminEventApplicationsPage() {
     const promoted = isPromoted(row);
     return (
       <div className={mobile ? 'application-mobile-actions' : 'table-action-row'}>
-        <Button size="sm" variant="secondary" icon={<Eye size={16} />} onClick={() => setDetailRow(row)}>{language === 'th' ? 'ดูรายละเอียด' : 'Details'}</Button>
+        <Button size="sm" variant="secondary" icon={<Eye size={16} />} aria-label={language === 'th' ? `ดูรายละเอียด ${applicantName(row)}` : `View details for ${applicantName(row)}`} onClick={() => setDetailRow(row)}>{language === 'th' ? 'ดูรายละเอียด' : 'Details'}</Button>
         {promoted ? <Badge status="approved">{language === 'th' ? 'เพิ่มเป็นสตาฟแล้ว' : 'Event staff'}</Badge> : null}
-        <Button size="sm" icon={<CheckCircle size={16} />} onClick={() => openReview(row, 'approved')}>{language === 'th' ? 'ผ่าน' : 'Approve'}</Button>
+        <Button size="sm" icon={<CheckCircle size={16} />} aria-label={language === 'th' ? `ให้ผ่าน ${applicantName(row)}` : `Approve ${applicantName(row)}`} onClick={() => openReview(row, 'approved')}>{language === 'th' ? 'ผ่าน' : 'Approve'}</Button>
         <details className="application-more-actions">
-          <summary>{language === 'th' ? 'เพิ่มเติม' : 'More'}</summary>
+          <summary aria-label={language === 'th' ? `เปิดเมนูเพิ่มเติมของ ${applicantName(row)}` : `Open more actions for ${applicantName(row)}`}>{language === 'th' ? 'เพิ่มเติม' : 'More'}</summary>
           <div>
+            <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'under_review')}>{language === 'th' ? 'กำลังตรวจสอบ' : 'Under review'}</Button>
+            <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
+            <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'เพิ่มหมายเหตุ' : 'Add note'}</Button>
             {row.status === 'approved' && !promoted ? (
               <Button size="sm" variant="secondary" icon={<UserPlus size={16} />} loading={savingId === row.id} onClick={() => void promoteToEventStaff(row)}>
                 {language === 'th' ? 'เพิ่มเป็นสตาฟกิจกรรม' : 'Add to event staff'}
               </Button>
             ) : null}
-            <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'under_review')}>{language === 'th' ? 'ตรวจสอบแล้ว' : 'Review'}</Button>
-            <Button size="sm" variant="secondary" icon={<Clock size={16} />} onClick={() => openReview(row, 'waitlisted')}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
-            <Button size="sm" variant="secondary" icon={<MessageSquare size={16} />} onClick={() => openReview(row, row.status as StaffApplicationStatus)}>{language === 'th' ? 'หมายเหตุ' : 'Note'}</Button>
             <Button size="sm" variant="danger" icon={<XCircle size={16} />} onClick={() => openReview(row, 'rejected')}>{language === 'th' ? 'ไม่ผ่าน' : 'Reject'}</Button>
             <Button size="sm" variant="danger" icon={<Trash2 size={16} />} onClick={() => setDeleteDraft(row)}>{language === 'th' ? 'ลบใบสมัคร' : 'Delete application'}</Button>
           </div>
@@ -606,27 +622,27 @@ export function AdminEventApplicationsPage() {
     }));
   }
 
-  async function downloadHandoffExcel() {
+  function requestHandoffExcelExport() {
     if (!rows.length) {
       setToast({ type: 'error', message: language === 'th' ? 'ยังไม่มีข้อมูลผู้สมัครสตาฟสำหรับส่งออก' : 'No staff application data to export yet.' });
       return;
     }
-    try {
-      setHandoffExporting(true);
-      await logStaffApplicationExport({
-        eventId,
-        exportScope: 'all',
-        rowCount: rows.length,
-        includesSensitiveFields: true,
-        filters: { handoff_format: true },
-      });
-      await exportStaffApplicantsXlsx(handoffRows(rows), event?.slug || event?.name_en || event?.name_th);
-      setToast({ type: 'success', message: language === 'th' ? 'ดาวน์โหลด Excel สำหรับส่งต่อแล้ว' : 'Handoff Excel downloaded' });
-    } catch (err) {
-      setToast({ type: 'error', message: explainSupabaseSchemaError(err, language) || errorMessage(err, language === 'th' ? 'ดาวน์โหลดไฟล์ไม่สำเร็จ กรุณาลองใหม่' : 'Could not download the file. Please try again.') });
-    } finally {
-      setHandoffExporting(false);
-    }
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    setExportConfirmed(false);
+    setExcelExport({
+      rows,
+      filename: `freshmen-orientation-staff-handoff-${date}.xlsx`,
+      scope: 'all',
+      filters: { handoff_format: true },
+    });
+  }
+
+  function resetFilters() {
+    setFilters({ search: '', status: '', identityStatus: '', assignedDuty: '', assignmentMethod: '', finalDuty: '', preferredDuty: '', yearLevel: '', major: '', rehearsal: '', eventDay: '' });
+  }
+
+  function applyQuickFilter(next: Partial<typeof filters>) {
+    setFilters((current) => ({ ...current, ...next }));
   }
 
   async function downloadExcel(rowsToExport: AdminStaffApplicationRow[], filename: string) {
@@ -683,12 +699,296 @@ export function AdminEventApplicationsPage() {
         includesSensitiveFields: true,
         filters: excelExport.filters,
       });
-      await downloadExcel(excelExport.rows, excelExport.filename);
+      if (excelExport.filters.handoff_format === true) {
+        await exportStaffApplicantsXlsx(handoffRows(excelExport.rows), event?.slug || event?.name_en || event?.name_th);
+        setToast({ type: 'success', message: language === 'th' ? 'ดาวน์โหลด Excel สำหรับส่งต่อแล้ว' : 'Handoff Excel downloaded' });
+      } else {
+        await downloadExcel(excelExport.rows, excelExport.filename);
+      }
       setExcelExport(null);
       setExportConfirmed(false);
     } catch (err) {
       setToast({ type: 'error', message: explainSupabaseSchemaError(err, language) || errorMessage(err, language === 'th' ? 'ดาวน์โหลดไฟล์ไม่สำเร็จ กรุณาลองใหม่' : 'Could not download the file. Please try again.') });
     }
+  }
+
+  const tabItems: Array<{ id: ApplicationsTab; label: string; helper: string }> = [
+    { id: 'overview', label: language === 'th' ? 'ภาพรวม' : 'Overview', helper: language === 'th' ? 'งานสำคัญและคิวหลัก' : 'Key work and queue' },
+    { id: 'review', label: language === 'th' ? 'รอตรวจ' : 'Review', helper: language === 'th' ? 'ตัวตนและสถานะ' : 'Identity and status' },
+    { id: 'assignment', label: language === 'th' ? 'จัดฝ่าย' : 'Assign', helper: language === 'th' ? 'โควต้าและฝ่าย' : 'Quota and duties' },
+    { id: 'export', label: language === 'th' ? 'ส่งออก' : 'Export', helper: language === 'th' ? 'ไฟล์สำหรับใช้งาน' : 'Operational files' },
+    { id: 'duplicates', label: language === 'th' ? 'ตรวจข้อมูลซ้ำ' : 'Duplicates', helper: language === 'th' ? 'ใบสมัครซ้ำ' : 'Duplicate checks' },
+  ];
+
+  function renderSummary() {
+    return (
+      <div className="admin-app-summary-sticky" aria-label={language === 'th' ? 'สรุปใบสมัคร' : 'Application summary'}>
+        <div className="admin-app-summary-grid">
+          <span><strong>{rows.length}</strong>{language === 'th' ? 'ทั้งหมด' : 'Total'}</span>
+          <span><strong>{summary.pendingIdentity}</strong>{language === 'th' ? 'รอตรวจตัวตน' : 'Pending identity'}</span>
+          <span><strong>{summary.missingAssignedDuty}</strong>{language === 'th' ? 'ยังไม่จัดฝ่าย' : 'Unassigned'}</span>
+          <span><strong>{summary.approved}</strong>{language === 'th' ? 'ผ่านแล้ว' : 'Approved'}</span>
+          <span><strong>{quotaRemaining}</strong>{language === 'th' ? 'โควต้าคงเหลือ' : 'Quota left'}</span>
+          <span><strong>{duplicateReport?.total_duplicate_groups ?? 0}</strong>{language === 'th' ? 'กลุ่มซ้ำ' : 'Duplicate groups'}</span>
+        </div>
+      </div>
+    );
+  }
+
+  function renderTabs() {
+    return (
+      <div className="admin-app-tabs" role="tablist" aria-label={language === 'th' ? 'ส่วนงานใบสมัคร' : 'Application work sections'}>
+        {tabItems.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            className={activeTab === tab.id ? 'active' : undefined}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            <strong>{tab.label}</strong>
+            <span>{tab.helper}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  function renderQuickFilters() {
+    const overQuotaDuty = overQuotaDuties[0]?.duty_key;
+    return (
+      <Card className="admin-app-quick-filters" variant="soft">
+        <div>
+          <p className="eyebrow">{language === 'th' ? 'Quick filters' : 'Quick filters'}</p>
+          <strong>{language === 'th' ? 'กรองงานที่ต้องจัดการ' : 'Filter work queue'}</strong>
+        </div>
+        <div className="filter-panel-chips">
+          <Button size="sm" variant="secondary" onClick={() => applyQuickFilter({ identityStatus: 'pending_identity_review' })}>{language === 'th' ? 'รอตรวจตัวตน' : 'Pending identity'}</Button>
+          <Button size="sm" variant="secondary" onClick={() => applyQuickFilter({ assignedDuty: '__missing' })}>{language === 'th' ? 'ยังไม่จัดฝ่าย' : 'Unassigned'}</Button>
+          <Button size="sm" variant="secondary" onClick={() => applyQuickFilter({ status: 'approved' })}>{language === 'th' ? 'ผ่านแล้ว' : 'Approved'}</Button>
+          <Button size="sm" variant="secondary" onClick={() => applyQuickFilter({ status: 'waitlisted' })}>{language === 'th' ? 'สำรอง' : 'Waitlist'}</Button>
+          <Button size="sm" variant="secondary" onClick={() => applyQuickFilter({ status: 'rejected' })}>{language === 'th' ? 'ไม่ผ่าน' : 'Rejected'}</Button>
+          {overQuotaDuty ? <Button size="sm" variant="secondary" onClick={() => applyQuickFilter({ assignedDuty: overQuotaDuty })}>{language === 'th' ? 'ฝ่ายเต็ม/เกินโควต้า' : 'Full / over quota'}</Button> : null}
+          <Button size="sm" variant="ghost" onClick={resetFilters}>{language === 'th' ? 'ล้างทั้งหมด' : 'Clear all'}</Button>
+          <Button size="sm" variant="secondary" className="mobile-filter-trigger" icon={<Filter size={16} />} onClick={() => setMobileFiltersOpen(true)}>{language === 'th' ? 'ตัวกรอง' : 'Filters'}</Button>
+        </div>
+      </Card>
+    );
+  }
+
+  function renderFilterControls(compact = false) {
+    return (
+      <>
+        <div className="filter-panel-grid">
+          <Input
+            label={language === 'th' ? 'ค้นหาผู้สมัคร' : 'Search applicants'}
+            placeholder={language === 'th' ? 'ค้นหาชื่อ รหัสนักศึกษา อีเมล เบอร์ หรือสาขา' : 'Search name, student ID, email, phone, or major'}
+            value={filters.search}
+            onChange={(eventInput) => setFilters({ ...filters, search: eventInput.target.value })}
+          />
+          <Select
+            label={language === 'th' ? 'สถานะใบสมัคร' : 'Application status'}
+            placeholder={language === 'th' ? 'ทั้งหมด' : 'All'}
+            value={filters.status}
+            onChange={(eventInput) => setFilters({ ...filters, status: eventInput.target.value })}
+            options={STAFF_APPLICATION_STATUSES.map((status) => ({ value: status, label: getApplicationStatusLabel(status, language) }))}
+          />
+          <Select
+            label={language === 'th' ? 'สถานะยืนยันตัวตน' : 'Identity status'}
+            placeholder={language === 'th' ? 'ทั้งหมด' : 'All'}
+            value={filters.identityStatus}
+            onChange={(eventInput) => setFilters({ ...filters, identityStatus: eventInput.target.value })}
+            options={['verified', 'email_mismatch', 'pending_identity_review', 'not_found', 'rejected_identity'].map((status) => ({ value: status, label: identityStatusLabel(status, language) }))}
+          />
+          <Select label={language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignedDuty} onChange={(eventInput) => setFilters({ ...filters, assignedDuty: eventInput.target.value })} options={assignedDutyFilterOptions} />
+        </div>
+        <details className="filter-disclosure" open={!compact}>
+          <summary>{language === 'th' ? 'ตัวกรองเพิ่มเติม' : 'More filters'}</summary>
+          <div className="filter-panel-grid">
+            <Select label={language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignmentMethod} onChange={(eventInput) => setFilters({ ...filters, assignmentMethod: eventInput.target.value })} options={['auto_quota', 'manual_admin', 'fallback_general', 'pending'].map((method) => ({ value: method, label: assignmentMethodLabel(method, language) }))} />
+            <Select label={language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.finalDuty} onChange={(eventInput) => setFilters({ ...filters, finalDuty: eventInput.target.value })} options={finalDutyOptions} />
+            <Select label={language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.preferredDuty} onChange={(eventInput) => setFilters({ ...filters, preferredDuty: eventInput.target.value })} options={filterOptions.preferred} />
+            <Select label={language === 'th' ? 'ชั้นปี' : 'Year'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.yearLevel} onChange={(eventInput) => setFilters({ ...filters, yearLevel: eventInput.target.value })} options={filterOptions.years} />
+            <Select label={language === 'th' ? 'สาขา' : 'Major'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.major} onChange={(eventInput) => setFilters({ ...filters, major: eventInput.target.value })} options={filterOptions.majors} />
+            <Select label={language === 'th' ? 'วันซ้อม' : 'Rehearsal'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.rehearsal} onChange={(eventInput) => setFilters({ ...filters, rehearsal: eventInput.target.value })} options={['ได้', 'ไม่ได้', 'ยังไม่แน่ใจ']} />
+            <Select label={language === 'th' ? 'วันจริง' : 'Event day'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.eventDay} onChange={(eventInput) => setFilters({ ...filters, eventDay: eventInput.target.value })} options={['ได้', 'ไม่ได้', 'ยังไม่แน่ใจ']} />
+          </div>
+        </details>
+      </>
+    );
+  }
+
+  function renderQuotaPanel(collapsed = false) {
+    const content = (
+      <>
+        <div className="event-stat-grid compact-stat-grid">
+          <Card className="event-detail-card" variant={quotaTotal === 130 ? 'soft' : 'warning'}>
+            <strong>{quotaTotal}</strong>
+            <span>{language === 'th' ? 'โควต้ารวม' : 'Total quota'}</span>
+            {quotaTotal !== 130 ? <small className="field-error">{language === 'th' ? 'ควรเป็น 130' : 'Expected 130'}</small> : null}
+          </Card>
+          <Card className="event-detail-card" variant="soft"><strong>{quotaAssigned}</strong><span>{language === 'th' ? 'จัดฝ่ายแล้ว' : 'Assigned'}</span></Card>
+          <Card className="event-detail-card" variant="soft"><strong>{quotaRemaining}</strong><span>{language === 'th' ? 'คงเหลือ' : 'Remaining'}</span></Card>
+          <Card className="event-detail-card" variant={overQuotaDuties.length ? 'warning' : 'soft'}><strong>{overQuotaDuties.length}</strong><span>{language === 'th' ? 'ฝ่ายเกินโควต้า' : 'Over quota duties'}</span></Card>
+        </div>
+        {quotaState.error ? (
+          <Card variant="warning">
+            <strong>{language === 'th' ? 'โหลดข้อมูลโควต้าไม่สำเร็จ' : 'Could not load quota status'}</strong>
+            <p>{explainSupabaseSchemaError(quotaState.error, language) || (language === 'th' ? 'กรุณาลองใหม่อีกครั้ง' : 'Please try again.')}</p>
+            <Button variant="secondary" onClick={() => void quotaState.reload()}>{language === 'th' ? 'ลองใหม่' : 'Retry'}</Button>
+          </Card>
+        ) : null}
+        {overQuotaDuties.length ? (
+          <Card variant="warning">
+            <strong>{language === 'th' ? 'มีฝ่ายที่เกินโควต้า กรุณาตรวจสอบการปรับด้วยตนเอง' : 'Some duties exceed quota. Please review manual overrides.'}</strong>
+          </Card>
+        ) : null}
+        <div className="event-mini-grid admin-duty-quota-grid">
+          {canonicalQuotaDuties.map((duty) => (
+            <div className={`event-mini-card quota-click-card ${duty.is_full || duty.assigned_count > duty.quota ? 'is-warning' : ''}`} key={duty.duty_key}>
+              <strong>{duty.assigned_count}/{duty.quota}</strong>
+              <span>{getDutyLabelTh(duty.duty_key)}</span>
+              <small>{language === 'th' ? `เหลือ ${duty.remaining} คน` : `${duty.remaining} remaining`}</small>
+              <div className="progress-track" aria-label={`${getDutyLabelTh(duty.duty_key)} ${duty.assigned_count}/${duty.quota}`}>
+                <span style={{ width: `${Math.min(Math.max((duty.assigned_count / Math.max(duty.quota, 1)) * 100, 0), 100)}%` }} />
+              </div>
+              {duty.assigned_count > duty.quota ? <Badge status="rejected">{language === 'th' ? 'เกินโควต้า' : 'Over quota'}</Badge> : duty.is_full || duty.remaining <= 0 ? <Badge status="pending">{language === 'th' ? 'รับเต็มจำนวนแล้ว' : 'Full'}</Badge> : <Badge status="approved">{language === 'th' ? 'ยังรับได้' : 'Available'}</Badge>}
+              <Button size="sm" variant="ghost" onClick={() => { setActiveTab('review'); applyQuickFilter({ assignedDuty: duty.duty_key }); }}>
+                {language === 'th' ? 'ดูผู้สมัครฝ่ายนี้' : 'View this duty'}
+              </Button>
+              <Button size="sm" variant="secondary" icon={<FileSpreadsheet size={16} />} onClick={() => requestExcelExport('by_assigned_duty', duty.duty_key)}>
+                {language === 'th' ? 'ดาวน์โหลด Excel ฝ่ายนี้' : 'Export this duty'}
+              </Button>
+            </div>
+          ))}
+          {!canonicalQuotaDuties.length ? <p className="muted">{language === 'th' ? 'ยังไม่มีข้อมูลโควต้าฝ่าย กรุณาลองรีเฟรชอีกครั้ง' : 'No duty quota data is available. Please retry.'}</p> : null}
+        </div>
+      </>
+    );
+
+    return (
+      <Card className="event-detail-card admin-secondary-panel">
+        {collapsed ? (
+          <details>
+            <summary>{language === 'th' ? 'โควต้าฝ่ายและการจัดฝ่าย' : 'Duty quota and assignment'}</summary>
+            {content}
+          </details>
+        ) : (
+          <>
+            <div>
+              <p className="eyebrow">{language === 'th' ? 'จัดฝ่าย' : 'Assignment'}</p>
+              <h2>{language === 'th' ? 'โควต้าฝ่าย' : 'Duty quotas'}</h2>
+              <p className="muted">{language === 'th' ? 'คลิกการ์ดฝ่ายเพื่อกรองรายชื่อ หรือส่งออกฝ่ายนั้นเป็นงานรอง' : 'Click a duty card to filter the queue, or export that duty as a secondary action.'}</p>
+            </div>
+            {content}
+          </>
+        )}
+      </Card>
+    );
+  }
+
+  function renderExportPanel(collapsed = false) {
+    const content = (
+      <>
+        <p className="muted">{language === 'th' ? 'ไฟล์ส่งออกอาจมีข้อมูลติดต่อและข้อมูลสุขภาพ ใช้เฉพาะงานที่ได้รับอนุญาตเท่านั้น' : 'Exports may include contact and health information. Use only for authorized operations.'}</p>
+        <ExportActions
+          label={language === 'th' ? 'ดาวน์โหลด Excel' : 'Download Excel'}
+          actions={[
+            { label: language === 'th' ? 'ดาวน์โหลด Excel ทั้งหมด' : 'Download all Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('all') },
+            { label: language === 'th' ? 'ดาวน์โหลด Excel ตามตัวกรอง' : 'Download filtered Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('filtered') },
+            ...(filters.assignedDuty && filters.assignedDuty !== '__missing' ? [{ label: language === 'th' ? 'ดาวน์โหลด Excel ฝ่ายนี้' : 'Download this duty Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('by_assigned_duty', filters.assignedDuty) }] : []),
+            { label: language === 'th' ? 'ดาวน์โหลด Excel สำหรับส่งต่อ' : 'Download handoff Excel', icon: <FileSpreadsheet size={16} aria-hidden="true" />, onClick: requestHandoffExcelExport },
+          ]}
+        />
+      </>
+    );
+    return (
+      <Card className="event-form-card admin-secondary-panel">
+        {collapsed ? (
+          <details>
+            <summary>{language === 'th' ? 'ส่งออกข้อมูล' : 'Export data'}</summary>
+            {content}
+          </details>
+        ) : (
+          <>
+            <div>
+              <p className="eyebrow">{language === 'th' ? 'ส่งออก' : 'Export'}</p>
+              <h2>{language === 'th' ? 'ไฟล์สำหรับส่งต่อและใช้งาน' : 'Operational exports'}</h2>
+            </div>
+            {content}
+          </>
+        )}
+      </Card>
+    );
+  }
+
+  function renderDuplicatePanel(collapsed = false) {
+    const hasDuplicateError = duplicateState.error;
+    const hasDuplicates = Boolean(duplicateReport && duplicateReport.total_duplicate_groups > 0);
+    const content = (
+      <>
+        {hasDuplicateError ? (
+          <Card variant="warning">
+            <strong>{language === 'th' ? 'โหลดรายงานข้อมูลซ้ำไม่สำเร็จ' : 'Could not load duplicate report'}</strong>
+            <p>{language === 'th' ? 'ข้อมูลใบสมัครยังใช้งานได้ตามปกติ กรุณาลองโหลดรายงานซ้ำอีกครั้ง' : 'Applications are still available. Please retry the duplicate report.'}</p>
+            <Button variant="secondary" onClick={() => void duplicateState.reload()}>{language === 'th' ? 'ลองใหม่' : 'Retry'}</Button>
+          </Card>
+        ) : null}
+        {!hasDuplicateError && !hasDuplicates ? <EmptyState title={language === 'th' ? 'ยังไม่พบใบสมัครซ้ำ' : 'No duplicate applications found'} description={language === 'th' ? 'ระบบยังไม่พบกลุ่มข้อมูลที่ควรตรวจซ้ำในกิจกรรมนี้' : 'No duplicate groups were found for this event.'} /> : null}
+        {hasDuplicates ? (
+          <>
+            <Card variant="warning">
+              <div className="mobile-row-head">
+                <div>
+                  <strong>{language === 'th' ? 'พบใบสมัครซ้ำในกิจกรรมนี้' : 'Duplicate applications found'}</strong>
+                  <span>{language === 'th' ? `${duplicateReport?.total_duplicate_groups} กลุ่มซ้ำ · ${duplicateReport?.total_duplicate_rows} รายการที่เกี่ยวข้อง` : `${duplicateReport?.total_duplicate_groups} duplicate groups · ${duplicateReport?.total_duplicate_rows} related rows`}</span>
+                </div>
+                <Badge status="pending">Data Health</Badge>
+              </div>
+            </Card>
+            <div className="mobile-card-list">
+              {duplicateGroups.map((group, index) => (
+                <Card key={`${group.event_id}-${group.person_id ?? group.requested_student_id ?? group.requested_email ?? index}`} variant="soft">
+                  <div className="mobile-row-head">
+                    <div>
+                      <strong>{group.person_id ? `person_id: ${group.person_id}` : group.requested_student_id ? `student_id: ${group.requested_student_id}` : `email: ${group.requested_email}`}</strong>
+                      <span>{language === 'th' ? `${group.duplicate_count} ใบสมัคร` : `${group.duplicate_count} applications`}</span>
+                    </div>
+                  </div>
+                  <div className="application-detail-grid">
+                    {group.applications.map((application) => (
+                      <Fragment key={application.id}>
+                        <span>{application.id}</span>
+                        <strong>{getApplicationStatusLabel(application.status, language)} · {formatBangkokDateTime(application.submitted_at, language)}</strong>
+                      </Fragment>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </>
+    );
+    return (
+      <Card className="event-detail-card admin-secondary-panel">
+        {collapsed ? (
+          <details>
+            <summary>{language === 'th' ? 'ตรวจข้อมูลซ้ำ' : 'Duplicate check'}</summary>
+            {content}
+          </details>
+        ) : (
+          <>
+            <div>
+              <p className="eyebrow">{language === 'th' ? 'ตรวจข้อมูลซ้ำ' : 'Duplicate check'}</p>
+              <h2>{language === 'th' ? 'รายงานใบสมัครซ้ำ' : 'Duplicate application report'}</h2>
+            </div>
+            {content}
+          </>
+        )}
+      </Card>
+    );
   }
 
   return (
@@ -718,219 +1018,53 @@ export function AdminEventApplicationsPage() {
         />
       ) : null}
 
-      {quotaState.error ? (
-        <Card variant="warning" className="event-detail-card">
-          <strong>{language === 'th' ? 'โหลดข้อมูลโควต้าไม่สำเร็จ' : 'Could not load quota status'}</strong>
-          <p>{explainSupabaseSchemaError(quotaState.error, language)}</p>
-          <Button variant="secondary" onClick={() => void quotaState.reload()}>{language === 'th' ? 'ลองใหม่' : 'Retry'}</Button>
-        </Card>
-      ) : null}
-
-      {duplicateReport && duplicateReport.total_duplicate_groups > 0 ? (
-        <Card variant="warning" className="event-detail-card">
+      {duplicateReport && duplicateReport.total_duplicate_groups > 0 && activeTab !== 'duplicates' ? (
+        <Card variant="warning" className="event-detail-card admin-app-alert-card">
           <div className="mobile-row-head">
             <div>
-              <strong>{language === 'th' ? 'พบใบสมัครซ้ำในกิจกรรมนี้ กรุณาตรวจสอบก่อนสรุปรายชื่อ' : 'Duplicate applications found. Review before finalizing.'}</strong>
+              <strong>{language === 'th' ? 'พบใบสมัครซ้ำ ควรตรวจสอบก่อนสรุปรายชื่อ' : 'Duplicate applications found. Review before finalizing.'}</strong>
               <span>{language === 'th' ? `${duplicateReport.total_duplicate_groups} กลุ่มซ้ำ · ${duplicateReport.total_duplicate_rows} รายการที่เกี่ยวข้อง` : `${duplicateReport.total_duplicate_groups} duplicate groups · ${duplicateReport.total_duplicate_rows} related rows`}</span>
             </div>
-            <Badge status="pending">{language === 'th' ? 'Data Health' : 'Data Health'}</Badge>
+            <Button size="sm" variant="secondary" onClick={() => setActiveTab('duplicates')}>{language === 'th' ? 'ไปตรวจข้อมูลซ้ำ' : 'Review duplicates'}</Button>
           </div>
-          <div className="event-card-actions">
-            <Button type="button" variant="secondary" onClick={() => setShowDuplicateDetails((open) => !open)}>
-              {showDuplicateDetails ? (language === 'th' ? 'ซ่อนรายการซ้ำ' : 'Hide duplicates') : (language === 'th' ? 'ดูรายการซ้ำ' : 'View duplicates')}
-            </Button>
-          </div>
-          {showDuplicateDetails ? (
-            <div className="mobile-card-list">
-              {duplicateGroups.map((group, index) => (
-                <Card key={`${group.event_id}-${group.person_id ?? group.requested_student_id ?? group.requested_email ?? index}`} variant="soft">
-                  <div className="mobile-row-head">
-                    <div>
-                      <strong>{group.person_id ? `person_id: ${group.person_id}` : group.requested_student_id ? `student_id: ${group.requested_student_id}` : `email: ${group.requested_email}`}</strong>
-                      <span>{language === 'th' ? `${group.duplicate_count} ใบสมัคร` : `${group.duplicate_count} applications`}</span>
-                    </div>
-                  </div>
-                  <div className="application-detail-grid">
-                    {group.applications.map((application) => (
-                      <Fragment key={application.id}>
-                        <span>{application.id}</span>
-                        <strong>{getApplicationStatusLabel(application.status, language)} · {formatBangkokDateTime(application.submitted_at, language)}</strong>
-                      </Fragment>
-                    ))}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : null}
         </Card>
       ) : null}
 
       {event ? (
         <>
-          <div className="event-stat-grid">
-            <Card className="event-detail-card" variant="soft">
-              <strong>{rows.length}</strong>
-              <span>{language === 'th' ? 'ใบสมัครทั้งหมด' : 'Total applications'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.verified}</strong>
-              <span>{language === 'th' ? 'ยืนยันตัวตนแล้ว' : 'Verified identity'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.pendingIdentity}</strong>
-              <span>{language === 'th' ? 'รอตรวจสอบตัวตน' : 'Pending identity'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.approved}</strong>
-              <span>{language === 'th' ? 'ผ่านการคัดเลือก' : 'Approved'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.waitlisted}</strong>
-              <span>{language === 'th' ? 'สำรอง' : 'Waitlisted'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.rejected}</strong>
-              <span>{language === 'th' ? 'ไม่ผ่าน' : 'Rejected'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.missingAssignedDuty}</strong>
-              <span>{language === 'th' ? 'ยังไม่ได้จัดฝ่าย' : 'Missing assigned duty'}</span>
-            </Card>
-            <Card className="event-detail-card" variant="soft">
-              <strong>{summary.totalRemainingQuota}</strong>
-              <span>{language === 'th' ? 'โควต้าคงเหลือรวม' : 'Total remaining quota'}</span>
-            </Card>
-          </div>
+          {renderSummary()}
+          {renderTabs()}
+          {renderQuickFilters()}
 
-          <Card className="event-detail-card">
-            <div>
-              <p className="eyebrow">{language === 'th' ? 'โควต้าฝ่าย' : 'Duty quotas'}</p>
-              <h2>{language === 'th' ? 'สรุปฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty summary'}</h2>
-              <p className="muted">{language === 'th' ? 'ตัวเลขนี้เป็นการจัดฝ่ายเบื้องต้น ระบบยังอนุญาตให้ผู้ดูแลปรับภายหลังได้' : 'These are preliminary assignments. Admins can still adjust them later.'}</p>
-            </div>
-            <div className="event-stat-grid compact-stat-grid">
-              <Card className="event-detail-card" variant={quotaTotal === 130 ? 'soft' : 'warning'}>
-                <strong>{quotaTotal}</strong>
-                <span>{language === 'th' ? 'โควต้ารวม' : 'Total quota'}</span>
-                {quotaTotal !== 130 ? <small className="field-error">{language === 'th' ? 'ควรเป็น 130' : 'Expected 130'}</small> : null}
-              </Card>
-              <Card className="event-detail-card" variant="soft">
-                <strong>{quotaAssigned}</strong>
-                <span>{language === 'th' ? 'จัดฝ่ายแล้ว' : 'Assigned'}</span>
-              </Card>
-              <Card className="event-detail-card" variant="soft">
-                <strong>{quotaRemaining}</strong>
-                <span>{language === 'th' ? 'คงเหลือ' : 'Remaining'}</span>
-              </Card>
-              <Card className="event-detail-card" variant={overQuotaDuties.length ? 'warning' : 'soft'}>
-                <strong>{overQuotaDuties.length}</strong>
-                <span>{language === 'th' ? 'ฝ่ายเกินโควต้า' : 'Over quota duties'}</span>
-              </Card>
-            </div>
-            {overQuotaDuties.length ? (
-              <Card variant="warning">
-                <strong>{language === 'th' ? 'มีฝ่ายที่เกินโควต้า กรุณาตรวจสอบการปรับด้วยตนเอง' : 'Some duties exceed quota. Please review manual overrides.'}</strong>
-              </Card>
-            ) : null}
-            <div className="event-mini-grid">
-              {canonicalQuotaDuties.map((duty) => (
-                <div
-                  className={`event-mini-card quota-click-card ${duty.is_full || duty.assigned_count > duty.quota ? 'is-warning' : ''}`}
-                  key={duty.duty_key}
-                >
-                  <strong>{duty.assigned_count}/{duty.quota}</strong>
-                  <span>{getDutyLabelTh(duty.duty_key)}</span>
-                  <small>{language === 'th' ? `เหลือ ${duty.remaining} คน` : `${duty.remaining} remaining`}</small>
-                  <div className="progress-track" aria-label={`${getDutyLabelTh(duty.duty_key)} ${duty.assigned_count}/${duty.quota}`}>
-                    <span style={{ width: `${Math.min(Math.max((duty.assigned_count / Math.max(duty.quota, 1)) * 100, 0), 100)}%` }} />
-                  </div>
-                  {duty.assigned_count > duty.quota ? <Badge status="rejected">{language === 'th' ? 'เกินโควต้า' : 'Over quota'}</Badge> : duty.is_full || duty.remaining <= 0 ? <Badge status="pending">{language === 'th' ? 'รับเต็มจำนวนแล้ว' : 'Full'}</Badge> : <Badge status="approved">{language === 'th' ? 'ยังรับได้' : 'Available'}</Badge>}
-                  <Button size="sm" variant="ghost" onClick={() => setFilters({ ...filters, assignedDuty: duty.duty_key })}>
-                    {language === 'th' ? 'ดูผู้สมัครฝ่ายนี้' : 'View this duty'}
-                  </Button>
-                  <Button size="sm" variant="secondary" icon={<FileSpreadsheet size={16} />} onClick={() => requestExcelExport('by_assigned_duty', duty.duty_key)}>
-                    {language === 'th' ? 'ดาวน์โหลด Excel ฝ่ายนี้' : 'Export this duty'}
-                  </Button>
-                </div>
-              ))}
-              {!quotaDuties.length ? <p className="muted">{language === 'th' ? 'ยังไม่มีข้อมูลโควต้าฝ่าย' : 'No duty quota data yet.'}</p> : null}
-            </div>
-          </Card>
-
-          <Card className="event-form-card">
+          <Card className="event-form-card desktop-filter-panel">
             <div className="filter-panel-head">
               <div>
                 <p className="eyebrow">{language === 'th' ? 'ตัวกรอง' : 'Filters'}</p>
                 <h2>{language === 'th' ? 'คัดกรองใบสมัคร' : 'Filter applications'}</h2>
               </div>
-              <Button variant="ghost" onClick={() => setFilters({ search: '', status: '', identityStatus: '', assignedDuty: '', assignmentMethod: '', finalDuty: '', preferredDuty: '', yearLevel: '', major: '', rehearsal: '', eventDay: '' })}>
-                {language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}
-              </Button>
+              <Button variant="ghost" onClick={resetFilters}>{language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}</Button>
             </div>
-            <div className="filter-panel-grid">
-              <Input
-                label={language === 'th' ? 'ค้นหาผู้สมัคร' : 'Search applicants'}
-                placeholder={language === 'th' ? 'ค้นหาชื่อ รหัสนักศึกษา อีเมล เบอร์ หรือสาขา' : 'Search name, student ID, email, phone, or major'}
-                value={filters.search}
-                onChange={(eventInput) => setFilters({ ...filters, search: eventInput.target.value })}
-              />
-              <Select
-                label={language === 'th' ? 'สถานะใบสมัคร' : 'Application status'}
-                placeholder={language === 'th' ? 'ทั้งหมด' : 'All'}
-                value={filters.status}
-                onChange={(eventInput) => setFilters({ ...filters, status: eventInput.target.value })}
-                options={STAFF_APPLICATION_STATUSES.map((status) => ({ value: status, label: getApplicationStatusLabel(status, language) }))}
-              />
-              <Select
-                label={language === 'th' ? 'สถานะยืนยันตัวตน' : 'Identity status'}
-                placeholder={language === 'th' ? 'ทั้งหมด' : 'All'}
-                value={filters.identityStatus}
-                onChange={(eventInput) => setFilters({ ...filters, identityStatus: eventInput.target.value })}
-                options={['verified', 'email_mismatch', 'pending_identity_review', 'not_found', 'rejected_identity'].map((status) => ({ value: status, label: identityStatusLabel(status, language) }))}
-              />
-              <Select label={language === 'th' ? 'ฝ่ายที่ระบบจัดให้เบื้องต้น' : 'Preliminary duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignedDuty} onChange={(eventInput) => setFilters({ ...filters, assignedDuty: eventInput.target.value })} options={assignedDutyFilterOptions} />
-            </div>
-            <details className="filter-disclosure">
-              <summary>{language === 'th' ? 'ตัวกรองเพิ่มเติม' : 'More filters'}</summary>
-              <div className="filter-panel-grid">
-              <Select label={language === 'th' ? 'วิธีการจัดฝ่าย' : 'Assignment method'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.assignmentMethod} onChange={(eventInput) => setFilters({ ...filters, assignmentMethod: eventInput.target.value })} options={['auto_quota', 'manual_admin', 'fallback_general', 'pending'].map((method) => ({ value: method, label: assignmentMethodLabel(method, language) }))} />
-              <Select label={language === 'th' ? 'ฝ่ายที่จัดไว้ล่าสุด' : 'Latest duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.finalDuty} onChange={(eventInput) => setFilters({ ...filters, finalDuty: eventInput.target.value })} options={finalDutyOptions} />
-              <Select label={language === 'th' ? 'ฝ่ายที่สนใจ' : 'Preferred duty'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.preferredDuty} onChange={(eventInput) => setFilters({ ...filters, preferredDuty: eventInput.target.value })} options={filterOptions.preferred} />
-              <Select label={language === 'th' ? 'ชั้นปี' : 'Year'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.yearLevel} onChange={(eventInput) => setFilters({ ...filters, yearLevel: eventInput.target.value })} options={filterOptions.years} />
-              <Select label={language === 'th' ? 'สาขา' : 'Major'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.major} onChange={(eventInput) => setFilters({ ...filters, major: eventInput.target.value })} options={filterOptions.majors} />
-              <Select label={language === 'th' ? 'วันซ้อม' : 'Rehearsal'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.rehearsal} onChange={(eventInput) => setFilters({ ...filters, rehearsal: eventInput.target.value })} options={['ได้', 'ไม่ได้', 'ยังไม่แน่ใจ']} />
-              <Select label={language === 'th' ? 'วันจริง' : 'Event day'} placeholder={language === 'th' ? 'ทั้งหมด' : 'All'} value={filters.eventDay} onChange={(eventInput) => setFilters({ ...filters, eventDay: eventInput.target.value })} options={['ได้', 'ไม่ได้', 'ยังไม่แน่ใจ']} />
-              </div>
-            </details>
-            <div>
-              <p className="eyebrow">{language === 'th' ? 'ส่งออกข้อมูล' : 'Export data'}</p>
-              <p className="muted">{language === 'th' ? 'ไฟล์นี้มีข้อมูลติดต่อและข้อมูลสุขภาพ ใช้สำหรับส่งต่อให้หน่วยงานที่เกี่ยวข้องเท่านั้น' : 'This file contains contact and health information. Use it only for authorized handoff.'}</p>
-            </div>
-            <div className="event-card-actions">
-              <Button
-                variant="secondary"
-                icon={<FileSpreadsheet size={18} />}
-                loading={handoffExporting}
-                disabled={!rows.length}
-                onClick={() => void downloadHandoffExcel()}
-              >
-                {language === 'th' ? 'ดาวน์โหลด Excel สำหรับส่งต่อ' : 'Download handoff Excel'}
-              </Button>
-              <ExportActions
-                label={commonCopy.export}
-                actions={[
-                  { label: language === 'th' ? 'Excel ทั้งหมด' : 'All Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('all') },
-                  { label: language === 'th' ? 'Excel ตามตัวกรองปัจจุบัน' : 'Current filtered Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('filtered') },
-                  ...(filters.assignedDuty && filters.assignedDuty !== '__missing' ? [{ label: language === 'th' ? 'Excel ฝ่ายนี้' : 'This duty Excel', icon: <Download size={16} aria-hidden="true" />, onClick: () => requestExcelExport('by_assigned_duty', filters.assignedDuty) }] : []),
-                ]}
-              />
-            </div>
+            {renderFilterControls(true)}
           </Card>
 
+          {activeTab === 'assignment' ? renderQuotaPanel(false) : null}
+          {activeTab === 'export' ? renderExportPanel(false) : null}
+          {activeTab === 'duplicates' ? renderDuplicatePanel(false) : null}
+
+          {(activeTab === 'overview' || activeTab === 'review' || activeTab === 'assignment') ? (
+            <div className="admin-review-queue">
+              <div className="section-heading-row">
+                <div>
+                  <p className="eyebrow">{language === 'th' ? 'Primary review queue' : 'Primary review queue'}</p>
+                  <h2>{language === 'th' ? 'คิวตรวจใบสมัคร' : 'Application review queue'}</h2>
+                  <span>{language === 'th' ? 'ระบบเรียงรายการที่ควรจัดการก่อน เช่น รอตรวจตัวตน ยังไม่จัดฝ่าย และสถานะรอตรวจ' : 'Applicants needing action appear first: pending identity, missing duty, and submitted/under review statuses.'}</span>
+                </div>
+                <Badge status="pending">{language === 'th' ? `${reviewQueueRows.length} รายการ` : `${reviewQueueRows.length} rows`}</Badge>
+              </div>
           <ResponsiveDataTable
-            rows={filteredRows}
+            rows={reviewQueueRows}
             getKey={(row) => row.id}
-            emptyText={language === 'th' ? 'ไม่พบใบสมัครตามตัวกรอง' : 'No applications match the filters'}
+            emptyText={rows.length ? (language === 'th' ? 'ไม่พบใบสมัครตามตัวกรอง' : 'No applications match the filters') : (language === 'th' ? 'ยังไม่มีใบสมัครสตาฟสำหรับกิจกรรมนี้' : 'No staff applications yet for this event')}
             mobileTitle={(row) => applicantName(row)}
             mobileSubtitle={(row) => `${row.people?.student_id ?? row.requested_student_id ?? '-'} · ${row.people?.major ?? row.requested_major ?? '-'}${row.people?.year_level ? ` · ปี ${row.people.year_level}` : ''}`}
             mobileMeta={(row) => (
@@ -986,6 +1120,26 @@ export function AdminEventApplicationsPage() {
               { key: 'actions', header: language === 'th' ? 'จัดการ' : 'Actions', render: (row) => actionButtons(row), align: 'right', mobileHidden: true },
             ]}
           />
+            </div>
+          ) : null}
+
+          {activeTab === 'overview' ? (
+            <div className="admin-secondary-stack">
+              {renderQuotaPanel(true)}
+              {renderExportPanel(true)}
+              {renderDuplicatePanel(true)}
+            </div>
+          ) : null}
+
+          <Modal open={mobileFiltersOpen} title={language === 'th' ? 'ตัวกรองใบสมัคร' : 'Application filters'} onClose={() => setMobileFiltersOpen(false)}>
+            <div className="modal-body page-stack admin-mobile-filter-sheet">
+              {renderFilterControls(false)}
+              <div className="admin-mobile-filter-actions">
+                <Button type="button" variant="secondary" onClick={resetFilters}>{language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}</Button>
+                <Button type="button" onClick={() => setMobileFiltersOpen(false)}>{language === 'th' ? 'ใช้ตัวกรอง' : 'Apply filters'}</Button>
+              </div>
+            </div>
+          </Modal>
 
           <Modal open={Boolean(reviewDraft)} title={language === 'th' ? 'อัปเดตผลการรีวิว' : 'Update review'} onClose={() => setReviewDraft(null)}>
             {reviewDraft ? (
@@ -1132,6 +1286,14 @@ export function AdminEventApplicationsPage() {
                     <Badge status={getApplicationStatusTone(detailRow.status)}>{getApplicationStatusLabel(detailRow.status, language)}</Badge>
                   </div>
                 </Card>
+                <nav className="application-detail-nav" aria-label={language === 'th' ? 'ส่วนรายละเอียดใบสมัคร' : 'Application detail sections'}>
+                  <a href="#applicant-section">{language === 'th' ? 'ข้อมูลผู้สมัคร' : 'Applicant'}</a>
+                  <a href="#identity-section">{language === 'th' ? 'การยืนยันตัวตน' : 'Identity'}</a>
+                  <a href="#duties-section">{language === 'th' ? 'ฝ่าย' : 'Duty'}</a>
+                  <a href="#readiness-section">{language === 'th' ? 'ความพร้อม' : 'Readiness'}</a>
+                  <a href="#health-section">{language === 'th' ? 'สุขภาพ' : 'Health'}</a>
+                  <a href="#actions-section">{language === 'th' ? 'การจัดการ' : 'Actions'}</a>
+                </nav>
                 {hasNicknameWithoutFullName(detailRow) ? (
                   <Card variant="warning">
                     <strong>{language === 'th' ? 'ข้อมูลนี้มีชื่อเล่น แต่ไม่มีชื่อ-นามสกุลในฐานข้อมูลกลาง' : 'This record has a nickname but no full name.'}</strong>
@@ -1144,15 +1306,15 @@ export function AdminEventApplicationsPage() {
                     <p>{language === 'th' ? 'ควรตรวจข้อมูลในฐานข้อมูลกลางหรือคำร้องแก้ไขข้อมูลก่อนใช้งานจริง' : 'Review the central people record or update requests before real operations.'}</p>
                   </Card>
                 ) : null}
-                <Card>
-                  <h2>{language === 'th' ? 'ข้อมูลใบสมัคร' : 'Application'}</h2>
+                <Card id="identity-section">
+                  <h2>{language === 'th' ? 'การยืนยันตัวตน' : 'Identity verification'}</h2>
                   <div className="application-detail-grid">
                     <DetailRow force label={language === 'th' ? 'เวลาส่งใบสมัคร' : 'Submitted at'} value={detailRow.submitted_at ? formatBangkokDateTime(detailRow.submitted_at, language) : (language === 'th' ? 'ไม่พบเวลา' : 'Not available')} />
                     <DetailRow force label={language === 'th' ? 'สถานะใบสมัคร' : 'Application status'} value={getApplicationStatusLabel(detailRow.status, language)} />
                     <DetailRow force label={language === 'th' ? 'สถานะตัวตน' : 'Identity status'} value={identityStatusLabel(detailRow.identity_status ?? 'unverified', language)} />
                   </div>
                 </Card>
-                <Card>
+                <Card id="applicant-section">
                   <h2>{language === 'th' ? 'ข้อมูลผู้สมัคร' : 'Applicant'}</h2>
                   <div className="application-detail-grid">
                     <DetailRow label={language === 'th' ? 'ชื่อ-นามสกุล' : 'Full name'} value={applicantName(detailRow)} />
@@ -1163,7 +1325,7 @@ export function AdminEventApplicationsPage() {
                     <DetailRow force label={language === 'th' ? 'ข้อมูลที่ตรวจพบจากฐานกลาง' : 'Matched central record'} value={<CompactMatchedPerson row={detailRow} language={language} />} />
                   </div>
                 </Card>
-                <Card>
+                <Card id="duties-section">
                   <h2>{language === 'th' ? 'ตำแหน่งฝ่าย' : 'Duty position'}</h2>
                   <div className="application-detail-grid">
                     <DetailRow label={language === 'th' ? 'ตำแหน่งฝ่ายที่เลือก' : 'Selected duty position'} value={preferredDutyLabels(detailRow).join(', ')} />
@@ -1179,7 +1341,7 @@ export function AdminEventApplicationsPage() {
                     </div>
                   </details>
                 </Card>
-                <Card>
+                <Card id="readiness-section">
                   <h2>{language === 'th' ? 'ความพร้อมในการปฏิบัติงาน' : 'Work readiness'}</h2>
                   <div className="application-detail-grid">
                     <DetailRow label={language === 'th' ? 'วันซ้อม' : 'Rehearsal'} value={text(detailRow.answers?.can_attend_rehearsal)} />
@@ -1188,23 +1350,26 @@ export function AdminEventApplicationsPage() {
                     <DetailRow label={language === 'th' ? 'ประสบการณ์' : 'Experience'} value={text(detailRow.answers?.staff_experience) || detailRow.experience} />
                   </div>
                 </Card>
-                <Card variant="warning">
-                  <h2>{language === 'th' ? 'ข้อมูลสุขภาพและข้อจำกัด' : 'Health and limitations'}</h2>
-                  {healthCurrentConfirmed(detailRow) ? (
-                    <p className="muted">{language === 'th' ? 'ผู้สมัครยืนยันว่าข้อมูลนี้เป็นปัจจุบันแล้ว' : 'The applicant confirmed this health information is current.'}</p>
-                  ) : null}
-                  <div className="application-detail-grid">
-                    <DetailRow force label={language === 'th' ? 'ข้อจำกัดด้านสุขภาพ / การแพ้อาหาร / การแพ้ยา' : 'Health / allergy / limitation'} value={adminHealthSummary(detailRow)} />
-                    {healthEntries(detailRow).map((entry) => (
-                      <DetailRow key={entry.label} label={entry.label} value={text(entry.value)} />
-                    ))}
-                    {healthDetails(detailRow).confirmed_current === true ? (
-                      <DetailRow
-                        label={language === 'th' ? 'การยืนยันข้อมูลสุขภาพ' : 'Health confirmation'}
-                        value={language === 'th' ? 'ผู้สมัครยืนยันว่าข้อมูลนี้เป็นปัจจุบันแล้ว' : 'The applicant confirmed this health information is up to date.'}
-                      />
+                <Card variant="warning" id="health-section">
+                  <details>
+                    <summary>{language === 'th' ? 'ข้อมูลสุขภาพ' : 'Health information'}</summary>
+                    <p className="muted">{language === 'th' ? 'ข้อมูลสุขภาพใช้เพื่อการจัดงานเท่านั้น' : 'Health information is for event operations only.'}</p>
+                    {healthCurrentConfirmed(detailRow) ? (
+                      <p className="muted">{language === 'th' ? 'ผู้สมัครยืนยันว่าข้อมูลนี้เป็นปัจจุบันแล้ว' : 'The applicant confirmed this health information is current.'}</p>
                     ) : null}
-                  </div>
+                    <div className="application-detail-grid">
+                      <DetailRow force label={language === 'th' ? 'ข้อจำกัดด้านสุขภาพ / การแพ้อาหาร / การแพ้ยา' : 'Health / allergy / limitation'} value={adminHealthSummary(detailRow)} />
+                      {healthEntries(detailRow).map((entry) => (
+                        <DetailRow key={entry.label} label={entry.label} value={text(entry.value)} />
+                      ))}
+                      {healthDetails(detailRow).confirmed_current === true ? (
+                        <DetailRow
+                          label={language === 'th' ? 'การยืนยันข้อมูลสุขภาพ' : 'Health confirmation'}
+                          value={language === 'th' ? 'ผู้สมัครยืนยันว่าข้อมูลนี้เป็นปัจจุบันแล้ว' : 'The applicant confirmed this health information is up to date.'}
+                        />
+                      ) : null}
+                    </div>
+                  </details>
                 </Card>
                 {(isMeaningfulValue(applicantNote(detailRow)) || isMeaningfulValue(detailRow.review_note)) ? (
                   <Card>
@@ -1231,7 +1396,7 @@ export function AdminEventApplicationsPage() {
                     </div>
                   </details>
                 ) : null}
-                <Card variant="soft">
+                <Card variant="soft" id="actions-section">
                   <div className="section-heading">
                     <Save size={20} />
                     <div>
